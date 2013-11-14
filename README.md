@@ -13,6 +13,10 @@ StackSync Synchronization service
 - [Compilation](#compilation)
 - [Configuration](#configuration)
 - [Execution](#execution)
+- [Issue Tracking](#issue-tracking)
+- [Licensing](#licensing)
+- [Contact](#contact)
+
 
 # Introduction
 
@@ -68,7 +72,7 @@ to the client to fix the error.
 
 * Java 1.6 or newer
 * Maven 2
-* PostgreSQL 9.2
+* PostgreSQL 9
 * RabbitMQ
 
 # Setup
@@ -143,3 +147,14 @@ Other parameters:
 - **Config (-c, --config)**: To provide a configuration file.
 - **Version (-v, --version)**: Prints the application version.
 - **Dump config (--dump-config)**: Dumps an example of configuration file, you can redirect the output to a new file to edit the configuration.
+
+
+# Issue Tracking
+We use the GitHub issue tracking.
+
+# Licensing
+StackSync is licensed under the GPLv3. Check [LICENSE](LICENSE) for the latest
+licensing information.
+
+# Contact
+Visit www.stacksync.com for contact information.
