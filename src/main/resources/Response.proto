@@ -1,0 +1,18 @@
+package protocBuffers;
+
+import "Metadata.proto";
+option java_package = "com.ast.processserver.messages.protobuf";
+option java_outer_classname = "ProtoResponse";
+message Response {
+	required string responseId = 1;
+	required string type = 2;
+	message File {
+		required string rootId = 1;
+		required int64 fileId = 2;
+		required int64 version = 3;
+		required bool committed = 4;
+		required Metadata metadata = 5;
+	}
+
+	repeated File files = 3;
+}

@@ -1,0 +1,7 @@
+0.4.3 17-10-2013
+----------------
+- Fixed the API request to create a folder. If the user tried to create a folder with the same name as a deleted folder, SyncServer returned error 400 (file already exists).
+
+0.4.2 16-10-2013 (svn: 300)
+---------------------------
+- Changed OMQ to version 0.5.6 to solve problems with rabbitmq closed channels.

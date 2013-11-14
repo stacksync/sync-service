@@ -1,0 +1,45 @@
+DEVELOPMENT
+====================================
+
+1. SOURCE CODE
+-----------------------
+Source code is hosted in the AST Research Group SVN server.
+If you need more information contact the authors.
+
+2. STACKSYNC SYNCSERVICE
+-----------------------
+StackSync SyncService is almost entirely based on Java.
+The development IDE is Eclipse.
+
+
+2.1. BUILD REQUIREMENTS
+-----------------------
+* JDK 6, or higher
+* Maven 2
+
+
+2.2. BUILDING & RUNNING
+-----------------------
+StackSync can be built and run from within the Eclipse IDE.
+
+
+3. PACKAGES INTRODUCTION
+-----------------------
+
+com.stacksync.syncservice.db:
+This package contains the classes in charge of accessing to the metadata database. A Data Access Object (DAO) has been implemented to facilitate the development of new database connectors. In order to add a new connector you should implement the interfaces DAOFactory and DatabaseDAO.
+
+com.stacksync.syncservice.handler:
+This package contains the logic of the SyncService, it handles the requests and performs the appropiate actions. It uses the DAO to communicate with the metadata backend.
+
+com.stacksync.syncservice.middleware:
+This package contains the classes related to the middleware layer (ObjectMQ). It has classes shared with the clients in order to make communication possible. The class Syncserver is an interface implemented by SyncserverImp that contains the methods exposed to the clients.
+
+com.stacksync.syncservice.model:
+This package contains the Java Beans of the models.
+
+com.stacksync.syncservice.rpc:
+This package contains the classes to handle RPC calls from the REST API.
+
+
+
