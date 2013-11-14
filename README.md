@@ -2,6 +2,68 @@ StackSync Synchronization service
 =================================
 
 
+**Table of Contents**
+
+- [Introduction](#introduction)
+- [Architecture](#architecture)
+- [Synchronization service](#synchronization-service)
+- [Requirements](#requirements)
+- [Setup](#setup)
+    - [Create a new user](#create-a-new-user)
+- [Compilation](#compilation)
+- [Configuration](#configuration)
+- [Execution](#execution)
+
+# Introduction
+
+StackSync (<http://stacksync.com>) is a scalable open source Personal Cloud
+that implements the basic components to create a synchronization tool.
+
+
+# Architecture
+
+In general terms, StackSync can be divided into three main blocks: clients
+(desktop and mobile), synchronization service (SyncService) and storage
+service (Swift, Amazon S3, FTP...). An overview of the architecture
+with the main components and their interaction is shown in the following image.
+
+<p align="center">
+  <img width="500" src="https://raw.github.com/stacksync/desktop/master/res/stacksync-architecture.png">
+</p>
+
+The StackSync client and the SyncService interact through the communication
+middleware called ObjectMQ. The sync service interacts with the metadata
+database. The StackSync client directly interacts with the storage back-end
+to upload and download files.
+
+As storage back-end we are using OpenStack Swift, an open source cloud storage
+software where you can store and retrieve lots of data in virtual containers.
+It's based on the Cloud Files offering from Rackspace. But it is also possible
+to use other storage back-ends, such as a FTP server or S3.
+
+
+# Synchronization service
+
+The SyncService is in charge of managing the metadata in order to achieve
+data synchronization. Desktop clients communicate with the SyncService for two main
+reasons: to obtain the changes occurred when they were offline; and to commit new versions
+of a files.
+
+When a client connects to the system, the first thing it does is asking the SyncService
+for changes that were made during the offline time period. This is very common situation
+for users working with two different computers, e.g., home and work. Assuming the home
+computer is off, if the user modifies some files while at work, the home computer will not
+realize about these changes until the user turns on the computer. At this time, the client will
+ask the SyncService and update to apply the changes made at work.
+
+When the server receives a commit operation of a file, it must first check that the meta-
+data received is consistent. If the metadata is correct, it proceeds to save it to a database.
+Afterwards, a notification is sent to all devices owned by the user reporting the file update.
+This provides StackSync with real-time in all devices as they receive notifications of updates
+and are always synchronized. However, if the metadata is incorrect, an notification is sent
+to the client to fix the error.
+
+
 # Requirements
 
 * Java 1.6 or newer
@@ -9,37 +71,9 @@ StackSync Synchronization service
 * PostgreSQL 9.2
 * RabbitMQ
 
-# Installing Maven 2
+# Setup
 
-To install Maven 2 you only need to run the following command.
-
-    $ sudo apt-get install maven2
-
-
-# Installing RabbitMQ
-
-To install the latest RabbitMQ you only need to run the following command.
-
-    $ sudo apt-get install rabbitmq-server
-
-
-
-# Installing PostgreSQL
-
-First, you need to install the required libs using the command below:
-
-    $ sudo apt-get install libpq-dev
-
-
-Open a terminal and run the following commands to add the repository containing PostgreSQL 9.2 and install it:
-
-    $ sudo add-apt-repository ppa:pitti/postgresql
-    $ sudo apt-get update
-    $ sudo apt-get install postgresql-9.2
-    $ sudo apt-get upgrade
-
-
-# Database initialization
+## Database initialization
 
 In order to initialize the database we need to create the database and the user and execute the script “setup_db.sql” located in "src/main/resources".
 
@@ -64,7 +98,7 @@ Now run execute the script.
     postgres=# \q
 
 
-# Create a new user
+## Create a new user
 
 Go to the "script" folder inside the SyncService project and run the following command to install the necessary tools to create users.
 
@@ -77,36 +111,35 @@ Now run the following commands to add a new user and a new workspace associated 
 
 
 
-# COMPILING THE STACKSYNC SYNCSERVICE PROJECT
+# Compilation
 
-First of all, you need to manually add the ObjectMQ library into your local Maven repository. Assuming you are located in the root folder of the project, just run the following command:
-
-    $ mvn install:install-file -Dfile=lib/objectMQ.jar -DgroupId=objectmq -DartifactId=objectmq -Dversion=1.0 -Dpackaging=jar
-
-Now we just need to assemble the project into a JAR:
+We just need to assemble the project into a JAR:
 
     $ mvn assembly:assembly
 
 This will generate a "target" folder containing a JAR file called "syncservice-X.X-jar-with-dependencies.jar"
 
-> NOTE: if you get an error (BUILD FAILURE), run the following command to clean your local repository and execute the commands of this section again.
+> NOTE: if you get an error (BUILD FAILURE), cleaning your local Maven repository may fix the problem.
 
     $ rm -rf ~/.m2/repository/*
 
 
-# CONFIGURING THE SYNCSERVICE
+# Configuration
 
-Now we need to generate the properties file you can just run the JAR with the argument --dump-config and redirect the output to a new file:
+To generate the properties file you can just run the JAR with the argument --dump-config and redirect the output to a new file:
 
     $ java -jar syncservice-X.X-jar-with-dependencies.jar --dump-config > config.properties
 
-This will generate a file called "config.properties" where the different parameters can be set up.
 
+# Execution
 
-# EXECUTING THE SYNCSERVICE
-
-You only need to run the following command specifying the location of your configuration file.
+Run the following command specifying the location of your configuration file.
 
     $ java -jar syncservice-0.3-jar-with-dependencies.jar --config config.properties
 
+Other parameters:
 
+- **Help (-h, --help)**: Shows the different execution options.
+- **Config (-c, --config)**: To provide a configuration file.
+- **Version (-v, --version)**: Prints the application version.
+- **Dump config (--dump-config)**: Dumps an example of configuration file, you can redirect the output to a new file to edit the configuration.
