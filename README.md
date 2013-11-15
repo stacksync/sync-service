@@ -9,7 +9,8 @@ StackSync Synchronization service
 - [Synchronization service](#synchronization-service)
 - [Requirements](#requirements)
 - [Setup](#setup)
-    - [Create a new user](#create-a-new-user)
+    - [Database initialization](database-initialization)
+    - [Create new users](#create-new-users)
 - [Compilation](#compilation)
 - [Configuration](#configuration)
 - [Execution](#execution)
@@ -102,13 +103,13 @@ Now run execute the script.
     postgres=# \q
 
 
-## Create a new user
+## Create new users
 
-Go to the "script" folder inside the SyncService project and run the following command to install the necessary tools to create users.
+Go to the "script" folder inside the SyncService project and run the following command to install the necessary tools to create users. It will install Ruby and some dependencies.
 
     $ sudo ./install.sh
 
-Now run the following commands to add a new user and a new workspace associated to the user. The user must be the same as the one in the storage backend.
+Now run the following scripts to add a new user and a new workspace associated to the user. The username must be the same as the one in the storage backend.
 
     $ ./postgres/adduser.rb -i <USER> -n <USER> -q 1
     $ ./postgres/addworkspace.rb -i <USER> -p /
@@ -117,20 +118,20 @@ Now run the following commands to add a new user and a new workspace associated 
 
 # Compilation
 
-We just need to assemble the project into a JAR:
+We just need to assemble the project into a JAR using Maven:
 
     $ mvn assembly:assembly
 
 This will generate a "target" folder containing a JAR file called "syncservice-X.X-jar-with-dependencies.jar"
 
-> NOTE: if you get an error (BUILD FAILURE), cleaning your local Maven repository may fix the problem.
+> **NOTE**: if you get an error (BUILD FAILURE), cleaning your local Maven repository may fix the problem.
 
     $ rm -rf ~/.m2/repository/*
 
 
 # Configuration
 
-To generate the properties file you can just run the JAR with the argument --dump-config and redirect the output to a new file:
+To generate the properties file you can just run the JAR with the argument <code>--dump-config</code> and redirect the output to a new file:
 
     $ java -jar syncservice-X.X-jar-with-dependencies.jar --dump-config > config.properties
 
@@ -139,7 +140,7 @@ To generate the properties file you can just run the JAR with the argument --dum
 
 Run the following command specifying the location of your configuration file.
 
-    $ java -jar syncservice-0.3-jar-with-dependencies.jar --config config.properties
+    $ java -jar syncservice-X.X-jar-with-dependencies.jar --config config.properties
 
 Other parameters:
 
