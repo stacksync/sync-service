@@ -11,6 +11,9 @@ StackSync Synchronization service
 - [Setup](#setup)
     - [Database initialization](database-initialization)
     - [Create new users](#create-new-users)
+        - [Common part](#common-part)
+        - [OpenStack Swift](#openstack-swift)
+        - [Other storage back-end](#other-storage-back-end)
 - [Compilation](#compilation)
 - [Configuration](#configuration)
 - [Execution](#execution)
@@ -105,16 +108,43 @@ Now run execute the script.
 
 ## Create new users
 
-Go to the "script" folder inside the SyncService project and run the following command to install the necessary tools to create users. It will install Ruby and some dependencies.
+Creating users depends on the storage back-end. There is a common part which is independent of the storage back-end and a part that differs a little.
+
+### Common part
+
+Go to the [script](script) folder and run the following command to install the necessary tools to create users. It will install Ruby and some dependencies.
 
     $ sudo ./install.sh
+    
+Modify the values from the [settings.conf](script/settings.conf) file:
 
-Now run the following scripts to add a new user and a new workspace associated to the user. The username must be the same as the one in the storage backend.
+- **backend**: The database used. In this case postgres.
+- **ip-db**: Database IP.
+- **postgres-db**: Database name.
+- **postgres-db-user**: Database user.
+- **postgres-db-password**: User passord.
+
+### OpenStack Swift
+If you use Swift as storage back-end, you just need to execute the script [adduser-swift.sh](script/adduser-swift.sh) with the parameters:
+
+- User role.
+- User tenant.
+- User name.
+- User password.
+- User quota (not used yet)
+
+Example: ./adduser.sh users peter peter secr3t 2048
+
+**WARNING:** In the current version, tenant and user name must be the same.
+
+This script will do all the necessary to initialize the client in the database and in Swift.
+
+### Other storage back-end
+
+Run the following scripts to add a new user and a new workspace associated to the user. The username must be the same as the one in the storage backend.
 
     $ ./postgres/adduser.rb -i <USER> -n <USER> -q 1
     $ ./postgres/addworkspace.rb -i <USER> -p /
-
-
 
 # Compilation
 
