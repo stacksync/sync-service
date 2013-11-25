@@ -171,6 +171,8 @@ do
 	echo "DELETE container -> $STORAGEURL/$container"
 done
 
+# Add container stacksync
+curl -i -XPUT -k -H "X-Auth-Token: $USERTOKEN" $STORAGEURL/stacksync
 
 echo "=========================="
 echo "===Initialize $DATABASE==="

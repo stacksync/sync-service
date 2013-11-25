@@ -4,4 +4,4 @@ if [[ $UID -ne 0 ]]; then
         exit 1
 fi
 
-apt-get -y install python-keystoneclient
+apt-get -y install python-keystoneclient curl
