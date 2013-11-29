@@ -11,10 +11,10 @@
 
     <appender class="org.apache.log4j.rolling.RollingFileAppender" name="A2">
         <param value="true" name="append"/>
-        <param value="logs/sync-service-temp.log" name="File"/>
+        <param value="/var/log/stacksync/stacksync.log" name="File"/>
 
         <rollingPolicy class="org.apache.log4j.rolling.FixedWindowRollingPolicy">
-            <param name="fileNamePattern" value="logs/sync-service-%i.log" />
+            <param name="fileNamePattern" value="/var/log/stacksync/stacksync.%i.log" />
             <param name="MinIndex" value="0"/> 
             <param name="MaxIndex" value="1"/> 
         </rollingPolicy>
