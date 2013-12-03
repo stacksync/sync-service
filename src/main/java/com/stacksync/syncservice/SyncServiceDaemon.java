@@ -37,14 +37,14 @@ public class SyncServiceDaemon implements Daemon {
 
 	@Override
 	public void init(DaemonContext dc) throws DaemonInitException, Exception {
-		logger.info(String.format("Initializing StackSync server v%s...",
+		logger.info(String.format("Initializing StackSync Server v%s...",
 				SyncServiceDaemon.getVersion()));
 
 		try {
 			String[] argv = dc.getArguments();
 			
 			if(argv.length == 0 ){
-				logger.error("No config file passed to StackSync server.");
+				logger.error("No config file passed to StackSync Server.");
 				System.exit(1);
 			}
 			
@@ -98,7 +98,7 @@ public class SyncServiceDaemon implements Daemon {
 
 		try {
 			broker.bind(ISyncService.class.getSimpleName(), syncService);
-			logger.info("SyncService is ready and waiting for messages...");
+			logger.info("StackSync Server is ready and waiting for messages...");
 		} catch (Exception e) {
 			logger.fatal("Could not bind queue.", e);
 			System.exit(5);
@@ -119,7 +119,7 @@ public class SyncServiceDaemon implements Daemon {
 		try {
 			broker.stopBroker();
 		} catch (Exception e) {
-			logger.fatal("Error stoping SyncService.", e);
+			logger.fatal("Error stoping StackSync Server.", e);
 			throw e;
 		}
 	}

@@ -4,7 +4,7 @@
 	<name>StackSync Server</name>
 	<groupId>com.stacksync.syncservice</groupId>
 	<artifactId>syncservice</artifactId>
-	<version>0.4.3</version>
+	<version>0.4.4</version>
 	<repositories>
 		<repository>
 			<id>Sonatype repository</id>

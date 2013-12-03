@@ -1,29 +1,24 @@
 DEVELOPMENT
 ====================================
 
-1. SOURCE CODE
------------------------
-Source code is hosted in the AST Research Group SVN server.
-If you need more information contact the authors.
-
-2. STACKSYNC SYNCSERVICE
+1. STACKSYNC SYNCSERVICE
 -----------------------
 StackSync SyncService is almost entirely based on Java.
 The development IDE is Eclipse.
 
 
-2.1. BUILD REQUIREMENTS
+1.1. BUILD REQUIREMENTS
 -----------------------
 * JDK 6, or higher
 * Maven 2
 
 
-2.2. BUILDING & RUNNING
+1.2. BUILDING & RUNNING
 -----------------------
 StackSync can be built and run from within the Eclipse IDE.
 
 
-3. PACKAGES INTRODUCTION
+2. PACKAGES INTRODUCTION
 -----------------------
 
 com.stacksync.syncservice.db:
