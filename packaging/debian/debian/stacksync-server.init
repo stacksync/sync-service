@@ -1,0 +1,98 @@
+#! /bin/sh
+#  /etc/init.d/stacksync-server
+
+
+if [ `id -u` != `id -u stacksync` -a `id -u` != 0  ] ; then
+    echo
+    echo "Only root or stacksync can run stacksync-server"
+    echo
+    exit 1
+fi
+
+NAME="stacksync-server"
+DESC="StackSync Server"
+
+# The path to Jsvc
+EXEC="/usr/bin/jsvc"
+
+# The path to the folder containing StackSyncServer.jar
+FILE_PATH="/usr/lib/$NAME"
+CONFIG_PATH="/etc/$NAME"
+
+# The path to the folder containing the java runtime
+JAVA_HOME="/usr/lib/jvm/java-7-oracle"
+
+# Our classpath including our jar file and the Apache Commons Daemon library
+CLASS_PATH="$FILE_PATH/stacksync_server.jar:$FILE_PATH/lib/commons-daemon-1.0.15.jar"
+
+# The fully qualified name of the class to execute
+CLASS="com.stacksync.syncservice.SyncServiceDaemon"
+
+# Any command line arguments to be passed to the our Java Daemon implementations init() method 
+ARGS="$CONFIG_PATH/stacksync-server.conf"
+
+#The user to run the daemon as
+USER="stacksync"
+
+# The file that will contain our process identification number (pid) for other scripts/programs that need to access it.
+PID="/var/run/$NAME.pid"
+
+jsvc_exec()
+{   
+    cd $FILE_PATH
+    $EXEC -home $JAVA_HOME -cp $CLASS_PATH -user $USER -pidfile $PID -wait 10 $1 $CLASS $ARGS
+}
+
+case "$1" in
+    start)  
+        echo "Starting $DESC..."        
+        
+        # Start the service
+        jsvc_exec
+        
+        if [ $? != "0" ]; then
+            echo "$DESC could not start, check the log file for more information."
+            exit 1
+        fi
+        
+        echo "$DESC has started."
+    ;;
+    stop)
+        if [ -f "$PID" ]; then
+            echo "Stopping $DESC..."
+         
+            # Stop the service
+            jsvc_exec "-stop"       
+        
+            echo "$DESC has stopped."
+        else
+            echo "$DESC not running, no action taken"
+        fi
+    ;;
+    restart)
+        if [ -f "$PID" ]; then
+            echo "Restarting the $DESC..."
+
+            # Stop the service
+            jsvc_exec "-stop"
+            
+            # Start the service
+            jsvc_exec
+            
+            echo "The $DESC has restarted."
+        else
+            echo "Daemon not running, no action taken"
+        fi
+    ;;
+    status)
+        if [ -f "$PID" ]; then
+            echo "$DESC is running."
+        else
+            echo "$DESC is NOT running."
+        fi
+    ;;
+    *)
+    echo "Usage: /etc/init.d/$NAME {start|stop|restart|status}" >&2
+    exit 3
+    ;;
+esac

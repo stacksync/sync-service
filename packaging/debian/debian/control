@@ -1,0 +1,16 @@
+Package: stacksync-server
+Version: 0.4.4
+Section: net
+Priority: extra
+Installed-Size: 4140
+Architecture: all
+Build-Depends: jsvc
+Homepage: http://www.stacksync.org/
+Maintainer: Adrian Moreno <adrian@morenomartinez.com>
+Description: StackSync is an open-source scalable Personal Cloud
+ StackSync can adapt to the necessities of organizations and
+ puts a special emphasis on security by encrypting data 
+ on the client side before it is sent to the server.
+ .
+ The StackSync Server manages metadata to guarantee a 
+ correct synchronization among all user devices.

@@ -1,0 +1,26 @@
+#!/bin/sh
+# postinst script for stacksync-server
+
+# create stacksync group
+if ! getent group stacksync >/dev/null; then
+        addgroup --system stacksync
+fi
+
+# create stacksync user
+if ! getent passwd stacksync >/dev/null; then
+        adduser --system --ingroup stacksync --home /usr/lib/stacksync-server \
+                --no-create-home --gecos "StackSync Server" \
+                --disabled-login stacksync
+fi
+
+chown -R stacksync:stacksync /usr/lib/stacksync-server
+chown -R stacksync:stacksync /var/log/stacksync-server
+chmod +r /var/log/stacksync-server -R
+
+
+if [ -x "/etc/init.d/stacksync-server" ]; then
+	if [ ! -e "/etc/stacksync-server/stacksync-server.conf" ]; then
+		update-rc.d stacksync-server defaults >/dev/null
+	fi
+	#invoke-rc.d stacksync-server start || exit $?
+fi

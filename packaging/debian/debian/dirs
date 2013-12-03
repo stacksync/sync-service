@@ -1,0 +1,5 @@
+usr/lib/stacksync-server/lib
+usr/bin
+usr/share/man/man1
+var/log/stacksync-server
+etc/stacksync-server
