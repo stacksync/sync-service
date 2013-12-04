@@ -13,7 +13,7 @@ all:
 .PHONY: clean
 
 compile:
-	cd ../..; mvn clean; mvn assembly:assembly
+	cd ../..; mvn clean dependency:copy-dependencies assembly:assembly
 
 package: clean
 	# Add changes to changelog
@@ -34,7 +34,7 @@ package: clean
 	# Copy bin script
 	cp $(COMMONS_DIR)/stacksync-server $(PACKAGE_NAME)/usr/bin/
 	# Copy commons-daemon lib
-	cp $(COMMONS_DIR)/commons-daemon-1.0.15.jar $(PACKAGE_NAME)/usr/lib/stacksync-server/lib/
+	cp $(TARGET_DIR)/commons-daemon-1.0.15.jar $(PACKAGE_NAME)/usr/lib/stacksync-server/lib/
 	# Copy man page
 	cp $(COMMONS_DIR)/stacksync-server.1.gz $(PACKAGE_NAME)/usr/share/man/man1/
 	# Copy configuration file
