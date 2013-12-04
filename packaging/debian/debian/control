@@ -1,8 +1,8 @@
 Package: stacksync-server
-Version: 0.4.4
+Version: VERSION
 Section: net
 Priority: extra
-Installed-Size: 4140
+Installed-Size: 4156
 Architecture: all
 Build-Depends: jsvc
 Homepage: http://www.stacksync.org/

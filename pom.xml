@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<name>StackSync Server</name>
 	<groupId>com.stacksync.syncservice</groupId>
-	<artifactId>syncservice</artifactId>
+	<artifactId>stacksync-server</artifactId>
 	<version>0.4.4</version>
 	<repositories>
 		<repository>
