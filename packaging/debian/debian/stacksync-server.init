@@ -23,7 +23,7 @@ CONFIG_PATH="/etc/$NAME"
 JAVA_HOME="/usr/lib/jvm/java-7-oracle"
 
 # Our classpath including our jar file and the Apache Commons Daemon library
-CLASS_PATH="$FILE_PATH/stacksync_server.jar:$FILE_PATH/lib/commons-daemon-1.0.15.jar"
+CLASS_PATH="$FILE_PATH/stacksync-server.jar:$FILE_PATH/lib/commons-daemon-1.0.15.jar"
 
 # The fully qualified name of the class to execute
 CLASS="com.stacksync.syncservice.SyncServiceDaemon"
