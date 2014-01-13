@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.util.List;
 
 import com.stacksync.syncservice.exceptions.DAOException;
+import com.stacksync.syncservice.model.Device;
 import com.stacksync.syncservice.models.CommitResult;
 import com.stacksync.syncservice.models.ObjectMetadata;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
@@ -25,6 +26,8 @@ public interface Handler {
 	public CommitResult doCommit(Commit request) throws DAOException;
 
 	public List<ObjectMetadata> doGetChanges(String workspaceName, String user);
+	
+	public Long doUpdateDevice(Device device);
 
 	public APIGetMetadata ApiGetMetadata(String user, Long fileId, Boolean includeList, Boolean includeDeleted, Boolean includeChunks, Long version);
 

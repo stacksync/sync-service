@@ -1,10 +1,18 @@
 package com.stacksync.syncservice.model;
 
+import java.lang.reflect.Field;
+import java.util.Date;
+
 public class Device {
 
 	private Long id;
 	private String name;
 	private User user;
+	private String os;
+	private Date createdAt;
+	private Date lastAccessAt;
+	private String lastIp;
+	private String appVersion;
 
 	public Device() {
 		this.id = null;
@@ -14,6 +22,57 @@ public class Device {
 		this.id = id;
 		this.name = name;
 		this.user = user;
+	}
+
+	public Device(String name, User user, String os, Date createdAt,
+			Date lastAccessAt, String lastIp, String appVersion) {
+		this.name = name;
+		this.user = user;
+		this.os = os;
+		this.createdAt = createdAt;
+		this.lastAccessAt = lastAccessAt;
+		this.lastIp = lastIp;
+		this.appVersion = appVersion;
+	}
+
+	public String getOs() {
+		return os;
+	}
+
+	public void setOs(String os) {
+		this.os = os;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Date getLastAccessAt() {
+		return lastAccessAt;
+	}
+
+	public void setLastAccessAt(Date lastAccessAt) {
+		this.lastAccessAt = lastAccessAt;
+	}
+
+	public String getLastIp() {
+		return lastIp;
+	}
+
+	public void setLastIp(String lastIp) {
+		this.lastIp = lastIp;
+	}
+
+	public String getAppVersion() {
+		return appVersion;
+	}
+
+	public void setAppVersion(String appVersion) {
+		this.appVersion = appVersion;
 	}
 
 	public Long getId() {
@@ -43,6 +102,34 @@ public class Device {
 	public boolean isValid() {
 		// TODO Auto-generated method stub
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder result = new StringBuilder();
+
+		result.append(this.getClass().getName());
+		result.append(" {");
+
+		// determine fields declared in this class only (no fields of
+		// superclass)
+		Field[] fields = this.getClass().getDeclaredFields();
+
+		// print field names paired with their values
+		for (Field field : fields) {
+			result.append("  ");
+			try {
+				result.append(field.getName());
+				result.append(": ");
+				// requires access to private field:
+				result.append(field.get(this));
+			} catch (IllegalAccessException ex) {
+				System.out.println(ex);
+			}
+		}
+		result.append("}");
+
+		return result.toString();
 	}
 
 }

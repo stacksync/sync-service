@@ -100,7 +100,12 @@ ALTER TABLE ONLY public.user1 ALTER COLUMN id SET DEFAULT nextval('sequencer_use
 CREATE TABLE public.device (
     id bigint NOT NULL,
     name varchar(100) NOT NULL,
-    user_id bigint NOT NULL
+    user_id bigint NOT NULL,
+    os varchar(100) NOT NULL,
+    created_at timestamp,
+    last_access_at timestamp,
+    last_ip inet,
+    app_version varchar(45)
 );
 
 ALTER TABLE public.device ADD CONSTRAINT pk_device PRIMARY KEY (id);

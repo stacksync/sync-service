@@ -4,7 +4,7 @@
 	<name>StackSync Server</name>
 	<groupId>com.stacksync.syncservice</groupId>
 	<artifactId>stacksync-server</artifactId>
-	<version>0.4.4</version>
+	<version>0.4.5</version>
 	<repositories>
 		<repository>
 			<id>Sonatype repository</id>
@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>syncservice-common</groupId>
 			<artifactId>syncservice-common</artifactId>
-			<version>1.1</version>
+			<version>1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>objectmq</groupId>

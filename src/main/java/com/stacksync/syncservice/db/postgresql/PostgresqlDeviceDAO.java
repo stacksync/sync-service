@@ -88,9 +88,11 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 			throw new IllegalArgumentException("Device attributes not set");
 		}
 
-		Object[] values = { device.getName(), device.getUser().getId() };
+		Object[] values = { device.getName(), device.getUser().getId(), device.getOs(), 
+				device.getLastIp(), device.getAppVersion() };
 
-		String query = "INSERT INTO device (name, user_id) VALUES (?, ?)";
+		String query = "INSERT INTO device (name, user_id, os, created_at, last_access_at, last_ip, app_version) "
+				+ "VALUES (?, ?, ?, now(), now(), ?::inet, ?)";
 
 		Long id = executeUpdate(query, values);
 
@@ -105,9 +107,10 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 			throw new IllegalArgumentException("Device attributes not set");
 		}
 
-		Object[] values = { device.getName(), device.getUser().getId(), device.getId() };
-
-		String query = "UPDATE device SET name = ?, user_id = ? WHERE id = ?";
+		Object[] values = { device.getLastIp(), device.getAppVersion(), device.getId() };
+		
+		String query = "UPDATE device SET last_access_at = now(), last_ip = ?::inet, app_version = ? "
+				+ "WHERE id = ?";
 
 		try {
 			executeUpdate(query, values);

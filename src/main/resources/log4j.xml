@@ -29,9 +29,9 @@
     </appender>
 
   <root> 
-    <priority value ="info" /> 
-    <!-- <appender-ref ref="consoleAppender" /> -->
-    <appender-ref ref="A2" />  
+    <priority value ="debug" /> 
+    <appender-ref ref="consoleAppender" />
+    <!--  <appender-ref ref="A2" /> -->  
   </root>
   
 </log4j:configuration>

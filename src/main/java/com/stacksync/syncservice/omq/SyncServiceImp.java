@@ -13,8 +13,11 @@ import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.exceptions.DAOException;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLHandler;
+import com.stacksync.syncservice.model.Device;
+import com.stacksync.syncservice.model.User;
 import com.stacksync.syncservice.model.Workspace;
 import com.stacksync.syncservice.models.CommitResult;
+import com.stacksync.syncservice.models.DeviceInfo;
 import com.stacksync.syncservice.models.ObjectMetadata;
 import com.stacksync.syncservice.models.WorkspaceInfo;
 import com.stacksync.syncservice.omq.ISyncService;
@@ -106,26 +109,22 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		return handler;
 	}
 
-	/*
-	 * Save logs report, it calls at begin and end from commit.
-	 * 
-	 * private static void saveTimeSendRequestLog(String processName, String
-	 * requestId, String method) throws IOException { long timeNow =
-	 * System.currentTimeMillis(); try { Properties env =
-	 * Environment.getEnvironment();
-	 * 
-	 * String debugPath = env.getProperty(ParameterQueue.DEBUGFILE, ""); if
-	 * (debugPath.length() > 0) { File outputFolder = new File(debugPath +
-	 * File.separator + processName); outputFolder.mkdirs();
-	 * 
-	 * File outputFileLog = new File(outputFolder + File.separator + "log");
-	 * boolean exist = outputFileLog.exists();
-	 * 
-	 * FileWriter fw = new FileWriter(outputFileLog, true); // the true will
-	 * append the new data if(!exist){ fw.write("#RequestId\tMethod\tDate\n"); }
-	 * fw.write(requestId + "\t" + method + "\t" + timeNow + "\n"); fw.close();
-	 * } } catch (EnvironmentException e) { throw new
-	 * IOException(e.getMessage(), e); } }
-	 */
+	@Override
+	public Long updateDevice(String user, String requestId, DeviceInfo deviceInfo) {
+		
+		Device device = new Device();
+		device.setId(deviceInfo.getId());
+		device.setUser(new User(Long.parseLong(user)));
+		device.setName(deviceInfo.getName());
+		device.setOs(deviceInfo.getOs());
+		device.setLastIp(deviceInfo.getLastIp());
+		device.setAppVersion(deviceInfo.getAppVersion());
+		
+		logger.debug(String.format("RequestId=%s, updateDevice: %s", requestId, device.toString()));
+		
+		Long deviceId = getHandler().doUpdateDevice(device);
+		
+		return deviceId;
+	}
 
 }
