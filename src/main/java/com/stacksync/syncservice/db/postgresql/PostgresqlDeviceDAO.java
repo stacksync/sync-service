@@ -107,10 +107,10 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 			throw new IllegalArgumentException("Device attributes not set");
 		}
 
-		Object[] values = { device.getLastIp(), device.getAppVersion(), device.getId() };
+		Object[] values = { device.getLastIp(), device.getAppVersion(), device.getId(), device.getUser().getId() };
 		
 		String query = "UPDATE device SET last_access_at = now(), last_ip = ?::inet, app_version = ? "
-				+ "WHERE id = ?";
+				+ "WHERE id = ? and user_id = ?";
 
 		try {
 			executeUpdate(query, values);
