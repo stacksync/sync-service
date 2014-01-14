@@ -30,7 +30,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	private transient static final Logger logger = Logger.getLogger(SyncServiceImp.class.getName());
 	private transient static final long serialVersionUID = 1L;
 	private transient int index;
-	private transient int num_threads;
+	private transient int numThreads;
 	private transient ConnectionPool pool;
 	private transient Handler[] handlers;
 	private transient Broker broker;
@@ -42,10 +42,10 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		index = 0;
 		// Create handlers
-		num_threads = Integer.parseInt(this.broker.getEnvironment().getProperty(ParameterQueue.NUM_THREADS, "1"));
-		handlers = new Handler[num_threads];
+		numThreads = Integer.parseInt(this.broker.getEnvironment().getProperty(ParameterQueue.NUM_THREADS, "1"));
+		handlers = new Handler[numThreads];
 
-		for (int i = 0; i < num_threads; i++) {
+		for (int i = 0; i < numThreads; i++) {
 			handlers[i] = new SQLHandler(this.pool);
 		}
 
@@ -104,7 +104,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	}
 
 	private synchronized Handler getHandler() {
-		Handler handler = handlers[index++ % num_threads];
+		Handler handler = handlers[index++ % numThreads];
 		logger.debug("Using handler: " + handler + " using connection: " + handler.getConnection());
 		return handler;
 	}
@@ -112,12 +112,15 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	@Override
 	public Long updateDevice(String user, String requestId, DeviceInfo deviceInfo) {
 		
+		User user1 = new User();
+		user1.setCloudId(user);
+		
 		Device device = new Device();
 		device.setId(deviceInfo.getId());
-		device.setUser(new User(Long.parseLong(user)));
+		device.setUser(user1);
 		device.setName(deviceInfo.getName());
 		device.setOs(deviceInfo.getOs());
-		device.setLastIp(deviceInfo.getLastIp());
+		device.setLastIp(deviceInfo.getIp());
 		device.setAppVersion(deviceInfo.getAppVersion());
 		
 		logger.debug(String.format("RequestId=%s, updateDevice: %s", requestId, device.toString()));

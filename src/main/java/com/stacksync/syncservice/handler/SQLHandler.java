@@ -189,6 +189,15 @@ public class SQLHandler implements Handler {
 
 	@Override
 	public Long doUpdateDevice(Device device) {
+		
+		try {
+			User user = userDao.findByCloudId(device.getUser().getCloudId());
+			device.setUser(user);
+		} catch (DAOException e1) {
+			logger.error(e1);
+			return -1L;
+		}
+		
 		try {
 			if (device.getId() == null) {
 				deviceDao.add(device);
