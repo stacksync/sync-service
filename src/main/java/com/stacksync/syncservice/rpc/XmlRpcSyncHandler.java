@@ -13,7 +13,7 @@ import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLHandler;
 import com.stacksync.syncservice.models.CommitInfo;
 import com.stacksync.syncservice.models.CommitResult;
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 import com.stacksync.syncservice.omq.RemoteWorkspace;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
@@ -103,7 +103,7 @@ public class XmlRpcSyncHandler {
 
 	private String checkParentMetadata(Long parentId, APIGetMetadata metadataResponse) {
 		String strResponse = "";
-		ObjectMetadata parentMetadata = metadataResponse.getObjectMetadata();
+		ItemMetadata parentMetadata = metadataResponse.getItemMetadata();
 
 		if (parentId != null && parentMetadata == null) {
 			APICommitResponse response = new APICommitResponse(null, false, 404, "Parent not found.");
@@ -165,11 +165,11 @@ public class XmlRpcSyncHandler {
 			return strParentResponse;
 		}
 
-		ObjectMetadata parentMetadata = metadataResponse.getObjectMetadata();
-		ObjectMetadata object = new ObjectMetadata();
+		ItemMetadata parentMetadata = metadataResponse.getItemMetadata();
+		ItemMetadata object = new ItemMetadata();
 
-		object.setFileName(strFileName);
-		object.setFileSize(fileSize);
+		object.setFilename(strFileName);
+		object.setSize(fileSize);
 		object.setChecksum(checksum);
 		object.setMimetype(strMimetype);
 		object.setChunks(strChunks);
@@ -198,8 +198,8 @@ public class XmlRpcSyncHandler {
 
 		String workspace = strUser + "/";
 
-		ObjectMetadata object = new ObjectMetadata();
-		object.setFileId(fileId);
+		ItemMetadata object = new ItemMetadata();
+		object.setId(fileId);
 
 		APIDeleteResponse response = this.handler.ApiDeleteMetadata(strUser, workspace, object);
 		String strResponse = this.parser.createResponse(response);
@@ -236,10 +236,10 @@ public class XmlRpcSyncHandler {
 				return strParentResponse;
 			}
 
-			ObjectMetadata parentMetadata = metadataResponse.getObjectMetadata();
-			ObjectMetadata object = new ObjectMetadata();
-			object.setFileName(strFolderName);
-			object.setFolder(true);
+			ItemMetadata parentMetadata = metadataResponse.getItemMetadata();
+			ItemMetadata object = new ItemMetadata();
+			object.setFilename(strFolderName);
+			object.setIsFolder(true);
 
 			response = this.handler.ApiCreateFolder(strUser, workspace, object, parentMetadata);
 		}
@@ -271,8 +271,8 @@ public class XmlRpcSyncHandler {
 
 		String workspace = strUser + "/";
 
-		ObjectMetadata object = new ObjectMetadata();
-		object.setFileId(fileId);
+		ItemMetadata object = new ItemMetadata();
+		object.setId(fileId);
 		object.setVersion(version);
 
 		APIRestoreMetadata response = this.handler.ApiRestoreMetadata(strUser, workspace, object);
@@ -288,7 +288,7 @@ public class XmlRpcSyncHandler {
 
 	private void sendMessageToClients(String workspaceName, String requestID, APIResponse generalResponse) {
 		
-		CommitInfo info = generalResponse.getObject();
+		CommitInfo info = generalResponse.getItem();
 		List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
 		responseObjects.add(info);
 		CommitResult result = new CommitResult(requestID, responseObjects);

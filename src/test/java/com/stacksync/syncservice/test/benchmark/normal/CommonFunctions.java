@@ -34,7 +34,7 @@ public class CommonFunctions {
 		return jArray;
 	}
 
-	private static JsonArray generateObjectsLevel(int numObjects, String deviceName, ParentRoot parentRoot) {
+	private static JsonArray generateObjectsLevel(int numObjects, Long deviceId, ParentRoot parentRoot) {
 		JsonArray arrayObjects = new JsonArray();
 
 		Random random = new Random();
@@ -42,16 +42,13 @@ public class CommonFunctions {
 		for (int i = 0; i < numObjects; i++) {
 			JsonObject file = new JsonObject();
 
-			file.addProperty("root_id", "stacksync");
 			file.addProperty("file_id", random.nextLong());
 			file.addProperty("version", new Long(1));
 
 			if (parentRoot != null) {
-				file.addProperty("parent_root_id", parentRoot.parentRootId);
 				file.addProperty("parent_file_version", parentRoot.fileVersion);
 				file.addProperty("parent_file_id", parentRoot.fileId);
 			} else {
-				file.addProperty("parent_root_id", "");
 				file.addProperty("parent_file_version", "");
 				file.addProperty("parent_file_id", "");
 			}
@@ -63,7 +60,7 @@ public class CommonFunctions {
 			file.addProperty("lastModified", date.getTime());
 
 			file.addProperty("checksum", random.nextLong());
-			file.addProperty("clientName", deviceName);
+			file.addProperty("clientName", deviceId);
 
 			file.addProperty("fileSize", random.nextLong());
 
@@ -81,7 +78,7 @@ public class CommonFunctions {
 		return arrayObjects;
 	}
 
-	public static String generateObjects(int numObjects, String deviceName) {
-		return CommonFunctions.generateObjectsLevel(numObjects, deviceName, null).toString();
+	public static String generateObjects(int numObjects, Long deviceId) {
+		return CommonFunctions.generateObjectsLevel(numObjects, deviceId, null).toString();
 	}
 }

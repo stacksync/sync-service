@@ -13,7 +13,7 @@ public interface UserDAO {
 
 	public List<User> findAll() throws DAOException;
 	
-	public List<User> findByClientFileId(Long clientFileId) throws DAOException;
+	public List<User> findByItemId(Long clientFileId) throws DAOException;
 
 	public void add(User user) throws DAOException;
 

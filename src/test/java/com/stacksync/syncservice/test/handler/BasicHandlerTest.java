@@ -16,7 +16,6 @@ import com.stacksync.syncservice.exceptions.DAOException;
 import com.stacksync.syncservice.model.Device;
 import com.stacksync.syncservice.model.User;
 import com.stacksync.syncservice.model.Workspace;
-import com.stacksync.syncservice.rpc.messages.CommitResponse;
 import com.stacksync.syncservice.rpc.parser.IParser;
 import com.stacksync.syncservice.rpc.parser.JSONParser;
 import com.stacksync.syncservice.util.Config;
@@ -233,9 +232,9 @@ public class BasicHandlerTest {
 		userDao.delete("111aaa");
 	}
 
-	private void printResponse(CommitResponse crm) {
+	/*private void printResponse(CommitResponse crm) {
 		String response = reader.createResponse(crm);
 		System.out.println(response);
-	}
+	}*/
 
 }

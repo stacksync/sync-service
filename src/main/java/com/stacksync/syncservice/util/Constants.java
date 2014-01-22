@@ -7,6 +7,7 @@ public class Constants {
 	/* PROPERTIES */
 	public static final String PROP_DATASOURCE = "datasource";
 	public static final String DEFAULT_CONFIG_FILE = "config.properties";
+	public static final Long API_DEVICE_ID = 1L;
 
 	// ObjectMQ
 	public static final String PROP_OMQ_HOST = ParameterQueue.RABBIT_HOST;

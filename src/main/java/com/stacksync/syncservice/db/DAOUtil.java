@@ -1,11 +1,20 @@
 package com.stacksync.syncservice.db;
 
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import com.stacksync.syncservice.model.Chunk;
+import com.stacksync.syncservice.model.Item;
+import com.stacksync.syncservice.model.Workspace;
+import com.stacksync.syncservice.models.ItemMetadata;
 
 /**
  * Utility class for DAO's. This class contains commonly used DAO logic which is
@@ -199,5 +208,87 @@ public final class DAOUtil {
 		}
 		return result;
 	}
+	
+	public static Integer getIntFromResultSet(ResultSet rs, String field) {
 
+		Integer result = null;
+
+		try {
+			Object value = rs.getObject(field);
+			if (value != null) {
+				result = (Integer) value;
+			}
+		} catch (Exception e) {
+		}
+		return result;
+	}
+
+	
+	public static ItemMetadata getItemMetadataFromResultSet(ResultSet result)
+			throws SQLException {
+
+		ItemMetadata metadata = new ItemMetadata();
+		metadata.setId(getLongFromResultSet(result, "item_id"));
+		metadata.setParentId(getLongFromResultSet(result, "parent_id"));
+		metadata.setParentVersion((getLongFromResultSet(result, "client_parent_file_version")));
+		metadata.setDeviceId(result.getLong("device_id"));
+		metadata.setFilename(result.getString("filename"));
+		metadata.setVersion(result.getLong("version"));
+		metadata.setIsFolder(result.getBoolean("is_folder"));
+		metadata.setStatus(result.getString("status"));
+		metadata.setMimetype(result.getString("mimetype"));
+		metadata.setChecksum(result.getLong("checksum"));
+		metadata.setSize(result.getLong("size"));
+		metadata.setPath(result.getString("path"));
+		metadata.setModifiedAt(result.getTimestamp("modified_at"));
+		
+		metadata.setLevel(getIntFromResultSet(result, "level"));
+
+		if (!metadata.isFolder()) {
+			Array arrayChunks = result.getArray("chunks");
+			String[] chunks = (String[]) arrayChunks.getArray();
+
+			List<String> chunksList = Arrays.asList(chunks);
+			if (chunksList.contains(null)) {
+				// FIXME: In this case the list contains a null parameter.
+				// If this happens "parseItemMetadata" function from
+				// JSONReader fails.
+				chunksList = new ArrayList<String>();
+			}
+			metadata.setChunks(chunksList);
+		}
+
+		return metadata;
+	}
+	
+	public static Chunk getChunkFromResultSet(ResultSet result) throws SQLException {
+
+		Chunk chunk = new Chunk();
+		chunk.setOrder(result.getInt("chunk_order"));
+		chunk.setClientChunkName(result.getString("client_chunk_name"));
+
+		return chunk;
+
+	}
+	
+	public static Item getItemFromResultSet(ResultSet result) throws SQLException {
+
+		Item item = new Item();
+		item.setId(result.getLong("id"));
+		item.setLatestVersion(result.getLong("latest_version"));
+		item.setFilename(result.getString("filename"));
+		item.setMimetype(result.getString("mimetype"));
+		item.setIsFolder(result.getBoolean("is_folder"));
+
+		Workspace w = new Workspace();
+		w.setId(result.getLong("workspace_id"));
+		item.setWorkspace(w);
+
+		Item parent = new Item();
+		parent.setId(result.getLong("parent_id"));
+		item.setParent(parent);
+
+		return item;
+	}
+	
 }

@@ -7,14 +7,14 @@ import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.DeviceDAO;
-import com.stacksync.syncservice.db.Object1DAO;
-import com.stacksync.syncservice.db.ObjectVersionDAO;
+import com.stacksync.syncservice.db.ItemDAO;
+import com.stacksync.syncservice.db.ItemVersionDAO;
 import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.DAOException;
 import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.Object1;
-import com.stacksync.syncservice.model.ObjectVersion;
+import com.stacksync.syncservice.model.Item;
+import com.stacksync.syncservice.model.ItemVersion;
 import com.stacksync.syncservice.model.User;
 import com.stacksync.syncservice.model.Workspace;
 import com.stacksync.syncservice.util.Config;
@@ -25,8 +25,8 @@ public class DatabaseHelper {
 	private WorkspaceDAO workspaceDAO;
 	private UserDAO userDao;
 	private DeviceDAO deviceDao;
-	private Object1DAO objectDao;
-	private ObjectVersionDAO oversionDao;
+	private ItemDAO objectDao;
+	private ItemVersionDAO oversionDao;
 
 	public DatabaseHelper() throws Exception {
 		Config.loadProperties();
@@ -42,23 +42,23 @@ public class DatabaseHelper {
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		userDao = factory.getUserDao(connection);
 		deviceDao = factory.getDeviceDAO(connection);
-		objectDao = factory.getObject1DAO(connection);
-		oversionDao = factory.getObjectVersionDAO(connection);
+		objectDao = factory.getItemDAO(connection);
+		oversionDao = factory.getItemVersionDAO(connection);
 	}
 
-	public void storeObjects(List<Object1> objectsLevel) throws IllegalArgumentException, DAOException {
+	public void storeObjects(List<Item> objectsLevel) throws IllegalArgumentException, DAOException {
 
 		long numChunk = 0, totalTimeChunk = 0;
 		long numVersion = 0, totalTimeVersion = 0;
 		long numObject = 0, totalTimeObject = 0;
 
 		long startTotal = System.currentTimeMillis();
-		for (Object1 object : objectsLevel) {
+		for (Item object : objectsLevel) {
 			// System.out.println("DatabaseHelper -- Put Object -> " + object);
 			long startObjectTotal = System.currentTimeMillis();
 
 			objectDao.put(object);
-			for (ObjectVersion version : object.getVersions()) {
+			for (ItemVersion version : object.getVersions()) {
 
 				long startVersionTotal = System.currentTimeMillis();
 				// System.out.println("DatabaseHelper -- Put Version -> " +
@@ -68,7 +68,7 @@ public class DatabaseHelper {
 				long startChunkTotal = System.currentTimeMillis();
 
 				if (!version.getChunks().isEmpty()) {
-					oversionDao.instertChunks(version.getChunks(), version.getId());
+					oversionDao.insertChunks(version.getChunks(), version.getId());
 				}
 
 				totalTimeChunk += System.currentTimeMillis() - startChunkTotal;

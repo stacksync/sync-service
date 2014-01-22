@@ -10,7 +10,7 @@ import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.model.Workspace;
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 import com.stacksync.syncservice.models.WorkspaceInfo;
 import com.stacksync.syncservice.omq.ISyncService;
 import com.stacksync.syncservice.test.benchmark.Constants;
@@ -36,7 +36,7 @@ public class TestGetChanges {
 		WorkspaceInfo rWorkspace = new WorkspaceInfo(workspace.getClientWorkspaceName(), workspace.getLatestRevision(), "/");
 
 		long startTotal = System.currentTimeMillis();
-		List<ObjectMetadata> response = server.getChanges(Constants.USER, Constants.REQUESTID, rWorkspace);
+		List<ItemMetadata> response = server.getChanges(Constants.USER, Constants.REQUESTID, rWorkspace);
 
 		System.out.println("Result objects -> " + response.size());
 		long totalTime = System.currentTimeMillis() - startTotal;

@@ -3,8 +3,8 @@ package com.stacksync.syncservice.handler;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -14,8 +14,8 @@ import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.DeviceDAO;
-import com.stacksync.syncservice.db.Object1DAO;
-import com.stacksync.syncservice.db.ObjectVersionDAO;
+import com.stacksync.syncservice.db.ItemDAO;
+import com.stacksync.syncservice.db.ItemVersionDAO;
 import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.CommitExistantVersion;
@@ -24,13 +24,13 @@ import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import com.stacksync.syncservice.exceptions.DAOException;
 import com.stacksync.syncservice.model.Chunk;
 import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.Object1;
-import com.stacksync.syncservice.model.ObjectVersion;
+import com.stacksync.syncservice.model.Item;
+import com.stacksync.syncservice.model.ItemVersion;
 import com.stacksync.syncservice.model.User;
 import com.stacksync.syncservice.model.Workspace;
 import com.stacksync.syncservice.models.CommitInfo;
 import com.stacksync.syncservice.models.CommitResult;
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
@@ -41,6 +41,7 @@ import com.stacksync.syncservice.rpc.messages.Commit;
 import com.stacksync.syncservice.rpc.messages.GetWorkspaces;
 import com.stacksync.syncservice.rpc.messages.GetWorkspacesResponse;
 import com.stacksync.syncservice.util.Config;
+import com.stacksync.syncservice.util.Constants;
 
 public class SQLHandler implements Handler {
 	private static final Logger logger = Logger.getLogger(SQLHandler.class
@@ -49,8 +50,8 @@ public class SQLHandler implements Handler {
 	private WorkspaceDAO workspaceDAO;
 	private UserDAO userDao;
 	private DeviceDAO deviceDao;
-	private Object1DAO objectDao;
-	private ObjectVersionDAO oversionDao;
+	private ItemDAO itemDao;
+	private ItemVersionDAO itemVersionDao;
 
 	public SQLHandler(ConnectionPool pool) throws SQLException {
 		connection = pool.getConnection();
@@ -62,43 +63,57 @@ public class SQLHandler implements Handler {
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		userDao = factory.getUserDao(connection);
 		deviceDao = factory.getDeviceDAO(connection);
-		objectDao = factory.getObject1DAO(connection);
-		oversionDao = factory.getObjectVersionDAO(connection);
+		itemDao = factory.getItemDAO(connection);
+		itemVersionDao = factory.getItemVersionDAO(connection);
 	}
 
 	@Override
 	public CommitResult doCommit(Commit request) throws DAOException {
 
-		List<ObjectMetadata> objects = request.getObjects();
+		HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
+		
+		List<ItemMetadata> objects = request.getItems();
 		Workspace workspace = workspaceDAO.findByName(request
 				.getWorkspaceName());
-		Device device = this.getOrCreateDevice(request.getDeviceName(),
-				request.getUser());
+		Device device = deviceDao.get(request.getDeviceId());
 		List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
 
-		for (ObjectMetadata object : objects) {
-
-			ObjectMetadata objectResponse = null;
+		for (ItemMetadata object : objects) {
+			
+			ItemMetadata objectResponse = null;
 			boolean committed;
 
 			try {
+				
+				if(object.getParentId() != null){
+					Long parentId = tempIds.get(object.getParentId());
+					if (parentId != null){
+						object.setParentId(parentId);
+					}
+				}
+				
 				this.commitObject(object, workspace, device);
+				
+				if(object.getTempId() != null)
+				{
+					tempIds.put(object.getTempId(), object.getId());
+				}
+				
 				objectResponse = object;
 				committed = true;
 			} catch (CommitWrongVersion e) {
-				Object1 serverObject = e.getObject();
+				Item serverObject = e.getItem();
 				objectResponse = this.getCurrentServerVersion(serverObject);
 				committed = false;
 			} catch (CommitWrongVersionNoParent e) {
 				committed = false;
 			} catch (CommitExistantVersion e) {
-				Object1 serverObject = e.getObject();
+				Item serverObject = e.getItem();
 				objectResponse = this.getCurrentServerVersion(serverObject);
 				committed = true;
 			}
 
-			responseObjects.add(new CommitInfo(object.getFileId(), object
-					.getRootId(), object.getVersion(), committed,
+			responseObjects.add(new CommitInfo(object.getVersion(), committed,
 					objectResponse));
 		}
 
@@ -106,12 +121,12 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public List<ObjectMetadata> doGetChanges(String workspaceName, String user) {
-		List<ObjectMetadata> responseObjects = new ArrayList<ObjectMetadata>();
+	public List<ItemMetadata> doGetChanges(String workspaceName, String user) {
+		List<ItemMetadata> responseObjects = new ArrayList<ItemMetadata>();
 
 		try {
-			responseObjects = objectDao
-					.getObjectMetadataByWorkspaceName(workspaceName);
+			responseObjects = itemDao
+					.getItemsByWorkspaceName(workspaceName);
 		} catch (DAOException e) {
 			logger.error(e.toString(), e);
 		}
@@ -123,7 +138,7 @@ public class SQLHandler implements Handler {
 	public APIGetMetadata ApiGetMetadata(String user, Long fileId,
 			Boolean includeList, Boolean includeDeleted, Boolean includeChunks,
 			Long version) {
-		ObjectMetadata responseObject = null;
+		ItemMetadata responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;
 		String description = "";
@@ -132,13 +147,13 @@ public class SQLHandler implements Handler {
 
 			if (fileId == null) {
 				// retrieve metadata from the root folder
-				responseObject = this.objectDao.findByServerUserId(user,
+				responseObject = this.itemDao.findByServerUserId(user,
 						includeDeleted);
 
 			} else {
 
 				// check if user has permission over this file
-				List<User> users = this.userDao.findByClientFileId(fileId);
+				List<User> users = this.userDao.findByItemId(fileId);
 
 				if (users.isEmpty()) {
 					throw new DAOException(DAOError.FILE_NOT_FOUND);
@@ -148,7 +163,7 @@ public class SQLHandler implements Handler {
 					throw new DAOException(DAOError.USER_NOT_AUTHORIZED);
 				}
 
-				responseObject = this.objectDao.findByClientFileId(fileId,
+				responseObject = this.itemDao.findById(fileId,
 						includeList, version, includeDeleted, includeChunks);
 			}
 
@@ -189,7 +204,7 @@ public class SQLHandler implements Handler {
 
 	@Override
 	public Long doUpdateDevice(Device device) {
-		
+
 		try {
 			User user = userDao.findByCloudId(device.getUser().getCloudId());
 			device.setUser(user);
@@ -197,7 +212,7 @@ public class SQLHandler implements Handler {
 			logger.error(e1);
 			return -1L;
 		}
-		
+
 		try {
 			if (device.getId() == null) {
 				deviceDao.add(device);
@@ -213,19 +228,19 @@ public class SQLHandler implements Handler {
 
 	@Override
 	public APICommitResponse ApiCommitMetadata(String userId,
-			String workspaceName, Boolean overwrite, ObjectMetadata fileToSave,
-			ObjectMetadata parentMetadata) {
-		List<ObjectMetadata> files = parentMetadata.getContent();
+			String workspaceName, Boolean overwrite, ItemMetadata fileToSave,
+			ItemMetadata parentMetadata) {
+		List<ItemMetadata> files = parentMetadata.getChildren();
 
-		ObjectMetadata fileToModify = null;
-		for (ObjectMetadata file : files) {
-			if (file.getFileName().equals(fileToSave.getFileName())) {
+		ItemMetadata fileToModify = null;
+		for (ItemMetadata file : files) {
+			if (file.getFilename().equals(fileToSave.getFilename())) {
 				fileToModify = file;
 				break;
 			}
 		}
 
-		ObjectMetadata object = null;
+		ItemMetadata object = null;
 		if (fileToModify == null) {
 			object = saveNewObjecAPI(userId, workspaceName, fileToSave,
 					parentMetadata);
@@ -247,14 +262,14 @@ public class SQLHandler implements Handler {
 
 	@Override
 	public APICreateFolderResponse ApiCreateFolder(String strUser,
-			String workspace, ObjectMetadata objectToSave,
-			ObjectMetadata parentMetadata) {
-		String folderName = objectToSave.getFileName();
-		List<ObjectMetadata> files = parentMetadata.getContent();
+			String workspace, ItemMetadata objectToSave,
+			ItemMetadata parentMetadata) {
+		String folderName = objectToSave.getFilename();
+		List<ItemMetadata> files = parentMetadata.getChildren();
 
-		ObjectMetadata object = null;
-		for (ObjectMetadata file : files) {
-			if (file.getFileName().equals(folderName)
+		ItemMetadata object = null;
+		for (ItemMetadata file : files) {
+			if (file.getFilename().equals(folderName)
 					&& !file.getStatus().equals("DELETED")) {
 				object = file;
 				break;
@@ -277,27 +292,28 @@ public class SQLHandler implements Handler {
 
 	@Override
 	public APIRestoreMetadata ApiRestoreMetadata(String user, String workspace,
-			ObjectMetadata object) {
+			ItemMetadata item) {
 		try {
 
-			Object1 objDb = objectDao.findByClientId(object.getFileId());
-			ObjectMetadata lastObjectVersion = objectDao.findByClientFileId(
-					object.getFileId(), false, null, false, false);
-			if (objDb != null && lastObjectVersion != null) {
+			Item serverItem = itemDao.findById(item.getId());
+			ItemMetadata lastObjectVersion = itemDao.findById(
+					item.getId(), false, null, false, false);
+			if (serverItem != null && lastObjectVersion != null) {
 
-				ObjectVersion restoredObject = oversionDao
-						.findByObjectIdAndVersion(objDb.getId(),
-								object.getVersion());
+				ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(
+						serverItem.getId(), item.getVersion());
+
+				ItemVersion restoredObject = new ItemVersion(metadata);
 
 				if (restoredObject != null
-						&& restoredObject.getClientStatus().compareTo(
+						&& restoredObject.getStatus().compareTo(
 								Status.DELETED.toString()) != 0) {
 					restoredObject
 							.setVersion(lastObjectVersion.getVersion() + 1);
-					restoredObject.setClientStatus(Status.CHANGED.toString());
+					restoredObject.setStatus(Status.CHANGED.toString());
 
 					// save restoredObject
-					oversionDao.add(restoredObject);
+					itemVersionDao.add(restoredObject);
 
 					List<String> chunks = new ArrayList<String>();
 					// If no folder, create new chunks
@@ -308,46 +324,40 @@ public class SQLHandler implements Handler {
 						this.createChunks(chunks, restoredObject);
 					}
 
-					objDb.setLatestVersion(restoredObject.getVersion());
-					objectDao.put(objDb);
+					serverItem.setLatestVersion(restoredObject.getVersion());
+					itemDao.put(serverItem);
 
-					object.setChecksum(restoredObject.getChecksum());
-					object.setChunks(chunks);
-					object.setClientDateModified(restoredObject
-							.getClientDateModified());
-					object.setClientName(restoredObject.getClientName());
-					object.setFileName(restoredObject.getClientName());
-					object.setFilePath(restoredObject.getClientFilePath());
-					object.setFileSize(restoredObject.getClientFileSize());
+					item.setChecksum(restoredObject.getChecksum());
+					item.setChunks(chunks);
+					item.setModifiedAt(restoredObject.getModifiedAt());
+					item.setDeviceId(restoredObject.getDevice().getId());
+					item.setFilename(restoredObject.getItem().getFilename());
+					item.setSize(restoredObject.getSize());
 
-					object.setFolder(objDb.getClientFolder());
-					object.setMimetype(objDb.getClientFileMimetype());
+					item.setIsFolder(serverItem.isFolder());
+					item.setMimetype(serverItem.getMimetype());
 
-					object.setParentFileId(objDb.getClientParentFileId());
-					object.setParentFileVersion(objDb
+					item.setParentVersion(serverItem
 							.getClientParentFileVersion());
 
-					object.setRootId(objDb.getRootId());
-					object.setServerDateModified(restoredObject
-							.getServerDateModified());
-					object.setStatus(restoredObject.getClientStatus());
-					object.setVersion(restoredObject.getVersion());
+					item.setStatus(restoredObject.getStatus());
+					item.setVersion(restoredObject.getVersion());
 
-					APIRestoreMetadata response = new APIRestoreMetadata(
-							object, true, 200, "");
+					APIRestoreMetadata response = new APIRestoreMetadata(item,
+							true, 200, "");
 					return response;
 				} else {
-					APIRestoreMetadata response = new APIRestoreMetadata(
-							object, false, 400, "File not found.");
+					APIRestoreMetadata response = new APIRestoreMetadata(item,
+							false, 400, "File not found.");
 					return response;
 				}
 			} else {
-				APIRestoreMetadata response = new APIRestoreMetadata(object,
+				APIRestoreMetadata response = new APIRestoreMetadata(item,
 						false, 400, "File not found.");
 				return response;
 			}
 		} catch (DAOException e) {
-			APIRestoreMetadata response = new APIRestoreMetadata(object, false,
+			APIRestoreMetadata response = new APIRestoreMetadata(item, false,
 					400, e.getMessage());
 			return response;
 		}
@@ -355,14 +365,13 @@ public class SQLHandler implements Handler {
 
 	@Override
 	public APIDeleteResponse ApiDeleteMetadata(String strUser,
-			String workspace, ObjectMetadata object) {
-		List<ObjectMetadata> filesToDelete;
+			String workspace, ItemMetadata object) {
+		List<ItemMetadata> filesToDelete;
 		APIDeleteResponse response = null;
 
 		try {
 
-			filesToDelete = objectDao.getObjectsByClientFileId(object
-					.getFileId());
+			filesToDelete = itemDao.getItemsById(object.getId());
 
 			if (filesToDelete.isEmpty()) {
 				response = new APIDeleteResponse(null, false, 400,
@@ -380,22 +389,22 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public APIGetVersions ApiGetVersions(String user, Long fileId) {
-		ObjectMetadata responseObject = null;
+	public APIGetVersions ApiGetVersions(String user, Long itemId) {
+		ItemMetadata responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;
 		String description = "";
 
 		try {
 
-			if (fileId == null) {
+			if (itemId == null) {
 				// retrieve metadata from the root folder
 				throw new DAOException(DAOError.FILE_NOT_FOUND);
 
 			} else {
 
 				// check if user has permission over this file
-				List<User> users = userDao.findByClientFileId(fileId);
+				List<User> users = userDao.findByItemId(itemId);
 
 				if (users.isEmpty()) {
 					throw new DAOException(DAOError.FILE_NOT_FOUND);
@@ -405,8 +414,7 @@ public class SQLHandler implements Handler {
 					throw new DAOException(DAOError.USER_NOT_AUTHORIZED);
 				}
 
-				responseObject = objectDao
-						.findObjectVersionsByClientFileId(fileId);
+				responseObject = itemDao.findItemVersionsById(itemId);
 			}
 
 			success = true;
@@ -425,37 +433,17 @@ public class SQLHandler implements Handler {
 	/*
 	 * Private functions
 	 */
-	private Device getOrCreateDevice(String deviceName, String clientCloudId) {
-		Device device = null;
-		try {
-			device = deviceDao.findByName(deviceName);
-			if (device == null) {
-				User user = userDao.findByCloudId(clientCloudId);
-				device = new Device();
-				device.setName(deviceName);
-				device.setUser(user);
-				deviceDao.add(device);
-			}
-		} catch (DAOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 
-		return device;
-	}
-
-	private void commitObject(ObjectMetadata object, Workspace workspace,
+	private void commitObject(ItemMetadata item, Workspace workspace,
 			Device device) throws CommitWrongVersionNoParent,
 			CommitWrongVersion, CommitExistantVersion, DAOException {
 
-		long fileID = object.getFileId();
-		Object1 serverObject = objectDao.findByClientFileIdAndWorkspace(fileID,
-				workspace.getId());
+		Item serverItem = itemDao.findById(item.getId());
 
 		// Check if this object already exists in the server.
-		if (serverObject == null) {
-			if (object.getVersion() == 1) {
-				this.saveNewObject(object, workspace, device);
+		if (serverItem == null) {
+			if (item.getVersion() == 1) {
+				this.saveNewObject(item, workspace, device);
 			} else {
 				throw new CommitWrongVersionNoParent();
 			}
@@ -463,68 +451,63 @@ public class SQLHandler implements Handler {
 		}
 
 		// Check if the client version already exists in the server
-		long serverVersion = serverObject.getLatestVersion();
-		long clientVersion = object.getVersion();
+		long serverVersion = serverItem.getLatestVersion();
+		long clientVersion = item.getVersion();
 		boolean existVersionInServer = (serverVersion >= clientVersion);
 
 		if (existVersionInServer) {
-			this.saveExistentVersion(serverObject, object);
+			this.saveExistentVersion(serverItem, item);
 		} else {
 			// Check if version is correct
 			if (serverVersion + 1 == clientVersion) {
-				this.saveNewVersion(object, serverObject, workspace, device);
+				this.saveNewVersion(item, serverItem, workspace, device);
 			} else {
-				throw new CommitWrongVersion("Invalid version.", serverObject);
+				throw new CommitWrongVersion("Invalid version.", serverItem);
 			}
 		}
 	}
 
-	private void saveNewObject(ObjectMetadata metadata, Workspace workspace,
+	private void saveNewObject(ItemMetadata metadata, Workspace workspace,
 			Device device) throws DAOException {
 		// Create workspace and parent instances
-		Long parentFileId = metadata.getParentFileId();
-		Object1 parent = null;
-		if (parentFileId != null) {
-			parent = objectDao.findByClientFileIdAndWorkspace(parentFileId,
-					workspace.getId());
+		Long parentId = metadata.getParentId();
+		Item parent = null;
+		if (parentId != null) {
+			parent = itemDao.findById(parentId);
 		}
 
 		beginTransaction();
 
 		try {
 			// Insert object to DB
-			Object1 object = new Object1();
-			object.setRootId(metadata.getRootId());
-			object.setClientFileId(metadata.getFileId());
-			object.setClientFileName(metadata.getFileName());
-			object.setClientFileMimetype(metadata.getMimetype());
-			object.setClientFolder(metadata.isFolder());
-			object.setClientParentRootId(metadata.getParentRootId());
-			object.setClientParentFileId(metadata.getParentFileId());
-			object.setClientParentFileVersion(metadata.getParentFileVersion());
 
-			object.setLatestVersion(metadata.getVersion());
-			object.setWorkspace(workspace);
-			object.setParent(parent);
+			Item item = new Item();
+			item.setId(metadata.getId());
+			item.setFilename(metadata.getFilename());
+			item.setMimetype(metadata.getMimetype());
+			item.setIsFolder(metadata.isFolder());
+			item.setClientParentFileVersion(metadata.getParentVersion());
 
-			objectDao.put(object);
+			item.setLatestVersion(metadata.getVersion());
+			item.setWorkspace(workspace);
+			item.setParent(parent);
+
+			itemDao.put(item);
+
+			// set the global ID
+			metadata.setId(item.getId());
 
 			// Insert objectVersion
-			ObjectVersion objectVersion = new ObjectVersion();
+			ItemVersion objectVersion = new ItemVersion();
 			objectVersion.setVersion(metadata.getVersion());
-			objectVersion.setServerDateModified(metadata
-					.getServerDateModified());
+			objectVersion.setModifiedAt(metadata.getModifiedAt());
 			objectVersion.setChecksum(metadata.getChecksum());
-			objectVersion.setClientDateModified(metadata
-					.getClientDateModified());
-			objectVersion.setClientStatus(metadata.getStatus());
-			objectVersion.setClientFileSize(metadata.getFileSize());
-			objectVersion.setClientName(metadata.getClientName());
-			objectVersion.setClientFilePath(metadata.getFilePath());
+			objectVersion.setStatus(metadata.getStatus());
+			objectVersion.setSize(metadata.getSize());
 
-			objectVersion.setObject(object);
+			objectVersion.setItem(item);
 			objectVersion.setDevice(device);
-			oversionDao.add(objectVersion);
+			itemVersionDao.add(objectVersion);
 
 			// If no folder, create new chunks
 			if (!metadata.isFolder()) {
@@ -539,87 +522,44 @@ public class SQLHandler implements Handler {
 		}
 	}
 
-	private ObjectMetadata getCurrentServerVersion(Object1 serverObject)
+	private ItemMetadata getCurrentServerVersion(Item serverObject)
 			throws DAOException {
 		return getServerObjectVersion(serverObject,
 				serverObject.getLatestVersion());
 	}
 
-	private ObjectMetadata getServerObjectVersion(Object1 serverObject,
+	private ItemMetadata getServerObjectVersion(Item serverObject,
 			long requestedVersion) throws DAOException {
-		ObjectVersion version = oversionDao.findByObjectIdAndVersion(
+
+		ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(
 				serverObject.getId(), requestedVersion);
-
-		String rootId = serverObject.getRootId();
-		Long fileId = serverObject.getClientFileId();
-		long versionNumber = requestedVersion;
-		String parentRootId = serverObject.getClientParentRootId();
-
-		Long parentFileId = null;
-		if (serverObject.getClientParentFileId() != null) {
-			parentFileId = serverObject.getClientParentFileId();
-		}
-
-		Long parentFileVersion = null;
-		if (serverObject.getClientParentFileVersion() != null) {
-			parentFileVersion = serverObject.getClientParentFileVersion();
-		}
-
-		Date serverDateModified = version.getServerDateModified();
-		String status = version.getClientStatus();
-		Date clientDateModified = version.getClientDateModified();
-		long checksum = version.getChecksum();
-		String clientName = version.getClientName();
-		long fileSize = version.getClientFileSize();
-		boolean folder = serverObject.getClientFolder();
-		String fileName = serverObject.getClientFileName();
-		String path = version.getClientFilePath();
-		String mimetype = serverObject.getClientFileMimetype();
-
-		Collection<Chunk> chunks = oversionDao.findChunks(version.getId());
-		List<String> chunksName = new ArrayList<String>();
-		for (Chunk c : chunks) {
-			chunksName.add(c.getClientChunkName());
-		}
-
-		ObjectMetadata metadata = new ObjectMetadata(rootId, fileId,
-				versionNumber, parentRootId, parentFileId, parentFileVersion,
-				serverDateModified, status, clientDateModified, checksum,
-				clientName, chunksName, fileSize, folder, fileName, path,
-				mimetype);
 
 		return metadata;
 	}
 
-	private void saveNewVersion(ObjectMetadata metadata, Object1 serverObject,
+	private void saveNewVersion(ItemMetadata metadata, Item serverItem,
 			Workspace workspace, Device device) throws DAOException {
 
 		beginTransaction();
 
 		try {
 			// Create new objectVersion
-			ObjectVersion objectVersion = new ObjectVersion();
-			objectVersion.setVersion(metadata.getVersion());
-			objectVersion.setServerDateModified(metadata
-					.getServerDateModified());
-			objectVersion.setChecksum(metadata.getChecksum());
-			objectVersion.setClientDateModified(metadata
-					.getClientDateModified());
-			objectVersion.setClientStatus(metadata.getStatus());
-			objectVersion.setClientFileSize(metadata.getFileSize());
-			objectVersion.setClientName(metadata.getClientName());
-			objectVersion.setClientFilePath(metadata.getFilePath());
+			ItemVersion itemVersion = new ItemVersion();
+			itemVersion.setVersion(metadata.getVersion());
+			itemVersion.setModifiedAt(metadata.getModifiedAt());
+			itemVersion.setChecksum(metadata.getChecksum());
+			itemVersion.setStatus(metadata.getStatus());
+			itemVersion.setSize(metadata.getSize());
 
-			objectVersion.setObject(serverObject);
-			objectVersion.setDevice(device);
-			objectVersion.setServerDateModified(new Date());
+			itemVersion.setItem(serverItem);
+			itemVersion.setDevice(device);
 
-			oversionDao.add(objectVersion);
+			itemVersionDao.add(itemVersion);
 
 			// If no folder, create new chunks
 			if (!metadata.isFolder()) {
 				List<String> chunks = metadata.getChunks();
-				this.createChunks(chunks, objectVersion);
+				this.createChunks(chunks, itemVersion);
 			}
 
 			// TODO To Test!!
@@ -627,29 +567,23 @@ public class SQLHandler implements Handler {
 			if (status.equals(Status.RENAMED.toString())
 					|| status.equals(Status.MOVED.toString())) {
 
-				serverObject.setClientFileName(metadata.getFileName());
+				serverItem.setFilename(metadata.getFilename());
 
-				Long parentFileId = metadata.getParentFileId();
+				Long parentFileId = metadata.getParentId();
 				if (parentFileId == null) {
-					serverObject.setClientParentFileId(null);
-					serverObject.setClientParentFileVersion(null);
-					serverObject.setClientParentRootId(null);
+					serverItem.setClientParentFileVersion(null);
 				} else {
-					serverObject.setClientParentFileId(parentFileId);
-					serverObject.setClientParentRootId(metadata
-							.getParentRootId());
-					serverObject.setClientParentFileVersion(metadata
-							.getParentFileVersion());
-					Object1 parent = objectDao.findByClientFileIdAndWorkspace(
-							parentFileId, workspace.getId());
-					serverObject.setParent(parent);
+					serverItem.setClientParentFileVersion(metadata
+							.getParentVersion());
+					Item parent = itemDao.findById(parentFileId);
+					serverItem.setParent(parent);
 				}
 
 			}
 
 			// Update object latest version
-			serverObject.setLatestVersion(metadata.getVersion());
-			objectDao.put(serverObject);
+			serverItem.setLatestVersion(metadata.getVersion());
+			itemDao.put(serverItem);
 
 			commitTransaction();
 		} catch (Exception e) {
@@ -658,12 +592,12 @@ public class SQLHandler implements Handler {
 		}
 	}
 
-	private void saveExistentVersion(Object1 serverObject,
-			ObjectMetadata clientMetadata) throws CommitWrongVersion,
+	private void saveExistentVersion(Item serverObject,
+			ItemMetadata clientMetadata) throws CommitWrongVersion,
 			CommitExistantVersion, DAOException {
 
-		ObjectMetadata serverMetadata = this.getServerObjectVersion(
-				serverObject, clientMetadata.getVersion());
+		ItemMetadata serverMetadata = this.getServerObjectVersion(serverObject,
+				clientMetadata.getVersion());
 
 		if (!clientMetadata.equals(serverMetadata)) {
 			throw new CommitWrongVersion("Invalid version.", serverObject);
@@ -680,7 +614,7 @@ public class SQLHandler implements Handler {
 	}
 
 	private void createChunks(List<String> chunksString,
-			ObjectVersion objectVersion) throws IllegalArgumentException,
+			ItemVersion objectVersion) throws IllegalArgumentException,
 			DAOException {
 
 		if (chunksString.size() > 0) {
@@ -692,32 +626,29 @@ public class SQLHandler implements Handler {
 				i++;
 			}
 
-			oversionDao.instertChunks(chunks, objectVersion.getId());
+			itemVersionDao.insertChunks(chunks, objectVersion.getId());
 		}
 	}
 
-	private ObjectMetadata saveNewObjecAPI(String userId, String workspaceName,
-			ObjectMetadata objectToSave, ObjectMetadata parent) {
+	private ItemMetadata saveNewObjecAPI(String userId, String workspaceName,
+			ItemMetadata objectToSave, ItemMetadata parent) {
 
 		Random rand = new Random();
 
 		// Create metadata
-		Long fileID = rand.nextLong();
-		String rootID = "stacksync";
+		Long itemId = rand.nextLong();
 		Long version = 1L;
-		String fileName = objectToSave.getFileName();
+		String fileName = objectToSave.getFilename();
 		String mimetype = objectToSave.getMimetype();
 
-		Long parentFileID = null;
+		Long parentFileId = null;
 		Long parentFileVersion = null;
-		String parentRootID = null;
 		if (!parent.isRoot()) {
-			parentFileID = parent.getFileId();
+			parentFileId = parent.getId();
 			parentFileVersion = parent.getVersion();
-			parentRootID = parent.getRootId();
 		}
 
-		Long fileSize = objectToSave.getFileSize();
+		Long fileSize = objectToSave.getSize();
 		Long checksum = objectToSave.getChecksum();
 		String status = "NEW";
 		Boolean folder = false;
@@ -725,24 +656,18 @@ public class SQLHandler implements Handler {
 
 		Date date = new Date();
 
-		String path;
-		if (parent.isRoot()) {
-			path = "/";
-		} else {
-			path = parent.getFilePath() + "/" + parent.getFileName();
-			path = path.replace("//", "/");
-		}
+		// FIXME: return real path ?
 
-		ObjectMetadata object = new ObjectMetadata(rootID, fileID, version,
-				parentRootID, parentFileID, parentFileVersion, date, status,
-				date, checksum, "web", chunks, fileSize, folder, fileName,
-				path, mimetype);
+		ItemMetadata object = new ItemMetadata(itemId, version,
+				Constants.API_DEVICE_ID, parentFileId, parentFileVersion,
+				status, date, checksum, fileSize, folder, fileName, mimetype,
+				"", chunks);
 
-		List<ObjectMetadata> objects = new ArrayList<ObjectMetadata>();
+		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
 		objects.add(object);
 
-		Commit message = new Commit(userId, "web-" + rand.nextInt(), objects,
-				"web", workspaceName);
+		Commit message = new Commit(userId, "api-" + rand.nextInt(), objects,
+				Constants.API_DEVICE_ID, workspaceName);
 
 		try {
 			this.doCommit(message);
@@ -754,34 +679,25 @@ public class SQLHandler implements Handler {
 		return object;
 	}
 
-	private ObjectMetadata saveNewVersionAPI(String userId,
-			String workspaceName, ObjectMetadata fileToSave,
-			ObjectMetadata fileToModify) {
+	private ItemMetadata saveNewVersionAPI(String userId, String workspaceName,
+			ItemMetadata fileToSave, ItemMetadata fileToModify) {
 
 		Random rand = new Random();
 
 		fileToModify.setStatus("CHANGED");
-		fileToModify.setFileSize(fileToSave.getFileSize());
+		fileToModify.setSize(fileToSave.getSize());
 		fileToModify.setChunks(fileToSave.getChunks());
 		fileToModify.setChecksum(fileToSave.getChecksum());
-		fileToModify.setClientName("web");
 		fileToModify.setVersion(fileToModify.getVersion() + 1);
 
-		String path = fileToModify.getFilePath();
-		if (path.length() > 1 && path.endsWith("/")) {
-			path = path.substring(0, path.length() - 1);
-			fileToModify.setFilePath(path);
-		}
-
 		Date date = new Date();
-		fileToModify.setServerDateModified(date);
-		fileToModify.setClientDateModified(date);
+		fileToModify.setModifiedAt(date);
 
-		List<ObjectMetadata> objects = new ArrayList<ObjectMetadata>();
+		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
 		objects.add(fileToModify);
 
-		Commit message = new Commit(userId, "web-" + rand.nextInt(), objects,
-				"web", workspaceName);
+		Commit message = new Commit(userId, "api-" + rand.nextInt(), objects,
+				Constants.API_DEVICE_ID, workspaceName);
 
 		try {
 			this.doCommit(message);
@@ -794,23 +710,20 @@ public class SQLHandler implements Handler {
 
 	}
 
-	private ObjectMetadata createNewFolder(String strUser, String workspace,
-			ObjectMetadata objectToSave, ObjectMetadata parent) {
+	private ItemMetadata createNewFolder(String strUser, String workspace,
+			ItemMetadata objectToSave, ItemMetadata parent) {
 
 		Random rand = new Random();
 
 		// Create metadata
-		Long fileID = rand.nextLong();
-		String rootID = "stacksync";
+		Long itemId = rand.nextLong();
 		Long version = 1L;
 
 		Long parentFileID = null;
 		Long parentFileVersion = null;
-		String parentRootID = null;
 		if (!parent.isRoot()) {
-			parentFileID = parent.getFileId();
+			parentFileID = parent.getId();
 			parentFileVersion = parent.getVersion();
-			parentRootID = parent.getRootId();
 		}
 
 		String status = "NEW";
@@ -821,24 +734,18 @@ public class SQLHandler implements Handler {
 
 		Date date = new Date();
 
-		String path;
-		if (parent.isRoot()) {
-			path = "/";
-		} else {
-			path = parent.getFilePath() + "/" + parent.getFileName();
-			path = path.replace("//", "/");
-		}
+		// FIXME: return real path ?
 
-		ObjectMetadata object = new ObjectMetadata(rootID, fileID, version,
-				parentRootID, parentFileID, parentFileVersion, date, status,
-				date, checksum, "web", chunks, fileSize, folder,
-				objectToSave.getFileName(), path, "inode/directory");
+		ItemMetadata object = new ItemMetadata(itemId, version,
+				Constants.API_DEVICE_ID, parentFileID, parentFileVersion,
+				status, date, checksum, fileSize, folder, objectToSave.getFilename(), "inode/directory",
+				"", chunks);
 
-		List<ObjectMetadata> objects = new ArrayList<ObjectMetadata>();
+		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
 		objects.add(object);
 
-		Commit message = new Commit(strUser, "web-" + rand.nextInt(), objects,
-				"web", workspace);
+		Commit message = new Commit(strUser, "api-" + rand.nextInt(), objects,
+				Constants.API_DEVICE_ID, workspace);
 
 		try {
 			this.doCommit(message);
@@ -851,11 +758,11 @@ public class SQLHandler implements Handler {
 	}
 
 	private APIDeleteResponse deleteObjectsAPI(String userId,
-			String workspaceName, List<ObjectMetadata> filesToDelete) {
+			String workspaceName, List<ItemMetadata> filesToDelete) {
 		Random rand = new Random();
-		List<ObjectMetadata> objects = new ArrayList<ObjectMetadata>();
+		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 
-		for (ObjectMetadata fileToDelete : filesToDelete) {
+		for (ItemMetadata fileToDelete : filesToDelete) {
 
 			if (fileToDelete.getStatus().equals("DELETED")) {
 				continue;
@@ -865,27 +772,19 @@ public class SQLHandler implements Handler {
 			// fileToDelete.setFileSize(0L);
 			fileToDelete.setChunks(new ArrayList<String>());
 			// fileToDelete.setChecksum(0L);
-			fileToDelete.setClientName("web");
 			fileToDelete.setVersion(fileToDelete.getVersion() + 1);
 
-			String path = fileToDelete.getFilePath();
-			if (path.length() > 1 && path.endsWith("/")) {
-				path = path.substring(0, path.length() - 1);
-				fileToDelete.setFilePath(path);
-			}
-
 			Date date = new Date();
-			fileToDelete.setServerDateModified(date);
-			fileToDelete.setClientDateModified(date);
+			fileToDelete.setModifiedAt(date);
 
-			objects.add(fileToDelete);
+			items.add(fileToDelete);
 		}
 
-		Commit message = new Commit(userId, "web-" + rand.nextInt(), objects,
-				"web", workspaceName);
+		Commit message = new Commit(userId, "api-" + rand.nextInt(), items,
+				Constants.API_DEVICE_ID, workspaceName);
 
 		Boolean success = false;
-		ObjectMetadata fileToDelete = null;
+		ItemMetadata fileToDelete = null;
 
 		try {
 			CommitResult response = this.doCommit(message);

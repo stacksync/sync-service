@@ -18,7 +18,7 @@ import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLHandler;
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 import com.stacksync.syncservice.util.Config;
 
 public class TestGetChanges {
@@ -63,7 +63,7 @@ public class TestGetChanges {
 		return true;
 	}
 
-	private static void printSize(ISerializer serializer, List<ObjectMetadata> list) throws IOException {
+	private static void printSize(ISerializer serializer, List<ItemMetadata> list) throws IOException {
 		try {
 			long start = System.currentTimeMillis();
 			byte[] bytes = serializer.serialize(list);
@@ -95,11 +95,11 @@ public class TestGetChanges {
 		// GetChangesMessage getChangesRequest = new
 		// GetChangesMessage("AUTH_e26e8353dbd043ae857ad6962e02f5cc",
 		// Message.GET_CHANGES, Constants.REQUESTID, "benchmark-93539494/", "");
-		List<ObjectMetadata> listFiles = handler.doGetChanges(Constants.WORKSPACEID, Constants.USER);
+		List<ItemMetadata> listFiles = handler.doGetChanges(Constants.WORKSPACEID, Constants.USER);
 
 		System.out.println("Objects -> " + listFiles.size());
 		int countChk = 0;
-		for (ObjectMetadata obj : listFiles) {
+		for (ItemMetadata obj : listFiles) {
 			countChk += obj.getChunks().size();
 		}
 		System.out.println("Chunks -> " + countChk);

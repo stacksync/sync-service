@@ -28,7 +28,7 @@ public class TestCommit {
 		Broker broker = new Broker(env);
 		broker.lookup(ISyncService.class.getSimpleName(), ISyncService.class);
 
-		CommonFunctions.generateObjects(1, Constants.DEVICENAME);
+		CommonFunctions.generateObjects(1, Constants.DEVICE_ID);
 
 		DAOFactory factory = new DAOFactory(datasource);
 		WorkspaceDAO workspaceDao = factory.getWorkspaceDao(pool.getConnection());

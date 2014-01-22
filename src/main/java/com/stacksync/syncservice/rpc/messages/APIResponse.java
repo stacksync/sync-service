@@ -1,7 +1,7 @@
 package com.stacksync.syncservice.rpc.messages;
 
 import com.stacksync.syncservice.models.CommitInfo;
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 
 public abstract class APIResponse {
 
@@ -15,7 +15,7 @@ public abstract class APIResponse {
 	public static String DO_DELETE = "do_delete";
 
 	private String requestId;
-	protected CommitInfo object;
+	protected CommitInfo item;
 
 	protected Boolean success;
 	protected int errorCode;
@@ -41,12 +41,12 @@ public abstract class APIResponse {
 		return description;
 	}
 
-	public CommitInfo getObject() {
-		return object;
+	public CommitInfo getItem() {
+		return item;
 	}
 	
-	public ObjectMetadata getMetadata(){
-		return object.getMetadata();
+	public ItemMetadata getMetadata(){
+		return item.getMetadata();
 	}
 
 }

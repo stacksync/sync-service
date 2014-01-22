@@ -23,7 +23,7 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 	}
 
 	@Override
-	public Device findByPrimaryKey(Long deviceID) throws DAOException {
+	public Device get(Long deviceID) throws DAOException {
 		ResultSet resultSet = null;
 		Device device = null;
 
@@ -42,26 +42,6 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 		return device;
 	}
 
-	@Override
-	public Device findByName(String name) throws DAOException {
-
-		ResultSet resultSet = null;
-		Device device = null;
-
-		String query = "SELECT * FROM device WHERE name = ?";
-
-		try {
-			resultSet = executeQuery(query, new Object[] { name });
-
-			if (resultSet.next()) {
-				device = mapDevice(resultSet);
-			}
-		} catch (SQLException e) {
-			throw new DAOException(e);
-		}
-
-		return device;
-	}
 
 	@Override
 	public Collection<Device> findAll() throws DAOException {

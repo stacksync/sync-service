@@ -11,23 +11,21 @@ import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLHandler;
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 import com.stacksync.syncservice.rpc.messages.Commit;
 import com.stacksync.syncservice.test.benchmark.Constants;
 import com.stacksync.syncservice.util.Config;
 
 public class TestCommit {
 
-	public static List<ObjectMetadata> getObjectMetadata(JsonArray allFiles) {
-		List<ObjectMetadata> metadataList = new ArrayList<ObjectMetadata>();
+	public static List<ItemMetadata> getObjectMetadata(JsonArray allFiles) {
+		List<ItemMetadata> metadataList = new ArrayList<ItemMetadata>();
 
 		for (int i = 0; i < allFiles.size(); i++) {
 			JsonObject file = allFiles.get(i).getAsJsonObject();
 
-			String rootId = file.get("root_id").getAsString();
 			long fileId = file.get("file_id").getAsLong();
 			long version = file.get("version").getAsLong();
-			String parentRootId = file.get("parent_root_id").getAsString();
 
 			Long parentFileVersion = null;
 			try {
@@ -47,14 +45,12 @@ public class TestCommit {
 			String status = file.get("status").getAsString();
 			Date lastModified = new Date(file.get("lastModified").getAsLong());
 			long checksum = file.get("checksum").getAsLong();
-			String clientName = file.get("clientName").getAsString();
 			long fileSize = file.get("fileSize").getAsLong();
 
 			int folderInt = file.get("folder").getAsInt();
 			boolean folder = folderInt == 0 ? false : true;
 
 			String name = file.get("name").getAsString();
-			String path = file.get("path").getAsString();
 			String mimetype = file.get("mimetype").getAsString();
 			JsonArray jChunks = file.get("chunks").getAsJsonArray(); // more
 																		// optimal
@@ -62,9 +58,9 @@ public class TestCommit {
 			for (int j = 0; j < jChunks.size(); j++) {
 				chunks.add(jChunks.get(j).getAsString());
 			}
-
-			ObjectMetadata object = new ObjectMetadata(rootId, fileId, version, parentRootId, parentFileId, parentFileVersion, updated, status, lastModified,
-					checksum, clientName, chunks, fileSize, folder, name, path, mimetype);
+			
+			ItemMetadata object = new ItemMetadata(fileId, version, Constants.DEVICE_ID, parentFileId, parentFileVersion, status, lastModified,
+					checksum, fileSize, folder, name, mimetype, "", chunks);
 
 			metadataList.add(object);
 		}
@@ -79,12 +75,12 @@ public class TestCommit {
 		ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
 		Handler handler = new SQLHandler(pool);
 
-		String metadata = CommonFunctions.generateObjects(1, Constants.DEVICENAME);
+		String metadata = CommonFunctions.generateObjects(1, Constants.DEVICE_ID);
 		long startTotal = System.currentTimeMillis();
 
 		JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
-		List<ObjectMetadata> objects = getObjectMetadata(rawObjects);
-		Commit commitRequest = new Commit(Constants.USER, Constants.REQUESTID, objects, Constants.DEVICENAME, Constants.WORKSPACEID);
+		List<ItemMetadata> objects = getObjectMetadata(rawObjects);
+		Commit commitRequest = new Commit(Constants.USER, Constants.REQUESTID, objects, Constants.DEVICE_ID, Constants.WORKSPACEID);
 
 		handler.doCommit(commitRequest);
 

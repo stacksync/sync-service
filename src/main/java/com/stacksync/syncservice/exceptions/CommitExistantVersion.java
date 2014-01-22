@@ -1,12 +1,12 @@
 package com.stacksync.syncservice.exceptions;
 
-import com.stacksync.syncservice.model.Object1;
+import com.stacksync.syncservice.model.Item;
 
 public class CommitExistantVersion extends Exception {
 
 	private static final long serialVersionUID = 3790965344729620693L;
 	
-	private Object1 object;
+	private Item item;
 	private long version;
 
 	public CommitExistantVersion() {
@@ -17,9 +17,9 @@ public class CommitExistantVersion extends Exception {
 		super(message);
 	}
 	
-	public CommitExistantVersion(String message, Object1 object, long version) {
+	public CommitExistantVersion(String message, Item item, long version) {
 		super(message);
-		this.object = object;
+		this.item = item;
 		this.version = version;
 	}
 
@@ -31,8 +31,8 @@ public class CommitExistantVersion extends Exception {
 		super(cause);
 	}
 	
-	public Object1 getObject() {
-		return object;
+	public Item getItem() {
+		return item;
 	}
 
 	public long getVersion() {

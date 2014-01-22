@@ -9,7 +9,7 @@ public class Workspace {
 	private String clientWorkspaceName;
 	private Integer latestRevision;
 	private User owner;
-	private List<Object1> objects;
+	private List<Item> objects;
 	private List<User> users;
 
 	public Workspace() {
@@ -25,7 +25,7 @@ public class Workspace {
 		this.clientWorkspaceName = clientWorkspaceName;
 		this.latestRevision = latestRevision;
 		this.owner = owner;
-		this.objects = new ArrayList<Object1>();
+		this.objects = new ArrayList<Item>();
 		this.users = new ArrayList<User>();
 	}
 
@@ -61,19 +61,19 @@ public class Workspace {
 		this.owner = owner;
 	}
 
-	public List<Object1> getObjects() {
+	public List<Item> getObjects() {
 		return objects;
 	}
 
-	public void setObjects(List<Object1> objects) {
+	public void setObjects(List<Item> objects) {
 		this.objects = objects;
 	}
 
-	public void addObject(Object1 object) {
+	public void addObject(Item object) {
 		this.objects.add(object);
 	}
 
-	public void removeObject(Object1 object) {
+	public void removeObject(Item object) {
 		this.objects.remove(object);
 	}
 

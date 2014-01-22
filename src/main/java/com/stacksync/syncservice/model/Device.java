@@ -17,6 +17,10 @@ public class Device {
 	public Device() {
 		this.id = null;
 	}
+	
+	public Device(Long id) {
+		this.id = id;
+	}
 
 	public Device(Long id, String name, User user) {
 		this.id = id;

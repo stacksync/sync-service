@@ -8,8 +8,8 @@ import java.util.Random;
 
 import com.stacksync.syncservice.model.Chunk;
 import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.Object1;
-import com.stacksync.syncservice.model.ObjectVersion;
+import com.stacksync.syncservice.model.Item;
+import com.stacksync.syncservice.model.ItemVersion;
 import com.stacksync.syncservice.model.Workspace;
 
 /**
@@ -31,12 +31,12 @@ public class MetadataGenerator {
 		this.randGenerator = new Random();
 	}
 
-	public ArrayList<Object1> generateLevel(Workspace workspace, Device device, Object1 parent) {
+	public ArrayList<Item> generateLevel(Workspace workspace, Device device, Item parent) {
 		int objectsLevel = randGenerator.nextInt(MAX_FILES_LEVEL);
-		ArrayList<Object1> objects = new ArrayList<Object1>();
+		ArrayList<Item> objects = new ArrayList<Item>();
 
 		for (int i = 0; i < objectsLevel; i++) {
-			Object1 currentObject;
+			Item currentObject;
 			int folderValue = randGenerator.nextInt(totalPercentage);
 			boolean folder = false;
 
@@ -51,7 +51,7 @@ public class MetadataGenerator {
 		return objects;
 	}
 
-	private Object1 generateMetadata(Workspace workspace, Device device, Object1 parent, boolean folder) {
+	private Item generateMetadata(Workspace workspace, Device device, Item parent, boolean folder) {
 		long numVersions = randGenerator.nextInt(MAX_VERSIONS);
 		if (numVersions == 0) {
 			numVersions = 1;
@@ -62,47 +62,39 @@ public class MetadataGenerator {
 			numChunks = 1;
 		}
 
-		Object1 object = new Object1();
-		object.setRootId("stacksync");
-		object.setWorkspace(workspace);
-		object.setLatestVersion(numVersions);
-		object.setParent(parent);
-		object.setClientFileId((long) randGenerator.nextInt()); // If nextLong
+		Item item = new Item();
+		item.setWorkspace(workspace);
+		item.setLatestVersion(numVersions);
+		item.setParent(parent);
+		item.setId((long) randGenerator.nextInt()); // If nextLong
 		// fails!
-		object.setClientFileName(randomString());
-		object.setClientFileMimetype("Document");
-		object.setClientFolder(folder);
+		item.setFilename(randomString());
+		item.setMimetype("Document");
+		item.setIsFolder(folder);
 
 		if (parent == null) {
-			object.setClientParentRootId("");
-			object.setClientParentFileId(null);
-			object.setClientParentFileVersion(null);
+			item.setClientParentFileVersion(null);
 		} else {
-			object.setClientParentRootId(parent.getRootId());
-			object.setClientParentFileId(parent.getClientFileId());
-			object.setClientParentFileVersion(parent.getLatestVersion());
+			item.setClientParentFileVersion(parent.getLatestVersion());
 		}
 
-		List<ObjectVersion> versions = new ArrayList<ObjectVersion>();
+		List<ItemVersion> versions = new ArrayList<ItemVersion>();
 		for (int i = 0; i < numVersions; i++) {
-			ObjectVersion version = new ObjectVersion();
-			version.setObject(object);
+			ItemVersion version = new ItemVersion();
+			version.setItem(item);
 			version.setDevice(device);
 			version.setVersion(i + 1L);
-			version.setServerDateModified(new Date());
+			version.setModifiedAt(new Date());
 			version.setChecksum(randGenerator.nextLong());
-			version.setClientDateModified(new Date());
 
 			if (i == 0) {
-				version.setClientStatus("NEW");
+				version.setStatus("NEW");
 			} else {
-				version.setClientStatus("CHANGED"); // TODO improve with random
+				version.setStatus("CHANGED"); // TODO improve with random
 													// (DELETED, RENA..)
 			}
 
-			version.setClientFileSize((long) randGenerator.nextInt(10000));
-			version.setClientName("name");
-			version.setClientFilePath("/");
+			version.setSize((long) randGenerator.nextInt(10000));
 
 			List<Chunk> chunks = new ArrayList<Chunk>();
 			if (!folder) {
@@ -115,10 +107,10 @@ public class MetadataGenerator {
 			version.setChunks(chunks);
 			versions.add(version);
 		}
-		object.setVersions(versions);
+		item.setVersions(versions);
 
 		//System.out.println("Object Metadata -> " + object);
-		return object;
+		return item;
 	}
 
 	protected String randomString() {

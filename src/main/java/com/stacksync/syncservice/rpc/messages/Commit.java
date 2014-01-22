@@ -2,51 +2,34 @@ package com.stacksync.syncservice.rpc.messages;
 
 import java.util.List;
 
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 
 public class Commit extends APIResponse {
 
 	private String user;
-	private List<ObjectMetadata> objects;
-	private String deviceName;
+	private List<ItemMetadata> items;
+	private Long deviceId;
 	private String workspaceName;
 
-	public Commit(String user, String requestId, List<ObjectMetadata> objects, String deviceName, String workspaceName) {
+	public Commit(String user, String requestId, List<ItemMetadata> items, Long deviceId, String workspaceName) {
 		super(requestId);
-		this.objects = objects;
-		this.deviceName = deviceName;
+		this.items = items;
+		this.deviceId = deviceId;
 		this.workspaceName = workspaceName;
 		this.user = user;
 	}
 
-	/**
-	 * Used for the commit message to get the objects to be updated.
-	 * 
-	 * @return A list of objects to be committed.
-	 * @throws ??
-	 */
-	public List<ObjectMetadata> getObjects() {
-		return this.objects;
+	public List<ItemMetadata> getItems() {
+		return this.items;
 	}
 
-	/**
-	 * Used for the commit and get_changes messages type.
-	 * 
-	 * @return The request workspace.
-	 * @throws ??
-	 */
 	public String getWorkspaceName() {
 		return this.workspaceName;
 	}
 
-	/**
-	 * Used for the commit and get_changes messages type.
-	 * 
-	 * @return The request workspace.
-	 * @throws ??
-	 */
-	public String getDeviceName() {
-		return this.deviceName;
+
+	public Long getDeviceId() {
+		return this.deviceId;
 	}
 
 	public String getUser() {

@@ -12,8 +12,8 @@ import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.DeviceDAO;
-import com.stacksync.syncservice.db.Object1DAO;
-import com.stacksync.syncservice.db.ObjectVersionDAO;
+import com.stacksync.syncservice.db.ItemDAO;
+import com.stacksync.syncservice.db.ItemVersionDAO;
 import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.DAOException;
@@ -34,8 +34,8 @@ public class AdvancedHandlerTest {
 	private static WorkspaceDAO workspaceDAO;
 	private static UserDAO userDao;
 	private static DeviceDAO deviceDao;
-	private static Object1DAO objectDao;
-	private static ObjectVersionDAO oversionDao;
+	private static ItemDAO objectDao;
+	private static ItemVersionDAO oversionDao;
 
 	@BeforeClass
 	public static void initializeData() {
@@ -52,8 +52,8 @@ public class AdvancedHandlerTest {
 			workspaceDAO = factory.getWorkspaceDao(connection);
 			userDao = factory.getUserDao(connection);
 			deviceDao = factory.getDeviceDAO(connection);
-			objectDao = factory.getObject1DAO(connection);
-			oversionDao = factory.getObjectVersionDAO(connection);
+			objectDao = factory.getItemDAO(connection);
+			oversionDao = factory.getItemVersionDAO(connection);
 
 			User user = new User(null, "junituser", "aa", "aa", 1000, 100);
 			userDao.add(user);

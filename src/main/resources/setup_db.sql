@@ -6,8 +6,8 @@
 -- Dumped by pg_dump version 9.2.3
 -- Started on 2013-02-14 09:30:45 CET
 
-DROP TABLE IF EXISTS public.object_version_chunk, public.chunk, public.object_version, public.object, public.workspace_user, public.workspace, public.device, public.user1 CASCADE;
-DROP SEQUENCE IF EXISTS public.sequencer_user, public.sequencer_workspace, public.sequencer_device, public.sequencer_object, public.sequencer_object_version, public.sequencer_chunk;
+DROP TABLE IF EXISTS public.item_version_chunk, public.chunk, public.item_version, public.item, public.workspace_user, public.workspace, public.device, public.user1 CASCADE;
+DROP SEQUENCE IF EXISTS public.sequencer_user, public.sequencer_workspace, public.sequencer_device, public.sequencer_item, public.sequencer_item_version, public.sequencer_chunk;
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -60,14 +60,14 @@ CREATE SEQUENCE public.sequencer_device
     NO MAXVALUE
     CACHE 1;
 
-CREATE SEQUENCE public.sequencer_object
+CREATE SEQUENCE public.sequencer_item
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
     
-CREATE SEQUENCE public.sequencer_object_version
+CREATE SEQUENCE public.sequencer_item_version
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -151,79 +151,72 @@ ALTER TABLE public.workspace_user ADD CONSTRAINT fk2_workspace_user FOREIGN KEY 
 
 
 --
--- TABLE: object
+-- TABLE: item
 --
 
-CREATE TABLE public.object (
+CREATE TABLE public.item (
     id bigint NOT NULL,
-    root_id varchar(45) NOT NULL,
     workspace_id bigint NOT NULL,
     latest_version bigint NOT NULL,
     parent_id bigint,
-    client_file_id bigint NOT NULL,
-    client_file_name varchar(100) NOT NULL,
-    client_file_mimetype varchar(45) NOT NULL,
-    client_folder boolean NOT NULL,
-    client_parent_root_id varchar(45),
-    client_parent_file_id bigint,
+    filename varchar(100) NOT NULL,
+    mimetype varchar(45) NOT NULL,
+    is_folder boolean NOT NULL,
     client_parent_file_version bigint
 );
 
-ALTER TABLE public.object ADD CONSTRAINT pk_object PRIMARY KEY (id);
+ALTER TABLE public.item ADD CONSTRAINT pk_item PRIMARY KEY (id);
 
-ALTER SEQUENCE public.sequencer_object OWNED BY public.object.id;
-ALTER TABLE ONLY public.object ALTER COLUMN id SET DEFAULT nextval('sequencer_object'::regclass);
-ALTER TABLE public.object ADD CONSTRAINT fk1_object FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
-ALTER TABLE public.object ADD CONSTRAINT fk2_object FOREIGN KEY (parent_id) REFERENCES public.object (id) ON DELETE CASCADE;
+ALTER SEQUENCE public.sequencer_item OWNED BY public.item.id;
+ALTER TABLE ONLY public.item ALTER COLUMN id SET DEFAULT nextval('sequencer_item'::regclass);
+ALTER TABLE public.item ADD CONSTRAINT fk1_item FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
+ALTER TABLE public.item ADD CONSTRAINT fk2_item FOREIGN KEY (parent_id) REFERENCES public.item (id) ON DELETE CASCADE;
 
-CREATE INDEX object_workspace_id ON public.object (workspace_id);
-CREATE INDEX object_file_id ON public.object (client_file_id);
-CREATE INDEX object_parent_id ON public.object (parent_id);
+CREATE INDEX item_workspace_id ON public.item (workspace_id);
+CREATE INDEX item_parent_id ON public.item (parent_id);
 
 
 
 --
--- TABLE: object_version
+-- TABLE: item_version
 --
 
-CREATE TABLE public.object_version (
+CREATE TABLE public.item_version (
     id bigint NOT NULL,
-    object_id bigint NOT NULL,
+    item_id bigint NOT NULL,
     device_id bigint NOT NULL,
     version integer NOT NULL,
-    modified timestamp,
-    client_checksum bigint NOT NULL,
-    client_mtime timestamp,
-    client_status varchar(10) NOT NULL, --- TODO: mirar si postgres tiene tipo enumerado
-    client_file_size bigint NOT NULL,
-    client_name varchar(45) NOT NULL, --- TODO: info implicita en el device
-    client_path varchar(100) NOT NULL --- TODO: mirar si se puede eliminar
+    committed_at timestamp,
+    checksum bigint NOT NULL,
+    modified_at timestamp,
+    status varchar(10) NOT NULL, --- TODO: mirar si postgres tiene tipo enumerado
+    size bigint NOT NULL
 );
 
-ALTER TABLE public.object_version ADD CONSTRAINT pk_object_version PRIMARY KEY (id);
-ALTER SEQUENCE public.sequencer_object_version OWNED BY public.object_version.id;
-ALTER TABLE ONLY public.object_version ALTER COLUMN id SET DEFAULT nextval('sequencer_object_version'::regclass);
+ALTER TABLE public.item_version ADD CONSTRAINT pk_item_version PRIMARY KEY (id);
+ALTER SEQUENCE public.sequencer_item_version OWNED BY public.item_version.id;
+ALTER TABLE ONLY public.item_version ALTER COLUMN id SET DEFAULT nextval('sequencer_item_version'::regclass);
 
-ALTER TABLE public.object_version ADD CONSTRAINT fk2_object_version FOREIGN KEY (object_id) REFERENCES public.object (id) ON DELETE CASCADE;
-ALTER TABLE public.object_version ADD CONSTRAINT fk3_object_version FOREIGN KEY (device_id) REFERENCES public.device (id) ON DELETE CASCADE;
+ALTER TABLE public.item_version ADD CONSTRAINT fk2_item_version FOREIGN KEY (item_id) REFERENCES public.item (id) ON DELETE CASCADE;
+ALTER TABLE public.item_version ADD CONSTRAINT fk3_item_version FOREIGN KEY (device_id) REFERENCES public.device (id) ON DELETE CASCADE;
 
-CREATE INDEX object_version_object_id ON public.object_version(object_id);
+CREATE INDEX item_version_item_id ON public.item_version(item_id);
 
-CREATE UNIQUE INDEX objectid_version_unique ON public.object_version (object_id, version);
+CREATE UNIQUE INDEX itemid_version_unique ON public.item_version (item_id, version);
 
 
 --
--- TABLE: object_version_chunk
+-- TABLE: item_version_chunk
 --
 
-CREATE TABLE public.object_version_chunk (
-    object_version_id bigint NOT NULL,	--- TODO: alomejor poniendo object_id y version podriamos ir mas rapido.???
+CREATE TABLE public.item_version_chunk (
+    item_version_id bigint NOT NULL,	--- TODO: alomejor poniendo item_id y version podriamos ir mas rapido.???
 	client_chunk_name character varying(40) NOT NULL,
     chunk_order integer NOT NULL
 );
 
-ALTER TABLE public.object_version_chunk ADD CONSTRAINT pk_object_version_chunk PRIMARY KEY (object_version_id, client_chunk_name, chunk_order);
-ALTER TABLE public.object_version_chunk ADD CONSTRAINT fk2_object_version_chunk FOREIGN KEY (object_version_id) REFERENCES public.object_version (id) ON DELETE CASCADE;
+ALTER TABLE public.item_version_chunk ADD CONSTRAINT pk_item_version_chunk PRIMARY KEY (item_version_id, client_chunk_name, chunk_order);
+ALTER TABLE public.item_version_chunk ADD CONSTRAINT fk2_item_version_chunk FOREIGN KEY (item_version_id) REFERENCES public.item_version (id) ON DELETE CASCADE;
 
 
 
@@ -231,7 +224,7 @@ ALTER TABLE public.object_version_chunk ADD CONSTRAINT fk2_object_version_chunk 
 -- FUNCTIONS
 --
 
--- Returns the path given a client_file_id
+-- Returns the path given a item_id
 CREATE OR REPLACE FUNCTION get_path(bigint, OUT result text)
   RETURNS text AS
 $BODY$
@@ -239,13 +232,13 @@ BEGIN
 
 	WITH RECURSIVE q AS 
 	( 
-		SELECT o.id, o.parent_id, ARRAY[o.id] AS level_array, '/' AS path
-		FROM object o 
-		WHERE o.id = $1
+		SELECT i.id, i.parent_id, ARRAY[i.id] AS level_array, '/' AS path
+		FROM item i 
+		WHERE i.id = $1
 		UNION ALL 
-		SELECT o2.id, o2.parent_id, q.level_array || o2.id,  '/' || o2.client_file_name::TEXT || q.path
+		SELECT i2.id, i2.parent_id, q.level_array || i2.id,  '/' || i2.filename::TEXT || q.path
 		FROM q 
-		JOIN object o2 ON o2.id = q.parent_id 
+		JOIN item i2 ON i2.id = q.parent_id 
 		)
 	SELECT INTO result path
 	FROM (
@@ -260,7 +253,7 @@ $BODY$
   LANGUAGE plpgsql VOLATILE;
 
   
--- Returns an array of chunks corresponding to the given object_version_id
+-- Returns an array of chunks corresponding to the given item_version_id
 CREATE OR REPLACE FUNCTION get_chunks(bigint, OUT result text[])
   RETURNS text[] AS
 $BODY$
@@ -271,10 +264,10 @@ BEGIN
     SELECT INTO result array_cat(ARRAY[]::character varying[], array_agg(client_chunk_name)) AS chunks
     FROM
     (
-        SELECT ovc.client_chunk_name
-        FROM object_version_chunk ovc
-        WHERE ovc.object_version_id = $1
-        ORDER BY ovc.chunk_order ASC
+        SELECT ivc.client_chunk_name
+        FROM item_version_chunk ivc
+        WHERE ivc.item_version_id = $1
+        ORDER BY ivc.chunk_order ASC
     ) AS foo;
 
 END;

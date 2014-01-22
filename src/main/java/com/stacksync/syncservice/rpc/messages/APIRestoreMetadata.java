@@ -1,16 +1,16 @@
 package com.stacksync.syncservice.rpc.messages;
 
 import com.stacksync.syncservice.models.CommitInfo;
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 
 public class APIRestoreMetadata extends APIResponse {
 
-	public APIRestoreMetadata(ObjectMetadata object, Boolean success, int error, String description) {
+	public APIRestoreMetadata(ItemMetadata item, Boolean success, int error, String description) {
 		super(null);
 		this.success = success;
 		this.errorCode = error;
 		this.description = description;
-		this.object = new CommitInfo(object.getFileId(), object.getRootId(), object.getVersion(),
-				success, object);
+		this.item = new CommitInfo(item.getVersion(),
+				success, item);
 	}
 }

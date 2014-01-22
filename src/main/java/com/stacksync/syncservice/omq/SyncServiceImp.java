@@ -18,7 +18,7 @@ import com.stacksync.syncservice.model.User;
 import com.stacksync.syncservice.model.Workspace;
 import com.stacksync.syncservice.models.CommitResult;
 import com.stacksync.syncservice.models.DeviceInfo;
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 import com.stacksync.syncservice.models.WorkspaceInfo;
 import com.stacksync.syncservice.omq.ISyncService;
 import com.stacksync.syncservice.rpc.messages.Commit;
@@ -52,10 +52,10 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	}
 
 	@Override
-	public List<ObjectMetadata> getChanges(String user, String requestId, WorkspaceInfo workspace) {
+	public List<ItemMetadata> getChanges(String user, String requestId, WorkspaceInfo workspace) {
 		logger.debug("GetChanges -->[User:" + user + ", Request:" + requestId + ", Workspace: " + workspace + "]");
 
-		List<ObjectMetadata> list = getHandler().doGetChanges(workspace.getIdentifier(), user);
+		List<ItemMetadata> list = getHandler().doGetChanges(workspace.getIdentifier(), user);
 		return list;
 	}
 
@@ -80,10 +80,10 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	}
 
 	@Override
-	public void commit(String user, String requestId, WorkspaceInfo workspace, String device, List<ObjectMetadata> commitObjects) {
-		logger.debug("Commit -->[User:" + user + ", Request:" + requestId + ", RemoteWorkspace:" + workspace + ", Device: " + device + "]");
+	public void commit(String user, String requestId, WorkspaceInfo workspace, Long deviceId, List<ItemMetadata> commitObjects) {
+		logger.debug("Commit -->[User:" + user + ", Request:" + requestId + ", RemoteWorkspace:" + workspace + ", Device: " + deviceId + "]");
 		logger.debug("Commit objects -> " + commitObjects);
-		Commit commitRequest = new Commit(user, requestId, commitObjects, device, workspace.getIdentifier());
+		Commit commitRequest = new Commit(user, requestId, commitObjects, deviceId, workspace.getIdentifier());
 
 		try {
 			CommitResult result = getHandler().doCommit(commitRequest);

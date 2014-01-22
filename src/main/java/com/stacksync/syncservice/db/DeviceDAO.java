@@ -6,9 +6,7 @@ import com.stacksync.syncservice.exceptions.DAOException;
 import com.stacksync.syncservice.model.Device;
 
 public interface DeviceDAO {
-	public Device findByPrimaryKey(Long id) throws DAOException;
-
-	public Device findByName(String name) throws DAOException;
+	public Device get(Long id) throws DAOException;
 
 	public Collection<Device> findAll() throws DAOException;
 

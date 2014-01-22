@@ -1,7 +1,7 @@
 package com.stacksync.syncservice.rpc.messages;
 
 import com.stacksync.syncservice.models.CommitInfo;
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 
 public class APICommitResponse extends APIResponse {
 
@@ -9,14 +9,14 @@ public class APICommitResponse extends APIResponse {
 	private int error;
 	private String description;
 
-	public APICommitResponse(ObjectMetadata object, Boolean success, int error, String description) {
+	public APICommitResponse(ItemMetadata item, Boolean success, int error, String description) {
 		super(null);
 		this.success = success;
 		this.error = error;
 		this.description = description;
-		if (object != null) {
-			this.object = new CommitInfo(object.getFileId(), object.getRootId(), object.getVersion(),
-					success, object);
+		if (item != null) {
+			this.item = new CommitInfo(item.getVersion(),
+					success, item);
 		}
 	}
 
@@ -44,12 +44,12 @@ public class APICommitResponse extends APIResponse {
 		this.description = description;
 	}
 
-	public CommitInfo getObject() {
-		return object;
+	public CommitInfo getItem() {
+		return item;
 	}
 
-	public void setObject(CommitInfo object) {
-		this.object = object;
+	public void setObject(CommitInfo item) {
+		this.item = item;
 	}
 
 }

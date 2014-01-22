@@ -6,7 +6,7 @@ import java.util.List;
 import com.stacksync.syncservice.exceptions.DAOException;
 import com.stacksync.syncservice.model.Device;
 import com.stacksync.syncservice.models.CommitResult;
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
@@ -25,7 +25,7 @@ public interface Handler {
 
 	public CommitResult doCommit(Commit request) throws DAOException;
 
-	public List<ObjectMetadata> doGetChanges(String workspaceName, String user);
+	public List<ItemMetadata> doGetChanges(String workspaceName, String user);
 	
 	public Long doUpdateDevice(Device device);
 
@@ -33,13 +33,13 @@ public interface Handler {
 
 	public GetWorkspacesResponse doGetWorkspaces(GetWorkspaces workspacesRequest);
 
-	public APICommitResponse ApiCommitMetadata(String userId, String workspaceName, Boolean overwrite, ObjectMetadata fileToSave, ObjectMetadata parentMetadata);
+	public APICommitResponse ApiCommitMetadata(String userId, String workspaceName, Boolean overwrite, ItemMetadata fileToSave, ItemMetadata parentMetadata);
 
-	public APICreateFolderResponse ApiCreateFolder(String strUser, String workspace, ObjectMetadata objectToSave, ObjectMetadata parentMetadata);
+	public APICreateFolderResponse ApiCreateFolder(String strUser, String workspace, ItemMetadata objectToSave, ItemMetadata parentMetadata);
 
-	public APIRestoreMetadata ApiRestoreMetadata(String user, String workspace, ObjectMetadata object);
+	public APIRestoreMetadata ApiRestoreMetadata(String user, String workspace, ItemMetadata object);
 
-	public APIDeleteResponse ApiDeleteMetadata(String strUser, String workspace, ObjectMetadata object);
+	public APIDeleteResponse ApiDeleteMetadata(String strUser, String workspace, ItemMetadata object);
 
 	public APIGetVersions ApiGetVersions(String user, Long fileId);
 

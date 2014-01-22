@@ -3,8 +3,8 @@ package com.stacksync.syncservice.db;
 import java.sql.Connection;
 
 import com.stacksync.syncservice.db.postgresql.PostgresqlDeviceDAO;
-import com.stacksync.syncservice.db.postgresql.PostgresqlObject1DAO;
-import com.stacksync.syncservice.db.postgresql.PostgresqlObjectVersionDao;
+import com.stacksync.syncservice.db.postgresql.PostgresqlItemDAO;
+import com.stacksync.syncservice.db.postgresql.PostgresqlItemVersionDao;
 import com.stacksync.syncservice.db.postgresql.PostgresqlUserDAO;
 import com.stacksync.syncservice.db.postgresql.PostgresqlWorkspaceDAO;
 
@@ -24,12 +24,12 @@ public class DAOFactory {
 		return new PostgresqlUserDAO(connection);
 	}
 
-	public Object1DAO getObject1DAO(Connection connection) {
-		return new PostgresqlObject1DAO(connection);
+	public ItemDAO getItemDAO(Connection connection) {
+		return new PostgresqlItemDAO(connection);
 	}
 
-	public ObjectVersionDAO getObjectVersionDAO(Connection connection) {
-		return new PostgresqlObjectVersionDao(connection);
+	public ItemVersionDAO getItemVersionDAO(Connection connection) {
+		return new PostgresqlItemVersionDao(connection);
 	}
 
 	public DeviceDAO getDeviceDAO(Connection connection) {

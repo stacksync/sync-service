@@ -151,12 +151,12 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 	}
 
 	@Override
-	public List<User> findByClientFileId(Long clientFileId) throws DAOException {
+	public List<User> findByItemId(Long itemId) throws DAOException {
 		ArrayList<User> users = new ArrayList<User>();
-		Object[] values = { clientFileId };
+		Object[] values = { itemId };
 
-		String query = "SELECT u.* " + " FROM object o " + " INNER JOIN workspace_user wu ON o.workspace_id = wu.workspace_id "
-				+ " INNER JOIN user1 u ON wu.user_id = u.id " + " WHERE o.client_file_id = ?";
+		String query = "SELECT u.* " + " FROM item i " + " INNER JOIN workspace_user wu ON i.workspace_id = wu.workspace_id "
+				+ " INNER JOIN user1 u ON wu.user_id = u.id " + " WHERE o.id = ?";
 
 		ResultSet result = null;
 

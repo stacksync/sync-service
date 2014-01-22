@@ -31,7 +31,7 @@
 		<dependency>
 			<groupId>syncservice-common</groupId>
 			<artifactId>syncservice-common</artifactId>
-			<version>1.2</version>
+			<version>1.2.5</version>
 		</dependency>
 		<dependency>
 			<groupId>objectmq</groupId>

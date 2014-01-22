@@ -5,8 +5,6 @@ import com.stacksync.syncservice.db.DAOError;
 /**
  * This class represents a generic DAO exception. It should wrap any exception on the database level
  * , such as SQLExceptions.
- *
- * @author Adrian Moreno
  */
 public class DAOException extends Exception {
 

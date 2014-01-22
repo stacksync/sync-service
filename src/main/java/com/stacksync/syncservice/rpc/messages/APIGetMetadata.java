@@ -1,21 +1,21 @@
 package com.stacksync.syncservice.rpc.messages;
 
-import com.stacksync.syncservice.models.ObjectMetadata;
+import com.stacksync.syncservice.models.ItemMetadata;
 
 public class APIGetMetadata extends APIResponse {
 
-	private ObjectMetadata objectMetadata;
+	private ItemMetadata itemMetadata;
 	
-	public APIGetMetadata(ObjectMetadata object, Boolean success, int error, String description) {
+	public APIGetMetadata(ItemMetadata item, Boolean success, int error, String description) {
 		super(null);
 
 		this.success = success;
-		this.objectMetadata = object;
+		this.itemMetadata = item;
 		this.description = description;
 		this.errorCode = error;
 	}
 	
-	public ObjectMetadata getObjectMetadata(){
-		return objectMetadata;
+	public ItemMetadata getItemMetadata(){
+		return itemMetadata;
 	}
 }
