@@ -6,7 +6,7 @@
 -- Dumped by pg_dump version 9.2.3
 -- Started on 2013-02-14 09:30:45 CET
 
-DROP TABLE IF EXISTS public.item_version_chunk, public.chunk, public.item_version, public.item, public.workspace_user, public.workspace, public.device, public.user1 CASCADE;
+DROP TABLE IF EXISTS public.item_version_chunk, public.item_version, public.item, public.workspace_user, public.workspace, public.device, public.user1 CASCADE;
 DROP SEQUENCE IF EXISTS public.sequencer_user, public.sequencer_workspace, public.sequencer_device, public.sequencer_item, public.sequencer_item_version, public.sequencer_chunk;
 
 SET statement_timeout = 0;
@@ -121,7 +121,6 @@ ALTER TABLE public.device ADD CONSTRAINT fk1_device FOREIGN KEY (user_id) REFERE
 
 CREATE TABLE public.workspace (
     id bigint NOT NULL,
-    client_workspace_name varchar(45) UNIQUE,
     latest_revision varchar(45) NOT NULL DEFAULT 0,
     owner_id bigint NOT NULL
 );
@@ -140,7 +139,7 @@ ALTER TABLE public.workspace ADD CONSTRAINT fk1_workspace FOREIGN KEY (owner_id)
 CREATE TABLE public.workspace_user (
     workspace_id bigint NOT NULL,
     user_id bigint NOT NULL,
-    client_workspace_path varchar(255) NOT NULL
+    folder_name varchar(255) NOT NULL
 );
 
 ALTER TABLE public.workspace_user ADD CONSTRAINT pk_workspace_user PRIMARY KEY (workspace_id, user_id);
@@ -210,7 +209,7 @@ CREATE UNIQUE INDEX itemid_version_unique ON public.item_version (item_id, versi
 --
 
 CREATE TABLE public.item_version_chunk (
-    item_version_id bigint NOT NULL,	--- TODO: alomejor poniendo item_id y version podriamos ir mas rapido.???
+    item_version_id bigint NOT NULL,
 	client_chunk_name character varying(40) NOT NULL,
     chunk_order integer NOT NULL
 );

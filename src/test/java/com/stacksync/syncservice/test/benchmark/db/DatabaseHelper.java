@@ -3,6 +3,11 @@ package com.stacksync.syncservice.test.benchmark.db;
 import java.sql.Connection;
 import java.util.List;
 
+import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.Item;
+import com.stacksync.commons.models.ItemVersion;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
@@ -11,12 +16,7 @@ import com.stacksync.syncservice.db.ItemDAO;
 import com.stacksync.syncservice.db.ItemVersionDAO;
 import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.Item;
-import com.stacksync.syncservice.model.ItemVersion;
-import com.stacksync.syncservice.model.User;
-import com.stacksync.syncservice.model.Workspace;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.util.Config;
 
 public class DatabaseHelper {
@@ -107,7 +107,7 @@ public class DatabaseHelper {
 
 	public void addWorkspace(User user, Workspace workspace) throws IllegalArgumentException, DAOException {
 		workspaceDAO.add(workspace);
-		workspaceDAO.addUser(user, workspace, "/");
+		workspaceDAO.addUser(user, workspace);
 	}
 
 	public void addDevice(Device device) throws IllegalArgumentException, DAOException {

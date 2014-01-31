@@ -1,7 +1,7 @@
 package com.stacksync.syncservice.rpc.messages;
 
-import com.stacksync.syncservice.models.CommitInfo;
-import com.stacksync.syncservice.models.ItemMetadata;
+import com.stacksync.commons.models.CommitInfo;
+import com.stacksync.commons.models.ItemMetadata;
 
 public class APIRestoreMetadata extends APIResponse {
 

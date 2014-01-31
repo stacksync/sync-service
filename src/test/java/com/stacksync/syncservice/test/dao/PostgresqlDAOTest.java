@@ -15,20 +15,20 @@ import org.apache.log4j.xml.DOMConfigurator;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.stacksync.commons.models.Chunk;
+import com.stacksync.commons.models.Item;
+import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.ItemVersion;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.ItemDAO;
 import com.stacksync.syncservice.db.ItemVersionDAO;
 import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
-import com.stacksync.syncservice.exceptions.DAOConfigurationException;
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.Chunk;
-import com.stacksync.syncservice.model.Item;
-import com.stacksync.syncservice.model.ItemVersion;
-import com.stacksync.syncservice.model.User;
-import com.stacksync.syncservice.model.Workspace;
-import com.stacksync.syncservice.models.ItemMetadata;
+import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.util.Config;
 
 public class PostgresqlDAOTest {
@@ -211,7 +211,6 @@ public class PostgresqlDAOTest {
 		User user = new User(12345L);
 
 		Workspace workspace = new Workspace();
-		workspace.setClientWorkspaceName(nextString());
 		workspace.setOwner(user);
 
 		try {
@@ -234,7 +233,6 @@ public class PostgresqlDAOTest {
 		userDao.add(user);
 
 		Workspace workspace = new Workspace();
-		workspace.setClientWorkspaceName(nextString());
 		workspace.setLatestRevision(0);
 		workspace.setOwner(user);
 
@@ -258,7 +256,6 @@ public class PostgresqlDAOTest {
 		userDao.add(user);
 
 		Workspace workspace = new Workspace();
-		workspace.setClientWorkspaceName(nextString());
 		workspace.setOwner(user);
 		workspace.setLatestRevision(0);
 
@@ -279,11 +276,6 @@ public class PostgresqlDAOTest {
 			assertTrue(e.toString(), true);
 		}
 
-	}
-
-	@Test
-	public void testGetWorkspaceIdByName() throws DAOException {
-		System.out.println(workspaceDAO.getPrimaryKey("cotes_workspace"));
 	}
 
 	@Test
@@ -355,9 +347,9 @@ public class PostgresqlDAOTest {
 	}
 
 	@Test
-	public void testGetObjectsByWorkspaceName() throws DAOException {
+	public void testGetObjectsByWorkspaceId() throws DAOException {
 
-		List<Item> objects = objectDao.findByWorkspaceName("benchmark/");
+		List<Item> objects = objectDao.findByWorkspaceId(1L);
 
 		if (objects != null && !objects.isEmpty()) {
 
@@ -374,7 +366,7 @@ public class PostgresqlDAOTest {
 	@Test
 	public void testGetObjectMetadataByWorkspaceName() throws DAOException {
 
-		List<ItemMetadata> objects = objectDao.getItemsByWorkspaceName("benchmark/");
+		List<ItemMetadata> objects = objectDao.getItemsByWorkspaceId(1L);
 
 		if (objects != null && !objects.isEmpty()) {
 

@@ -8,10 +8,10 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.models.User;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.UserDAO;
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.User;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 	private static final Logger logger = Logger.getLogger(PostgresqlUserDAO.class.getName());
@@ -51,6 +51,28 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 
 		try {
 			resultSet = executeQuery(query, new Object[] { cloudID });
+
+			if (resultSet.next()) {
+				user = mapUser(resultSet);
+			}
+		} catch (SQLException e) {
+			logger.error(e);
+			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
+		}
+
+		return user;
+	}
+	
+	@Override
+	public User findByEmail(String email) throws DAOException {
+
+		ResultSet resultSet = null;
+		User user = null;
+
+		String query = "SELECT id, name, email, cloud_id, quota_limit, quota_used " + " FROM \"user1\" WHERE email = ?";
+
+		try {
+			resultSet = executeQuery(query, new Object[] { email });
 
 			if (resultSet.next()) {
 				user = mapUser(resultSet);

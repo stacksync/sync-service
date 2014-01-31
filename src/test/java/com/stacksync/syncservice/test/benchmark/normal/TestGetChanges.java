@@ -13,12 +13,14 @@ import omq.common.util.Serializers.JavaImp;
 import omq.common.util.Serializers.KryoImp;
 import omq.exception.SerializerException;
 
+import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.test.benchmark.Constants;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLHandler;
-import com.stacksync.syncservice.models.ItemMetadata;
 import com.stacksync.syncservice.util.Config;
 
 public class TestGetChanges {
@@ -95,7 +97,12 @@ public class TestGetChanges {
 		// GetChangesMessage getChangesRequest = new
 		// GetChangesMessage("AUTH_e26e8353dbd043ae857ad6962e02f5cc",
 		// Message.GET_CHANGES, Constants.REQUESTID, "benchmark-93539494/", "");
-		List<ItemMetadata> listFiles = handler.doGetChanges(Constants.WORKSPACEID, Constants.USER);
+		
+		User user = new User();
+		user.setCloudId(Constants.USER);
+		Workspace workspace = new Workspace(Constants.WORKSPACE_ID);
+		
+		List<ItemMetadata> listFiles = handler.doGetChanges(user, workspace);
 
 		System.out.println("Objects -> " + listFiles.size());
 		int countChk = 0;

@@ -11,10 +11,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.stacksync.syncservice.model.Chunk;
-import com.stacksync.syncservice.model.Item;
-import com.stacksync.syncservice.model.Workspace;
-import com.stacksync.syncservice.models.ItemMetadata;
+import com.stacksync.commons.models.Chunk;
+import com.stacksync.commons.models.Item;
+import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.Workspace;
 
 /**
  * Utility class for DAO's. This class contains commonly used DAO logic which is

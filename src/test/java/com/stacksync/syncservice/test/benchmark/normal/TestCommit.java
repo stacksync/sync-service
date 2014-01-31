@@ -7,12 +7,14 @@ import java.util.List;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLHandler;
-import com.stacksync.syncservice.models.ItemMetadata;
-import com.stacksync.syncservice.rpc.messages.Commit;
 import com.stacksync.syncservice.test.benchmark.Constants;
 import com.stacksync.syncservice.util.Config;
 
@@ -80,9 +82,13 @@ public class TestCommit {
 
 		JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
 		List<ItemMetadata> objects = getObjectMetadata(rawObjects);
-		Commit commitRequest = new Commit(Constants.USER, Constants.REQUESTID, objects, Constants.DEVICE_ID, Constants.WORKSPACEID);
 
-		handler.doCommit(commitRequest);
+		User user = new User();
+		user.setCloudId(Constants.USER);
+		Device device = new Device( Constants.DEVICE_ID);
+		Workspace workspace = new Workspace(Constants.WORKSPACE_ID);
+		
+		handler.doCommit(user, workspace, device, objects);
 
 		long totalTime = System.currentTimeMillis() - startTotal;
 		// System.out.println("Objects -> " + ((GetChangesResponseMessage)

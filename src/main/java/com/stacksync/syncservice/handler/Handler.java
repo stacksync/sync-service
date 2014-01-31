@@ -3,19 +3,22 @@ package com.stacksync.syncservice.handler;
 import java.sql.Connection;
 import java.util.List;
 
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.models.CommitResult;
-import com.stacksync.syncservice.models.ItemMetadata;
+import com.stacksync.commons.models.CommitInfo;
+import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
+import com.stacksync.commons.exceptions.DeviceNotUpdatedException;
+import com.stacksync.commons.exceptions.DeviceNotValidException;
+import com.stacksync.commons.exceptions.UserNotFoundException;
+import com.stacksync.syncservice.exceptions.NoWorkspacesFoundException;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
-import com.stacksync.syncservice.rpc.messages.Commit;
-import com.stacksync.syncservice.rpc.messages.GetWorkspaces;
-import com.stacksync.syncservice.rpc.messages.GetWorkspacesResponse;
 
 public interface Handler {
 
@@ -23,26 +26,28 @@ public interface Handler {
 		NEW, DELETED, CHANGED, RENAMED, MOVED
 	};
 
-	public CommitResult doCommit(Commit request) throws DAOException;
+	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items) throws DAOException;
 
-	public List<ItemMetadata> doGetChanges(String workspaceName, String user);
+	public List<ItemMetadata> doGetChanges(User user, Workspace workspace);
 	
-	public Long doUpdateDevice(Device device);
+	public Long doUpdateDevice(Device device) throws UserNotFoundException, DeviceNotValidException, DeviceNotUpdatedException;
 
-	public APIGetMetadata ApiGetMetadata(String user, Long fileId, Boolean includeList, Boolean includeDeleted, Boolean includeChunks, Long version);
+	public APIGetMetadata ApiGetMetadata(User user, Long fileId, Boolean includeList, Boolean includeDeleted, Boolean includeChunks, Long version);
 
-	public GetWorkspacesResponse doGetWorkspaces(GetWorkspaces workspacesRequest);
+	public List<Workspace> doGetWorkspaces(User user) throws NoWorkspacesFoundException;
 
-	public APICommitResponse ApiCommitMetadata(String userId, String workspaceName, Boolean overwrite, ItemMetadata fileToSave, ItemMetadata parentMetadata);
+	public APICommitResponse ApiCommitMetadata(User user, Boolean overwrite, ItemMetadata fileToSave, ItemMetadata parentMetadata);
 
-	public APICreateFolderResponse ApiCreateFolder(String strUser, String workspace, ItemMetadata objectToSave, ItemMetadata parentMetadata);
+	public APICreateFolderResponse ApiCreateFolder(User user, ItemMetadata itemToSave, ItemMetadata parentMetadata);
 
-	public APIRestoreMetadata ApiRestoreMetadata(String user, String workspace, ItemMetadata object);
+	public APIRestoreMetadata ApiRestoreMetadata(User user, ItemMetadata item);
 
-	public APIDeleteResponse ApiDeleteMetadata(String strUser, String workspace, ItemMetadata object);
+	public APIDeleteResponse ApiDeleteMetadata(User user, ItemMetadata item);
 
-	public APIGetVersions ApiGetVersions(String user, Long fileId);
+	public APIGetVersions ApiGetVersions(User user, ItemMetadata item);
 
 	public Connection getConnection();
+
+	public Long doCreateShareProposal(User user, List<String> emails, String folderName);
 
 }

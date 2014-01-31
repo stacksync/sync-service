@@ -9,21 +9,23 @@ import omq.server.RemoteObject;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.models.CommitInfo;
+import com.stacksync.commons.models.CommitResult;
+import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
+import com.stacksync.commons.omq.ISyncService;
+import com.stacksync.commons.omq.RemoteWorkspace;
+import com.stacksync.commons.requests.UpdateDeviceRequest;
 import com.stacksync.syncservice.db.ConnectionPool;
-import com.stacksync.syncservice.exceptions.DAOException;
+import com.stacksync.commons.exceptions.DeviceNotUpdatedException;
+import com.stacksync.commons.exceptions.DeviceNotValidException;
+import com.stacksync.commons.exceptions.UserNotFoundException;
+import com.stacksync.syncservice.exceptions.NoWorkspacesFoundException;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLHandler;
-import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.User;
-import com.stacksync.syncservice.model.Workspace;
-import com.stacksync.syncservice.models.CommitResult;
-import com.stacksync.syncservice.models.DeviceInfo;
-import com.stacksync.syncservice.models.ItemMetadata;
-import com.stacksync.syncservice.models.WorkspaceInfo;
-import com.stacksync.syncservice.omq.ISyncService;
-import com.stacksync.syncservice.rpc.messages.Commit;
-import com.stacksync.syncservice.rpc.messages.GetWorkspaces;
-import com.stacksync.syncservice.rpc.messages.GetWorkspacesResponse;
 
 public class SyncServiceImp extends RemoteObject implements ISyncService {
 
@@ -52,44 +54,42 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	}
 
 	@Override
-	public List<ItemMetadata> getChanges(String user, String requestId, WorkspaceInfo workspace) {
+	public List<ItemMetadata> getChanges(String requestId, User user, Workspace workspace) {
 		logger.debug("GetChanges -->[User:" + user + ", Request:" + requestId + ", Workspace: " + workspace + "]");
 
-		List<ItemMetadata> list = getHandler().doGetChanges(workspace.getIdentifier(), user);
+		List<ItemMetadata> list = getHandler().doGetChanges(user, workspace);
 		return list;
 	}
 
 	@Override
-	public List<WorkspaceInfo> getWorkspaces(String user, String requestId) {
+	public List<Workspace> getWorkspaces(String user, String requestId) {
 		logger.debug("GetWorkspaces -->[User:" + user + ", Request:" + requestId + "]");
-		GetWorkspaces workspacesRequest = new GetWorkspaces(requestId, user, "");
-		GetWorkspacesResponse response = getHandler().doGetWorkspaces(workspacesRequest);
 
-		List<WorkspaceInfo> list = new ArrayList<WorkspaceInfo>();
-		for (Workspace w : response.getWorkspaces()) {
-			try {
-				WorkspaceInfo workspace = new WorkspaceInfo(w.getClientWorkspaceName(), w.getLatestRevision(), "/");
-				list.add(workspace);
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		User user1 = new User();
+		user1.setCloudId(user);
+		
+		List<Workspace> workspaces;
+		try {
+			workspaces = getHandler().doGetWorkspaces(user1);
+		} catch (NoWorkspacesFoundException e) {
+			workspaces = new ArrayList<Workspace>();
 		}
 
-		return list;
+		return workspaces;
 	}
 
 	@Override
-	public void commit(String user, String requestId, WorkspaceInfo workspace, Long deviceId, List<ItemMetadata> commitObjects) {
-		logger.debug("Commit -->[User:" + user + ", Request:" + requestId + ", RemoteWorkspace:" + workspace + ", Device: " + deviceId + "]");
-		logger.debug("Commit objects -> " + commitObjects);
-		Commit commitRequest = new Commit(user, requestId, commitObjects, deviceId, workspace.getIdentifier());
+	public void commit(String requestId, User user, Workspace workspace, Device device, List<ItemMetadata> items) {
+		logger.debug("Commit -->[User:" + user + ", Request:" + requestId + ", RemoteWorkspace:" + workspace + ", Device: " + device + "]");
+		logger.debug("Commit objects -> " + items);
 
 		try {
-			CommitResult result = getHandler().doCommit(commitRequest);
-
-			RemoteWorkspace commitNotifier = broker.lookupMulti(workspace.getIdentifier(), RemoteWorkspace.class);
-
+			List<CommitInfo> committedItems = getHandler().doCommit(user, workspace, device, items);
+			
+			CommitResult result = new CommitResult(requestId, committedItems);
+			String id = Long.toString(workspace.getId());
+			
+			RemoteWorkspace commitNotifier = broker.lookupMulti(id, RemoteWorkspace.class);
 			commitNotifier.notifyCommit(result);
 
 			logger.debug("Consumer: Response sent to workspace \"" + workspace + "\"");
@@ -110,24 +110,38 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	}
 
 	@Override
-	public Long updateDevice(String user, String requestId, DeviceInfo deviceInfo) {
+	public Long updateDevice(UpdateDeviceRequest request) throws UserNotFoundException, DeviceNotValidException, DeviceNotUpdatedException {
 		
-		User user1 = new User();
-		user1.setCloudId(user);
+		logger.debug(request.toString());
 		
+		User user = new User();
+		user.setCloudId(request.getUserId());
+	
 		Device device = new Device();
-		device.setId(deviceInfo.getId());
-		device.setUser(user1);
-		device.setName(deviceInfo.getName());
-		device.setOs(deviceInfo.getOs());
-		device.setLastIp(deviceInfo.getIp());
-		device.setAppVersion(deviceInfo.getAppVersion());
-		
-		logger.debug(String.format("RequestId=%s, updateDevice: %s", requestId, device.toString()));
+		device.setId(request.getDeviceId());
+		device.setUser(user);
+		device.setName(request.getDeviceName());
+		device.setOs(request.getOs());
+		device.setLastIp(request.getIp());
+		device.setAppVersion(request.getAppVersion());
 		
 		Long deviceId = getHandler().doUpdateDevice(device);
 		
 		return deviceId;
+	}
+
+	@Override
+	public Long createShareProposal(String user, String requestId,
+			List<String> emails, String folderName) {
+		
+		logger.debug(String.format("RequestId=%s, createShareProposal", requestId));
+		
+		User user1 = new User();
+		user1.setCloudId(user);
+		
+		Long workspaceId = getHandler().doCreateShareProposal(user1, emails, folderName);
+
+		return workspaceId;
 	}
 
 }

@@ -1,6 +1,6 @@
 package com.stacksync.syncservice.exceptions;
 
-import com.stacksync.syncservice.model.Item;
+import com.stacksync.commons.models.Item;
 
 public class CommitWrongVersion extends Exception {
 

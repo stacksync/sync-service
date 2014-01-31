@@ -1,4 +1,4 @@
-package com.stacksync.syncservice.exceptions;
+package com.stacksync.syncservice.exceptions.dao;
 
 /**
  * This class represents an exception in the DAO configuration which cannot be resolved at runtime,

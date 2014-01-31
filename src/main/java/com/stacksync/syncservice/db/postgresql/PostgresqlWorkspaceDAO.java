@@ -9,22 +9,24 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.WorkspaceDAO;
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.User;
-import com.stacksync.syncservice.model.Workspace;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDAO {
+public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements
+		WorkspaceDAO {
 
-	private static final Logger logger = Logger.getLogger(PostgresqlWorkspaceDAO.class.getName());
+	private static final Logger logger = Logger
+			.getLogger(PostgresqlWorkspaceDAO.class.getName());
 
 	public PostgresqlWorkspaceDAO(Connection connection) {
 		super(connection);
 	}
 
 	@Override
-	public Workspace findByPrimaryKey(Long workspaceID) throws DAOException {
+	public Workspace findById(Long workspaceID) throws DAOException {
 		ResultSet resultSet = null;
 		Workspace workspace = null;
 
@@ -39,30 +41,6 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		} catch (SQLException e) {
 			logger.error(e);
 			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
-		}
-
-		return workspace;
-	}
-
-	@Override
-	public Workspace findByName(String workspaceName) throws DAOException {
-
-		Object[] values = { workspaceName };
-
-		String query = "SELECT * FROM workspace WHERE client_workspace_name = ?";
-
-		ResultSet result = null;
-		Workspace workspace = null;
-
-		try {
-			result = executeQuery(query, values);
-
-			// There is no more than one result due to workspace name is UNIQUE
-			if (result.next()) {
-				workspace = mapWorkspace(result);
-			}
-		} catch (SQLException e) {
-			throw new DAOException(e);
 		}
 
 		return workspace;
@@ -88,11 +66,14 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 	}
 
 	@Override
-	public List<Workspace> findByUserCloudId(String userCloudId) throws DAOException {
+	public List<Workspace> findByUserCloudId(String userCloudId)
+			throws DAOException {
 
 		Object[] values = { userCloudId };
 
-		String query = "SELECT * FROM workspace w " + "INNER JOIN user1 u ON w.owner_id=u.id " + "WHERE u.cloud_id=?";
+		String query = "SELECT * FROM workspace w "
+				+ "INNER JOIN user1 u ON w.owner_id=u.id "
+				+ "WHERE u.cloud_id=?";
 
 		ResultSet result = null;
 		List<Workspace> workspaces = new ArrayList<Workspace>();
@@ -119,9 +100,10 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 			throw new IllegalArgumentException("Workspace attributes not set");
 		}
 
-		Object[] values = { workspace.getClientWorkspaceName(), workspace.getLatestRevision(), workspace.getOwner().getId() };
+		Object[] values = { workspace.getLatestRevision(),
+				workspace.getOwner().getId() };
 
-		String query = "INSERT INTO workspace (client_workspace_name, latest_revision, owner_id) VALUES (?, ?, ?)";
+		String query = "INSERT INTO workspace (latest_revision, owner_id) VALUES (?, ?)";
 
 		Long id = executeUpdate(query, values);
 
@@ -137,9 +119,10 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 			throw new IllegalArgumentException("User attributes not set");
 		}
 
-		Object[] values = { workspace.getClientWorkspaceName(), workspace.getLatestRevision(), workspace.getOwner().getId(), workspace.getId() };
+		Object[] values = { workspace.getLatestRevision(),
+				workspace.getOwner().getId(), workspace.getId() };
 
-		String query = "UPDATE workspace SET client_workspace_name = ?, latest_revision = ?, owner_id = ? WHERE id = ?";
+		String query = "UPDATE workspace SET latest_revision = ?, owner_id = ? WHERE id = ?";
 
 		try {
 			executeUpdate(query, values);
@@ -161,7 +144,6 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 	private Workspace mapWorkspace(ResultSet result) throws SQLException {
 		Workspace workspace = new Workspace();
 		workspace.setId(result.getLong("id"));
-		workspace.setClientWorkspaceName(result.getString("client_workspace_name"));
 		workspace.setLatestRevision(result.getInt("latest_revision"));
 
 		User owner = new User();
@@ -173,46 +155,38 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 	}
 
 	@Override
-	public Long getPrimaryKey(String workspaceName) throws DAOException {
-		Object[] values = { workspaceName };
+	public void addUser(User user, Workspace workspace) throws DAOException {
+		if (user == null || !user.isValid()) {
+			throw new IllegalArgumentException("User not valid");
+		} else if (workspace == null || !workspace.isValid()) {
+			throw new IllegalArgumentException("Workspace not valid");
+		}
 
-		String query = "SELECT id FROM workspace WHERE client_workspace_name = ?";
+		Object[] values = { workspace.getId(), user.getId() };
 
-		ResultSet result = null;
-		Long workspaceId = null;
+		String query = "INSERT INTO workspace_user (workspace_id, user_id) VALUES (?, ?)";
+
+		executeUpdate(query, values);
+	}
+
+	@Override
+	public Workspace getByItemId(Long itemId) throws DAOException {
+		ResultSet resultSet = null;
+		Workspace workspace = null;
+
+		String query = "SELECT * FROM workspace w INNER JOIN item i ON w.id = i.workspace_id WHERE i.id = ?";
 
 		try {
-			result = executeQuery(query, values);
+			resultSet = executeQuery(query, new Object[] { itemId });
 
-			// There is no more than one result due to workspace name is UNIQUE
-			if (result.next()) {
-				workspaceId = result.getLong("id");
-			} else {
-				// TODO error, no ha encontrado nada el perroo
-				// throw workspace not found??
+			if (resultSet.next()) {
+				workspace = mapWorkspace(resultSet);
 			}
-
 		} catch (SQLException e) {
 			logger.error(e);
 			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
 		}
 
-		return workspaceId;
+		return workspace;
 	}
-
-	@Override
-	public void addUser(User user, Workspace workspace, String path) throws DAOException {
-		if (!user.isValid()) {
-			throw new IllegalArgumentException("User attributes not set");
-		} else if (!workspace.isValid()) {
-			throw new IllegalArgumentException("Workspace attributes not set");
-		}
-
-		Object[] values = { workspace.getId(), user.getId(), path };
-
-		String query = "INSERT INTO workspace_user (workspace_id, user_id, client_workspace_path) VALUES (?, ?, ?)";
-
-		executeUpdate(query, values);
-	}
-
 }

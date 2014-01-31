@@ -2,9 +2,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>StackSync Server</name>
-	<groupId>com.stacksync.syncservice</groupId>
+	<groupId>com.stacksync</groupId>
 	<artifactId>stacksync-server</artifactId>
-	<version>0.4.5</version>
+	<version>0.5.0</version>
 	<repositories>
 		<repository>
 			<id>Sonatype repository</id>
@@ -29,9 +29,9 @@
 			<version>1.0.15</version>
 		</dependency>
 		<dependency>
-			<groupId>syncservice-common</groupId>
-			<artifactId>syncservice-common</artifactId>
-			<version>1.2.5</version>
+			<groupId>com.stacksync</groupId>
+			<artifactId>stacksync-commons</artifactId>
+			<version>1.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>objectmq</groupId>

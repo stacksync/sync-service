@@ -7,7 +7,7 @@ import org.apache.log4j.Logger;
 import org.postgresql.ds.PGPoolingDataSource;
 
 import com.stacksync.syncservice.db.ConnectionPool;
-import com.stacksync.syncservice.exceptions.DAOConfigurationException;
+import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 
 public class PostgresqlConnectionPool extends ConnectionPool {
 

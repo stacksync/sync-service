@@ -2,8 +2,8 @@ package com.stacksync.syncservice.db;
 
 import java.util.Collection;
 
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.Device;
+import com.stacksync.commons.models.Device;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface DeviceDAO {
 	public Device get(Long id) throws DAOException;

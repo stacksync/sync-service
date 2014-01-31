@@ -3,7 +3,7 @@ package com.stacksync.syncservice.db;
 import org.apache.log4j.Logger;
 
 import com.stacksync.syncservice.db.postgresql.PostgresqlConnectionPool;
-import com.stacksync.syncservice.exceptions.DAOConfigurationException;
+import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 import com.stacksync.syncservice.util.Config;
 
 public class ConnectionPoolFactory {

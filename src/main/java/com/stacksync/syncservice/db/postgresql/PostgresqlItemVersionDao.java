@@ -8,13 +8,13 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.models.Chunk;
+import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.ItemVersionDAO;
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.Chunk;
-import com.stacksync.syncservice.model.ItemVersion;
-import com.stacksync.syncservice.models.ItemMetadata;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public class PostgresqlItemVersionDao extends PostgresqlDAO implements
 		ItemVersionDAO {

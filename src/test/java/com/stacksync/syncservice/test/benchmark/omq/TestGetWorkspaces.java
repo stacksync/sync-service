@@ -5,8 +5,8 @@ import java.util.Properties;
 
 import omq.common.broker.Broker;
 
-import com.stacksync.syncservice.models.WorkspaceInfo;
-import com.stacksync.syncservice.omq.ISyncService;
+import com.stacksync.commons.models.Workspace;
+import com.stacksync.commons.omq.ISyncService;
 import com.stacksync.syncservice.test.benchmark.Constants;
 
 public class TestGetWorkspaces {
@@ -18,7 +18,7 @@ public class TestGetWorkspaces {
 		ISyncService server = broker.lookup(ISyncService.class.getSimpleName(), ISyncService.class);
 
 		long startTotal = System.currentTimeMillis();
-		List<WorkspaceInfo> workspaces = server.getWorkspaces(Constants.USER, Constants.REQUESTID);
+		List<Workspace> workspaces = server.getWorkspaces(Constants.USER, Constants.REQUEST_ID);
 
 		System.out.println("Result -> " + workspaces);
 		long totalTime = System.currentTimeMillis() - startTotal;

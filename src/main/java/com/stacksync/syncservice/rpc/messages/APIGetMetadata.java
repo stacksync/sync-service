@@ -1,6 +1,6 @@
 package com.stacksync.syncservice.rpc.messages;
 
-import com.stacksync.syncservice.models.ItemMetadata;
+import com.stacksync.commons.models.ItemMetadata;
 
 public class APIGetMetadata extends APIResponse {
 

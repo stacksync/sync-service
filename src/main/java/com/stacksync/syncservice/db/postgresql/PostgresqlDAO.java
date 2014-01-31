@@ -10,7 +10,8 @@ import java.sql.SQLException;
 import org.apache.log4j.Logger;
 
 import com.stacksync.syncservice.db.DAOError;
-import com.stacksync.syncservice.exceptions.DAOException;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.exceptions.dao.NoRowsAffectedDAOException;
 
 public class PostgresqlDAO {
 	private static final Logger logger = Logger.getLogger(PostgresqlDAO.class.getName());
@@ -47,7 +48,7 @@ public class PostgresqlDAO {
 			preparedStatement = prepareStatement(connection, query, true, values);
 			int affectedRows = preparedStatement.executeUpdate();
 			if (affectedRows == 0) {
-				throw new DAOException("Execute update error: no rows affected.");
+				throw new NoRowsAffectedDAOException("Execute update error: no rows affected.");
 			}
 
 			if (query.startsWith("INSERT")) {

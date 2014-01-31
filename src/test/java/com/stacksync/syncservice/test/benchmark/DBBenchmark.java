@@ -4,11 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.Item;
-import com.stacksync.syncservice.model.User;
-import com.stacksync.syncservice.model.Workspace;
+import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.Item;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.test.benchmark.db.DatabaseHelper;
 
 
@@ -82,8 +82,7 @@ public class DBBenchmark extends Thread {
 			User user = new User(null, name, cloudId, "email@email.com", 1000, 100);
 			dbHelper.addUser(user);
 			
-			String clientWorkspaceName = name + "/";
-			Workspace workspace = new Workspace(null, clientWorkspaceName, 1, user);
+			Workspace workspace = new Workspace(null, 1, user);
 			dbHelper.addWorkspace(user, workspace);
 
 			String deviceName = name + "_device";

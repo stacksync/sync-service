@@ -1,7 +1,7 @@
 package com.stacksync.syncservice.rpc;
 
-import com.stacksync.syncservice.exceptions.DAOConfigurationException;
 import com.stacksync.syncservice.exceptions.InvalidReader;
+import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 import com.stacksync.syncservice.rpc.parser.IParser;
 
 public class Reader {

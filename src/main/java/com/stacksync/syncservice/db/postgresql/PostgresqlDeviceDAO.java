@@ -8,11 +8,11 @@ import java.util.Collection;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.User;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.DeviceDAO;
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.User;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 

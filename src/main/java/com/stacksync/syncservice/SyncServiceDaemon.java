@@ -14,10 +14,10 @@ import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.omq.ISyncService;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
-import com.stacksync.syncservice.exceptions.DAOConfigurationException;
-import com.stacksync.syncservice.omq.ISyncService;
+import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 import com.stacksync.syncservice.omq.SyncServiceImp;
 import com.stacksync.syncservice.rpc.XmlRpcSyncHandler;
 import com.stacksync.syncservice.rpc.XmlRpcSyncServer;

@@ -10,6 +10,14 @@ import java.util.Random;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.models.Chunk;
+import com.stacksync.commons.models.CommitInfo;
+import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.Item;
+import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.ItemVersion;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.DAOFactory;
@@ -21,25 +29,18 @@ import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.CommitExistantVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.Chunk;
-import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.Item;
-import com.stacksync.syncservice.model.ItemVersion;
-import com.stacksync.syncservice.model.User;
-import com.stacksync.syncservice.model.Workspace;
-import com.stacksync.syncservice.models.CommitInfo;
-import com.stacksync.syncservice.models.CommitResult;
-import com.stacksync.syncservice.models.ItemMetadata;
+import com.stacksync.commons.exceptions.DeviceNotUpdatedException;
+import com.stacksync.commons.exceptions.DeviceNotValidException;
+import com.stacksync.commons.exceptions.UserNotFoundException;
+import com.stacksync.syncservice.exceptions.NoWorkspacesFoundException;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.exceptions.dao.NoRowsAffectedDAOException;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
-import com.stacksync.syncservice.rpc.messages.Commit;
-import com.stacksync.syncservice.rpc.messages.GetWorkspaces;
-import com.stacksync.syncservice.rpc.messages.GetWorkspacesResponse;
 import com.stacksync.syncservice.util.Config;
 import com.stacksync.syncservice.util.Constants;
 
@@ -52,6 +53,8 @@ public class SQLHandler implements Handler {
 	private DeviceDAO deviceDao;
 	private ItemDAO itemDao;
 	private ItemVersionDAO itemVersionDao;
+	
+	private Device apiDevice = new Device(Constants.API_DEVICE_ID);
 
 	public SQLHandler(ConnectionPool pool) throws SQLException {
 		connection = pool.getConnection();
@@ -68,38 +71,40 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public CommitResult doCommit(Commit request) throws DAOException {
+	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items) throws DAOException {
 
 		HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
 		
-		List<ItemMetadata> objects = request.getItems();
-		Workspace workspace = workspaceDAO.findByName(request
-				.getWorkspaceName());
-		Device device = deviceDao.get(request.getDeviceId());
+		workspace = workspaceDAO.findById(workspace.getId());
+		//TODO: check if the workspace belongs to the user or its been given access
+		
+		device = deviceDao.get(device.getId());
+		//TODO: check if the device belongs to the user
+		
 		List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
 
-		for (ItemMetadata object : objects) {
+		for (ItemMetadata item : items) {
 			
 			ItemMetadata objectResponse = null;
 			boolean committed;
 
 			try {
 				
-				if(object.getParentId() != null){
-					Long parentId = tempIds.get(object.getParentId());
+				if(item.getParentId() != null){
+					Long parentId = tempIds.get(item.getParentId());
 					if (parentId != null){
-						object.setParentId(parentId);
+						item.setParentId(parentId);
 					}
 				}
 				
-				this.commitObject(object, workspace, device);
+				this.commitObject(item, workspace, device);
 				
-				if(object.getTempId() != null)
+				if(item.getTempId() != null)
 				{
-					tempIds.put(object.getTempId(), object.getId());
+					tempIds.put(item.getTempId(), item.getId());
 				}
 				
-				objectResponse = object;
+				objectResponse = item;
 				committed = true;
 			} catch (CommitWrongVersion e) {
 				Item serverObject = e.getItem();
@@ -113,20 +118,20 @@ public class SQLHandler implements Handler {
 				committed = true;
 			}
 
-			responseObjects.add(new CommitInfo(object.getVersion(), committed,
+			responseObjects.add(new CommitInfo(item.getVersion(), committed,
 					objectResponse));
 		}
 
-		return new CommitResult(request.getRequestId(), responseObjects);
+		return responseObjects;
 	}
 
 	@Override
-	public List<ItemMetadata> doGetChanges(String workspaceName, String user) {
+	public List<ItemMetadata> doGetChanges(User user, Workspace workspace) {
 		List<ItemMetadata> responseObjects = new ArrayList<ItemMetadata>();
 
 		try {
 			responseObjects = itemDao
-					.getItemsByWorkspaceName(workspaceName);
+					.getItemsByWorkspaceId(workspace.getId());
 		} catch (DAOException e) {
 			logger.error(e.toString(), e);
 		}
@@ -135,7 +140,7 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public APIGetMetadata ApiGetMetadata(String user, Long fileId,
+	public APIGetMetadata ApiGetMetadata(User user, Long fileId,
 			Boolean includeList, Boolean includeDeleted, Boolean includeChunks,
 			Long version) {
 		ItemMetadata responseObject = null;
@@ -147,7 +152,7 @@ public class SQLHandler implements Handler {
 
 			if (fileId == null) {
 				// retrieve metadata from the root folder
-				responseObject = this.itemDao.findByServerUserId(user,
+				responseObject = this.itemDao.findByServerUserId(user.getCloudId(),
 						includeDeleted);
 
 			} else {
@@ -181,36 +186,29 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public GetWorkspacesResponse doGetWorkspaces(GetWorkspaces workspacesRequest) {
+	public List<Workspace> doGetWorkspaces(User user) throws NoWorkspacesFoundException {
 		List<Workspace> workspaces = new ArrayList<Workspace>();
-		Boolean succed = false;
-		String description = "";
 
 		try {
-			String userCloudId = workspacesRequest.getUserCloudId();
-			workspaces = workspaceDAO.findByUserCloudId(userCloudId);
-			succed = true;
+			workspaces = workspaceDAO.findByUserCloudId(user.getCloudId());
 		} catch (DAOException e) {
-			description = e.toString();
-			logger.error(e.toString(), e);
+			logger.error(e);
+			throw new NoWorkspacesFoundException(String.format("No workspaces found for user (cloud_id): %s", user.getCloudId()) );
 		}
 
-		String requestId = workspacesRequest.getRequestId();
-
-		GetWorkspacesResponse workspacesResponse = new GetWorkspacesResponse(
-				requestId, workspaces, succed, description);
-		return workspacesResponse;
+		return workspaces;
 	}
 
 	@Override
-	public Long doUpdateDevice(Device device) {
+	public Long doUpdateDevice(Device device) throws UserNotFoundException, DeviceNotValidException, DeviceNotUpdatedException {
 
 		try {
-			User user = userDao.findByCloudId(device.getUser().getCloudId());
-			device.setUser(user);
+			User dbUser = userDao.findByCloudId(device.getUser().getCloudId());
+			device.setUser(dbUser);
+			
 		} catch (DAOException e1) {
 			logger.error(e1);
-			return -1L;
+			throw new UserNotFoundException(e1);
 		}
 
 		try {
@@ -219,16 +217,57 @@ public class SQLHandler implements Handler {
 			} else {
 				deviceDao.update(device);
 			}
-			return device.getId();
+		} catch (NoRowsAffectedDAOException e) {
+			logger.error(e);
+			throw new DeviceNotUpdatedException(e);
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new DeviceNotUpdatedException(e);
+		} catch (IllegalArgumentException e){
+			logger.error(e);
+			throw new DeviceNotValidException(e);
+		}
+		
+		return device.getId();
+	}
+	
+	@Override
+	public Long doCreateShareProposal(User user, List<String> emails, String folderName) {
+
+		try {
+			user = userDao.findByCloudId(user.getCloudId());
+		} catch (DAOException e1) {
+			logger.error(e1);
+			return -1L;
+		}
+		
+		Workspace workspace = new Workspace();
+		workspace.setOwner(user);
+		
+		try {
+			workspaceDAO.add(workspace);
+			
+			for (String email : emails){
+				User recipient;
+				try {
+					recipient = userDao.findByEmail(email);
+					workspaceDAO.addUser(recipient, workspace);
+					
+				} catch (DAOException e) {
+					logger.error(e);
+				}
+			}
 		} catch (DAOException e) {
 			logger.error(e);
 			return -1L;
 		}
+		
+		return workspace.getId();
 	}
 
 	@Override
-	public APICommitResponse ApiCommitMetadata(String userId,
-			String workspaceName, Boolean overwrite, ItemMetadata fileToSave,
+	public APICommitResponse ApiCommitMetadata(User user,
+			Boolean overwrite, ItemMetadata fileToSave,
 			ItemMetadata parentMetadata) {
 		List<ItemMetadata> files = parentMetadata.getChildren();
 
@@ -242,11 +281,11 @@ public class SQLHandler implements Handler {
 
 		ItemMetadata object = null;
 		if (fileToModify == null) {
-			object = saveNewObjecAPI(userId, workspaceName, fileToSave,
+			object = saveNewItemAPI(user, null, fileToSave,
 					parentMetadata);
 		} else {
 			if (overwrite) {
-				object = saveNewVersionAPI(userId, workspaceName, fileToSave,
+				object = saveNewVersionAPI(user, fileToSave,
 						fileToModify);
 			} else {
 				/*
@@ -261,10 +300,10 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public APICreateFolderResponse ApiCreateFolder(String strUser,
-			String workspace, ItemMetadata objectToSave,
+	public APICreateFolderResponse ApiCreateFolder(User user,
+			ItemMetadata itemToSave,
 			ItemMetadata parentMetadata) {
-		String folderName = objectToSave.getFilename();
+		String folderName = itemToSave.getFilename();
 		List<ItemMetadata> files = parentMetadata.getChildren();
 
 		ItemMetadata object = null;
@@ -277,7 +316,8 @@ public class SQLHandler implements Handler {
 		}
 
 		if (object == null) {
-			object = this.createNewFolder(strUser, workspace, objectToSave,
+		
+			object = this.createNewFolder(user, itemToSave,
 					parentMetadata);
 
 			APICreateFolderResponse responseAPI = new APICreateFolderResponse(
@@ -291,7 +331,7 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public APIRestoreMetadata ApiRestoreMetadata(String user, String workspace,
+	public APIRestoreMetadata ApiRestoreMetadata(User user, 
 			ItemMetadata item) {
 		try {
 
@@ -364,21 +404,23 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public APIDeleteResponse ApiDeleteMetadata(String strUser,
-			String workspace, ItemMetadata object) {
+	public APIDeleteResponse ApiDeleteMetadata(User user,
+			ItemMetadata item) {
 		List<ItemMetadata> filesToDelete;
 		APIDeleteResponse response = null;
 
 		try {
 
-			filesToDelete = itemDao.getItemsById(object.getId());
-
+			filesToDelete = itemDao.getItemsById(item.getId());
+			Workspace workspace = workspaceDAO.getByItemId(item.getId());
 			if (filesToDelete.isEmpty()) {
 				response = new APIDeleteResponse(null, false, 400,
 						"File or folder does not exist.");
 			} else {
-				response = deleteObjectsAPI(strUser, workspace, filesToDelete);
+				response = deleteItemsAPI(user, workspace, filesToDelete);
 			}
+			
+			
 
 		} catch (DAOException e) {
 			response = new APIDeleteResponse(null, false, 400,
@@ -389,7 +431,7 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public APIGetVersions ApiGetVersions(String user, Long itemId) {
+	public APIGetVersions ApiGetVersions(User user, ItemMetadata item) {
 		ItemMetadata responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;
@@ -397,14 +439,14 @@ public class SQLHandler implements Handler {
 
 		try {
 
-			if (itemId == null) {
+			if (item.getId() == null) {
 				// retrieve metadata from the root folder
 				throw new DAOException(DAOError.FILE_NOT_FOUND);
 
 			} else {
 
 				// check if user has permission over this file
-				List<User> users = userDao.findByItemId(itemId);
+				List<User> users = userDao.findByItemId(item.getId());
 
 				if (users.isEmpty()) {
 					throw new DAOException(DAOError.FILE_NOT_FOUND);
@@ -414,7 +456,7 @@ public class SQLHandler implements Handler {
 					throw new DAOException(DAOError.USER_NOT_AUTHORIZED);
 				}
 
-				responseObject = itemDao.findItemVersionsById(itemId);
+				responseObject = itemDao.findItemVersionsById(item.getId());
 			}
 
 			success = true;
@@ -630,16 +672,13 @@ public class SQLHandler implements Handler {
 		}
 	}
 
-	private ItemMetadata saveNewObjecAPI(String userId, String workspaceName,
-			ItemMetadata objectToSave, ItemMetadata parent) {
+	private ItemMetadata saveNewItemAPI(User user, Workspace workspace,
+			ItemMetadata itemToSave, ItemMetadata parent) {
 
-		Random rand = new Random();
 
-		// Create metadata
-		Long itemId = rand.nextLong();
 		Long version = 1L;
-		String fileName = objectToSave.getFilename();
-		String mimetype = objectToSave.getMimetype();
+		String fileName = itemToSave.getFilename();
+		String mimetype = itemToSave.getMimetype();
 
 		Long parentFileId = null;
 		Long parentFileVersion = null;
@@ -648,17 +687,17 @@ public class SQLHandler implements Handler {
 			parentFileVersion = parent.getVersion();
 		}
 
-		Long fileSize = objectToSave.getSize();
-		Long checksum = objectToSave.getChecksum();
+		Long fileSize = itemToSave.getSize();
+		Long checksum = itemToSave.getChecksum();
 		String status = "NEW";
 		Boolean folder = false;
-		List<String> chunks = objectToSave.getChunks();
+		List<String> chunks = itemToSave.getChunks();
 
 		Date date = new Date();
 
 		// FIXME: return real path ?
 
-		ItemMetadata object = new ItemMetadata(itemId, version,
+		ItemMetadata object = new ItemMetadata(null, version,
 				Constants.API_DEVICE_ID, parentFileId, parentFileVersion,
 				status, date, checksum, fileSize, folder, fileName, mimetype,
 				"", chunks);
@@ -666,11 +705,8 @@ public class SQLHandler implements Handler {
 		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
 		objects.add(object);
 
-		Commit message = new Commit(userId, "api-" + rand.nextInt(), objects,
-				Constants.API_DEVICE_ID, workspaceName);
-
 		try {
-			this.doCommit(message);
+			this.doCommit(user, workspace, apiDevice, objects);
 		} catch (DAOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -679,10 +715,8 @@ public class SQLHandler implements Handler {
 		return object;
 	}
 
-	private ItemMetadata saveNewVersionAPI(String userId, String workspaceName,
+	private ItemMetadata saveNewVersionAPI(User user,
 			ItemMetadata fileToSave, ItemMetadata fileToModify) {
-
-		Random rand = new Random();
 
 		fileToModify.setStatus("CHANGED");
 		fileToModify.setSize(fileToSave.getSize());
@@ -693,14 +727,11 @@ public class SQLHandler implements Handler {
 		Date date = new Date();
 		fileToModify.setModifiedAt(date);
 
-		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
-		objects.add(fileToModify);
-
-		Commit message = new Commit(userId, "api-" + rand.nextInt(), objects,
-				Constants.API_DEVICE_ID, workspaceName);
+		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		items.add(fileToModify);
 
 		try {
-			this.doCommit(message);
+			this.doCommit(user, null, apiDevice, items);
 		} catch (DAOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -710,8 +741,7 @@ public class SQLHandler implements Handler {
 
 	}
 
-	private ItemMetadata createNewFolder(String strUser, String workspace,
-			ItemMetadata objectToSave, ItemMetadata parent) {
+	private ItemMetadata createNewFolder(User user, ItemMetadata itemToSave, ItemMetadata parent) {
 
 		Random rand = new Random();
 
@@ -736,30 +766,27 @@ public class SQLHandler implements Handler {
 
 		// FIXME: return real path ?
 
-		ItemMetadata object = new ItemMetadata(itemId, version,
+		ItemMetadata item = new ItemMetadata(itemId, version,
 				Constants.API_DEVICE_ID, parentFileID, parentFileVersion,
-				status, date, checksum, fileSize, folder, objectToSave.getFilename(), "inode/directory",
+				status, date, checksum, fileSize, folder, itemToSave.getFilename(), "inode/directory",
 				"", chunks);
 
-		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
-		objects.add(object);
-
-		Commit message = new Commit(strUser, "api-" + rand.nextInt(), objects,
-				Constants.API_DEVICE_ID, workspace);
+		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		items.add(item);
 
 		try {
-			this.doCommit(message);
+			this.doCommit(user, null, apiDevice, items);
 		} catch (DAOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		return object;
+		return item;
 	}
 
-	private APIDeleteResponse deleteObjectsAPI(String userId,
-			String workspaceName, List<ItemMetadata> filesToDelete) {
-		Random rand = new Random();
+	private APIDeleteResponse deleteItemsAPI(User user, Workspace workspace,
+			List<ItemMetadata> filesToDelete) {
+		
 		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 
 		for (ItemMetadata fileToDelete : filesToDelete) {
@@ -780,17 +807,14 @@ public class SQLHandler implements Handler {
 			items.add(fileToDelete);
 		}
 
-		Commit message = new Commit(userId, "api-" + rand.nextInt(), items,
-				Constants.API_DEVICE_ID, workspaceName);
-
 		Boolean success = false;
 		ItemMetadata fileToDelete = null;
 
 		try {
-			CommitResult response = this.doCommit(message);
+			List<CommitInfo> response = this.doCommit(user, workspace, apiDevice, items);
 
-			if (!response.getObjects().isEmpty()) {
-				fileToDelete = response.getObjects().get(0).getMetadata();
+			if (!response.isEmpty()) {
+				fileToDelete = response.get(0).getMetadata();
 				success = true;
 			}
 
@@ -803,10 +827,10 @@ public class SQLHandler implements Handler {
 		return response;
 	}
 
-	private boolean userHasPermission(String userCloudId, List<User> users) {
+	private boolean userHasPermission(User user, List<User> users) {
 		boolean hasPermission = false;
-		for (User user : users) {
-			if (user.getCloudId().equals(userCloudId)) {
+		for (User u : users) {
+			if (u.getCloudId().equals(user.getCloudId())) {
 				hasPermission = true;
 				break;
 			}

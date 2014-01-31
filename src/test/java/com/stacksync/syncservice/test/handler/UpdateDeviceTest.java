@@ -8,17 +8,17 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
-import com.stacksync.syncservice.exceptions.DAOException;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLHandler;
-import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.User;
-import com.stacksync.syncservice.model.Workspace;
 import com.stacksync.syncservice.util.Config;
 
 public class UpdateDeviceTest {
@@ -50,7 +50,7 @@ public class UpdateDeviceTest {
 			user1 = new User(null, "junituser", "aa", "aa", 1000, 100);
 			try {
 				userDao.add(user1);
-				Workspace workspace1 = new Workspace(null, "junituser1/", 1,
+				Workspace workspace1 = new Workspace(null, 1,
 						user1);
 				workspaceDAO.add(workspace1);
 			} catch (DAOException e) {
@@ -61,7 +61,7 @@ public class UpdateDeviceTest {
 			user2 = new User(null, "junituser", "bb", "bb", 1000, 100);
 			try {
 				userDao.add(user2);
-				Workspace workspace1 = new Workspace(null, "junituser1/", 1,
+				Workspace workspace1 = new Workspace(null, 1,
 						user2);
 				workspaceDAO.add(workspace1);
 			} catch (DAOException e) {
@@ -80,7 +80,7 @@ public class UpdateDeviceTest {
 	}
 
 	@Test
-	public void registerNewDevice() throws DAOException {
+	public void registerNewDevice() throws Exception {
 
 		Device device = new Device();
 		device.setUser(user1);
@@ -97,7 +97,7 @@ public class UpdateDeviceTest {
 	}
 
 	@Test
-	public void updateExistingDevice() throws DAOException {
+	public void updateExistingDevice() throws Exception {
 
 		Device device = new Device();
 		device.setUser(user1);
@@ -122,7 +122,7 @@ public class UpdateDeviceTest {
 	}
 
 	@Test
-	public void updateAlienDevice() throws DAOException {
+	public void updateAlienDevice() throws Exception {
 
 		Device device = new Device();
 		device.setUser(user1);

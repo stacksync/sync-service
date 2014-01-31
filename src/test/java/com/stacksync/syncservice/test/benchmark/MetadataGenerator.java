@@ -6,11 +6,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
-import com.stacksync.syncservice.model.Chunk;
-import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.Item;
-import com.stacksync.syncservice.model.ItemVersion;
-import com.stacksync.syncservice.model.Workspace;
+import com.stacksync.commons.models.Chunk;
+import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.Item;
+import com.stacksync.commons.models.ItemVersion;
+import com.stacksync.commons.models.Workspace;
 
 /**
  * 

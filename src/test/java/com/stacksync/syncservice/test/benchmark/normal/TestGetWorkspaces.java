@@ -1,10 +1,10 @@
 package com.stacksync.syncservice.test.benchmark.normal;
 
+import com.stacksync.commons.models.User;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLHandler;
-import com.stacksync.syncservice.rpc.messages.GetWorkspaces;
 import com.stacksync.syncservice.test.benchmark.Constants;
 import com.stacksync.syncservice.util.Config;
 
@@ -18,8 +18,11 @@ public class TestGetWorkspaces {
 		Handler handler = new SQLHandler(pool);
 
 		long startTotal = System.currentTimeMillis();
-		GetWorkspaces workspacesRequest = new GetWorkspaces(Constants.REQUESTID, Constants.USER, "");
-		handler.doGetWorkspaces(workspacesRequest);
+
+		User user = new User();
+		user.setCloudId(Constants.USER);
+		
+		handler.doGetWorkspaces(user);
 
 		/*
 		 * List<RemoteWorkspace> list = new ArrayList<RemoteWorkspace>(); for

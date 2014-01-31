@@ -1,4 +1,4 @@
-package com.stacksync.syncservice.exceptions;
+package com.stacksync.syncservice.exceptions.dao;
 
 import com.stacksync.syncservice.db.DAOError;
 

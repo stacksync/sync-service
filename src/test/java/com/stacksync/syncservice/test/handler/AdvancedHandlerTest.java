@@ -8,6 +8,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
@@ -16,10 +19,7 @@ import com.stacksync.syncservice.db.ItemDAO;
 import com.stacksync.syncservice.db.ItemVersionDAO;
 import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
-import com.stacksync.syncservice.exceptions.DAOException;
-import com.stacksync.syncservice.model.Device;
-import com.stacksync.syncservice.model.User;
-import com.stacksync.syncservice.model.Workspace;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.rpc.parser.IParser;
 import com.stacksync.syncservice.rpc.parser.JSONParser;
 import com.stacksync.syncservice.util.Config;
@@ -58,7 +58,7 @@ public class AdvancedHandlerTest {
 			User user = new User(null, "junituser", "aa", "aa", 1000, 100);
 			userDao.add(user);
 
-			Workspace workspace = new Workspace(null, "junituser/", 1, user);
+			Workspace workspace = new Workspace(null,  1, user);
 			workspaceDAO.add(workspace);
 
 			Device device = new Device(null, "junitdevice", user);

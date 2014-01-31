@@ -8,13 +8,13 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.models.Item;
+import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.ItemDAO;
-import com.stacksync.syncservice.exceptions.DAOException;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler.Status;
-import com.stacksync.syncservice.model.Item;
-import com.stacksync.syncservice.models.ItemMetadata;
 
 public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	private static final Logger logger = Logger
@@ -136,37 +136,10 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public List<Item> findByWorkspaceName(String workspaceName)
-			throws DAOException {
-		Object[] values = { workspaceName };
-		String query = "SELECT * FROM item i "
-				+ " INNER JOIN workspace w ON i.workspace_id = w.id "
-				+ " WHERE w.client_workspace_name = ?";
-
-		ResultSet result = null;
-		ArrayList<Item> items = new ArrayList<Item>();
-
-		try {
-			result = executeQuery(query, values);
-
-			while (result.next()) {
-				Item item = DAOUtil.getItemFromResultSet(result);
-				items.add(item);
-			}
-
-		} catch (SQLException e) {
-			logger.error(e);
-			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
-		}
-
-		return items;
-	}
-
-	@Override
-	public List<ItemMetadata> getItemsByWorkspaceName(String workspaceName)
+	public List<ItemMetadata> getItemsByWorkspaceId(Long workspaceId)
 			throws DAOException {
 
-		Object[] values = { workspaceName };
+		Object[] values = { workspaceId };
 
 		String query = "WITH RECURSIVE q AS "
 				+ "( "
@@ -178,7 +151,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 				+ " FROM workspace w  "
 				+ " INNER JOIN item i ON w.id = i.workspace_id "
 				+ " INNER JOIN item_version iv ON i.id = iv.item_id AND i.latest_version = iv.version "
-				+ " WHERE w.client_workspace_name = ? AND i.parent_id IS NULL "
+				+ " WHERE w.id = ? AND i.parent_id IS NULL "
 				+ " UNION ALL  "
 				+ " SELECT i2.id AS item_id, i2.parent_id, i2.client_parent_file_version, "
 				+ " i2.filename, iv2.id AS version_id, iv2.version, i2.is_folder,  "
@@ -457,5 +430,6 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		}
 		return hasRows;
 	}
+
 
 }
