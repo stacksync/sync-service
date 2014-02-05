@@ -21,7 +21,7 @@ public interface WorkspaceDAO {
 
 	public void update(Workspace workspace) throws DAOException;
 
-	public void addUser(User user, Workspace workspace) throws DAOException;
+	public void addUser(User user, Workspace workspace, String folderName) throws DAOException;
 
 	public void delete(Long id) throws DAOException;
 

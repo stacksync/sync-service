@@ -107,7 +107,7 @@ public class DatabaseHelper {
 
 	public void addWorkspace(User user, Workspace workspace) throws IllegalArgumentException, DAOException {
 		workspaceDAO.add(workspace);
-		workspaceDAO.addUser(user, workspace);
+		workspaceDAO.addUser(user, workspace, "untitled_folder");
 	}
 
 	public void addDevice(Device device) throws IllegalArgumentException, DAOException {

@@ -10,8 +10,9 @@ import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.commons.exceptions.DeviceNotUpdatedException;
 import com.stacksync.commons.exceptions.DeviceNotValidException;
+import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
+import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
-import com.stacksync.syncservice.exceptions.NoWorkspacesFoundException;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
@@ -26,19 +27,26 @@ public interface Handler {
 		NEW, DELETED, CHANGED, RENAMED, MOVED
 	};
 
-	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items) throws DAOException;
+	public List<CommitInfo> doCommit(User user, Workspace workspace,
+			Device device, List<ItemMetadata> items) throws DAOException;
 
 	public List<ItemMetadata> doGetChanges(User user, Workspace workspace);
-	
-	public Long doUpdateDevice(Device device) throws UserNotFoundException, DeviceNotValidException, DeviceNotUpdatedException;
 
-	public APIGetMetadata ApiGetMetadata(User user, Long fileId, Boolean includeList, Boolean includeDeleted, Boolean includeChunks, Long version);
+	public Long doUpdateDevice(Device device) throws UserNotFoundException,
+			DeviceNotValidException, DeviceNotUpdatedException;
 
-	public List<Workspace> doGetWorkspaces(User user) throws NoWorkspacesFoundException;
+	public APIGetMetadata ApiGetMetadata(User user, Long fileId,
+			Boolean includeList, Boolean includeDeleted, Boolean includeChunks,
+			Long version);
 
-	public APICommitResponse ApiCommitMetadata(User user, Boolean overwrite, ItemMetadata fileToSave, ItemMetadata parentMetadata);
+	public List<Workspace> doGetWorkspaces(User user)
+			throws NoWorkspacesFoundException;
 
-	public APICreateFolderResponse ApiCreateFolder(User user, ItemMetadata itemToSave, ItemMetadata parentMetadata);
+	public APICommitResponse ApiCommitMetadata(User user, Boolean overwrite,
+			ItemMetadata fileToSave, ItemMetadata parentMetadata);
+
+	public APICreateFolderResponse ApiCreateFolder(User user,
+			ItemMetadata itemToSave, ItemMetadata parentMetadata);
 
 	public APIRestoreMetadata ApiRestoreMetadata(User user, ItemMetadata item);
 
@@ -48,6 +56,8 @@ public interface Handler {
 
 	public Connection getConnection();
 
-	public Long doCreateShareProposal(User user, List<String> emails, String folderName);
+	public Workspace doCreateShareProposal(User user, List<String> emails,
+			String folderName) throws ShareProposalNotCreatedException,
+			UserNotFoundException;
 
 }

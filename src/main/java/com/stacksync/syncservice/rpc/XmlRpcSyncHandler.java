@@ -9,9 +9,9 @@ import omq.exception.RemoteException;
 import org.apache.log4j.Logger;
 
 import com.stacksync.commons.models.CommitInfo;
-import com.stacksync.commons.models.CommitResult;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
+import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.commons.omq.RemoteWorkspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.handler.Handler;
@@ -313,7 +313,7 @@ public class XmlRpcSyncHandler {
 		CommitInfo info = generalResponse.getItem();
 		List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
 		responseObjects.add(info);
-		CommitResult result = new CommitResult(requestID, responseObjects);
+		CommitNotification result = new CommitNotification(requestID, responseObjects);
 
 		RemoteWorkspace commitNotifier;
 		try {

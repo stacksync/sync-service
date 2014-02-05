@@ -14,6 +14,7 @@ import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 
 public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements
 		WorkspaceDAO {
@@ -85,6 +86,10 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements
 				Workspace workspace = mapWorkspace(result);
 				workspaces.add(workspace);
 			}
+			
+			if (workspaces.isEmpty()){
+				throw new NoResultReturnedDAOException(DAOError.WORKSPACES_NOT_FOUND);
+			}
 
 		} catch (SQLException e) {
 			logger.error(e);
@@ -155,16 +160,16 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements
 	}
 
 	@Override
-	public void addUser(User user, Workspace workspace) throws DAOException {
+	public void addUser(User user, Workspace workspace, String folderName) throws DAOException {
 		if (user == null || !user.isValid()) {
 			throw new IllegalArgumentException("User not valid");
 		} else if (workspace == null || !workspace.isValid()) {
 			throw new IllegalArgumentException("Workspace not valid");
 		}
 
-		Object[] values = { workspace.getId(), user.getId() };
+		Object[] values = { workspace.getId(), user.getId(), folderName};
 
-		String query = "INSERT INTO workspace_user (workspace_id, user_id) VALUES (?, ?)";
+		String query = "INSERT INTO workspace_user (workspace_id, user_id, folder_name) VALUES (?, ?, ?)";
 
 		executeUpdate(query, values);
 	}

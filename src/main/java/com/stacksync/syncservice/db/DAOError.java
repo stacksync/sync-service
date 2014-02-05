@@ -7,6 +7,9 @@ public enum DAOError {
 	USER_NOT_FOUND(400, "User not found."), USER_NOT_AUTHORIZED(401,
 			"The user is not authorized to access to this resource."),
 
+	// Workspaces
+	WORKSPACES_NOT_FOUND(410, "Workspaces not found."),
+			
 	// Files
 	FILE_NOT_FOUND(404, "File or folder not found."),
 

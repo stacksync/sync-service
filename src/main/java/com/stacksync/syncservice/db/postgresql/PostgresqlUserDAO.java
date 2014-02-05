@@ -12,6 +12,7 @@ import com.stacksync.commons.models.User;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 
 public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 	private static final Logger logger = Logger.getLogger(PostgresqlUserDAO.class.getName());
@@ -54,7 +55,10 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 
 			if (resultSet.next()) {
 				user = mapUser(resultSet);
+			}else{
+				throw new NoResultReturnedDAOException(DAOError.USER_NOT_FOUND);
 			}
+			
 		} catch (SQLException e) {
 			logger.error(e);
 			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
@@ -73,9 +77,11 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 
 		try {
 			resultSet = executeQuery(query, new Object[] { email });
-
+			
 			if (resultSet.next()) {
 				user = mapUser(resultSet);
+			}else{
+				throw new NoResultReturnedDAOException(DAOError.USER_NOT_FOUND);
 			}
 		} catch (SQLException e) {
 			logger.error(e);

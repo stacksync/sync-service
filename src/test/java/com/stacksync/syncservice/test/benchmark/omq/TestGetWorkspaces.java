@@ -7,6 +7,7 @@ import omq.common.broker.Broker;
 
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.commons.omq.ISyncService;
+import com.stacksync.commons.requests.GetWorkspacesRequest;
 import com.stacksync.syncservice.test.benchmark.Constants;
 
 public class TestGetWorkspaces {
@@ -18,7 +19,8 @@ public class TestGetWorkspaces {
 		ISyncService server = broker.lookup(ISyncService.class.getSimpleName(), ISyncService.class);
 
 		long startTotal = System.currentTimeMillis();
-		List<Workspace> workspaces = server.getWorkspaces(Constants.USER, Constants.REQUEST_ID);
+		GetWorkspacesRequest request = new GetWorkspacesRequest(Constants.USER);
+		List<Workspace> workspaces = server.getWorkspaces(request);
 
 		System.out.println("Result -> " + workspaces);
 		long totalTime = System.currentTimeMillis() - startTotal;

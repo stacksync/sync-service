@@ -10,6 +10,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
+import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
@@ -72,7 +74,7 @@ public class SharingTest {
 	}
 
 	@Test
-	public void createShareProposal() throws DAOException {
+	public void createShareProposal() throws DAOException, ShareProposalNotCreatedException, UserNotFoundException {
 
 		user2 = new User(null, "junituser", "bb", "user2@users.com", 1000, 100);
 		try {
@@ -86,11 +88,32 @@ public class SharingTest {
 		emails.add(user2.getEmail());
 		emails.add("fakemail@fake.com");
 
-		Long result = handler.doCreateShareProposal(user1, emails, "shared_folder");
+		
+		Workspace result = handler.doCreateShareProposal(user1, emails, "shared_folder");
 
-		System.out.println("Result: " + result );
+		System.out.println("Result: " + result.getId() );
 
-		assertNotEquals(-1L, result.longValue());
+		assertNotEquals(-1L, result.getId().longValue());
+	}
+	
+	@Test (expected = ShareProposalNotCreatedException.class)
+	public void createShareProposalFakeMail() throws DAOException, ShareProposalNotCreatedException, UserNotFoundException {
+
+		user2 = new User(null, "junituser", "bb", "user2@users.com", 1000, 100);
+		try {
+			userDao.add(user2);
+		} catch (DAOException e) {
+			System.out.println("User already exists.");
+			user2 = userDao.findByCloudId("bb");
+		}
+		
+		List<String> emails = new ArrayList<String>();
+		emails.add("fakemail@fake.com");
+
+		
+		Workspace result = handler.doCreateShareProposal(user1, emails, "shared_folder");
+
+		System.out.println("Result: " + result.getId() );
 	}
 
 
