@@ -122,7 +122,9 @@ ALTER TABLE public.device ADD CONSTRAINT fk1_device FOREIGN KEY (user_id) REFERE
 CREATE TABLE public.workspace (
     id bigint NOT NULL,
     latest_revision varchar(45) NOT NULL DEFAULT 0,
-    owner_id bigint NOT NULL
+    owner_id bigint NOT NULL,
+    is_shared boolean NOT NULL,
+    created_at timestamp DEFAULT now()
 );
 
 ALTER TABLE public.workspace ADD CONSTRAINT pk_workspace PRIMARY KEY (id);
@@ -139,7 +141,9 @@ ALTER TABLE public.workspace ADD CONSTRAINT fk1_workspace FOREIGN KEY (owner_id)
 CREATE TABLE public.workspace_user (
     workspace_id bigint NOT NULL,
     user_id bigint NOT NULL,
-    folder_name varchar(255) NOT NULL
+    folder_name varchar(255) NOT NULL,
+    created_at timestamp DEFAULT now(),
+    modified_at timestamp DEFAULT now()
 );
 
 ALTER TABLE public.workspace_user ADD CONSTRAINT pk_workspace_user PRIMARY KEY (workspace_id, user_id);

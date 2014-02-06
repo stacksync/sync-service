@@ -17,7 +17,7 @@ public class CreateUser {
 		User user = new User(null, "user1", "AUTH_e26e8353dbd043ae857ad6962e02f5cc", "email@email.com", 1000, 100);
 		dbHelper.addUser(user);
 		
-		Workspace workspace = new Workspace(null, 1, user);
+		Workspace workspace = new Workspace(null, 1, user, false);
 		dbHelper.addWorkspace(user, workspace);
 
 		String deviceName = "tester1:tester1" + "_device";

@@ -273,6 +273,7 @@ public class SQLHandler implements Handler {
 		
 		// Create the new workspace
 		Workspace workspace = new Workspace();
+		workspace.setShared(true);
 		workspace.setOwner(user);
 		workspace.setUsers(addressees);
 		

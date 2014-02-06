@@ -52,7 +52,7 @@ public class BasicHandlerTest {
 			User user = new User(null, "junituser", "111aaa", "aa", 1000, 100);
 			userDao.add(user);
 
-			Workspace workspace = new Workspace(null, 1, user);
+			Workspace workspace = new Workspace(null, 1, user, false);
 			workspaceDAO.add(workspace);
 
 			Device device = new Device(null, "junitdevice", user);

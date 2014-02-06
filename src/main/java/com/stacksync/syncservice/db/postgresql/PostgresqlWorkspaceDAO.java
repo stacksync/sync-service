@@ -106,9 +106,9 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements
 		}
 
 		Object[] values = { workspace.getLatestRevision(),
-				workspace.getOwner().getId() };
+				workspace.getOwner().getId(), workspace.isShared() };
 
-		String query = "INSERT INTO workspace (latest_revision, owner_id) VALUES (?, ?)";
+		String query = "INSERT INTO workspace (latest_revision, owner_id, is_shared) VALUES (?, ?, ?)";
 
 		Long id = executeUpdate(query, values);
 
@@ -150,6 +150,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements
 		Workspace workspace = new Workspace();
 		workspace.setId(result.getLong("id"));
 		workspace.setLatestRevision(result.getInt("latest_revision"));
+		workspace.setShared(result.getBoolean("is_shared"));
 
 		User owner = new User();
 		owner.setId(result.getLong("owner_id"));

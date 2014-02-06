@@ -82,7 +82,7 @@ public class DBBenchmark extends Thread {
 			User user = new User(null, name, cloudId, "email@email.com", 1000, 100);
 			dbHelper.addUser(user);
 			
-			Workspace workspace = new Workspace(null, 1, user);
+			Workspace workspace = new Workspace(null, 1, user, false);
 			dbHelper.addWorkspace(user, workspace);
 
 			String deviceName = name + "_device";

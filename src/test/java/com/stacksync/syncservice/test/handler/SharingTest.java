@@ -54,7 +54,7 @@ public class SharingTest {
 			try {
 				userDao.add(user1);
 				Workspace workspace1 = new Workspace(null, 1,
-						user1);
+						user1, false);
 				workspaceDAO.add(workspace1);
 			} catch (DAOException e) {
 				System.out.println("User already exists.");
@@ -115,6 +115,5 @@ public class SharingTest {
 
 		System.out.println("Result: " + result.getId() );
 	}
-
 
 }

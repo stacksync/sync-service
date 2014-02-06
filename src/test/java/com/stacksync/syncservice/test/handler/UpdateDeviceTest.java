@@ -51,7 +51,7 @@ public class UpdateDeviceTest {
 			try {
 				userDao.add(user1);
 				Workspace workspace1 = new Workspace(null, 1,
-						user1);
+						user1, false);
 				workspaceDAO.add(workspace1);
 			} catch (DAOException e) {
 				System.out.println("User already exists.");
@@ -62,7 +62,7 @@ public class UpdateDeviceTest {
 			try {
 				userDao.add(user2);
 				Workspace workspace1 = new Workspace(null, 1,
-						user2);
+						user2, false);
 				workspaceDAO.add(workspace1);
 			} catch (DAOException e) {
 				System.out.println("User already exists.");
