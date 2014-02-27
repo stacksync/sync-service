@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
@@ -60,9 +61,9 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		String query = "INSERT INTO item ( workspace_id, latest_version, parent_id,"
 				+ " filename, mimetype, is_folder,"
 				+ " client_parent_file_version ) "
-				+ "VALUES ( ?, ?, ?, ?, ?, ?, ? )";
+				+ "VALUES ( ?::uuid, ?, ?, ?, ?, ?, ? )";
 
-		Long id = executeUpdate(query, values);
+		Long id = (Long)executeUpdate(query, values);
 
 		if (id != null) {
 			item.setId(id);
@@ -87,7 +88,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 
 		Long parentId = item.getParentId();
 		// If id == 0 means parent is null!
-		if (parentId == 0) {
+		if (parentId != null && parentId == 0) {
 			parentId = null;
 		}
 
@@ -96,7 +97,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 				item.getMimetype(), item.isFolder(),
 				item.getClientParentFileVersion(), item.getId() };
 
-		String query = "UPDATE item SET " + "workspace_id = ?, "
+		String query = "UPDATE item SET " + "workspace_id = ?::uuid, "
 				+ "latest_version = ?, " + "parent_id = ?, " + "filename = ?, "
 				+ "mimetype = ?, " + "is_folder = ?, "
 				+ "client_parent_file_version = ? " + "WHERE id = ?";
@@ -112,34 +113,10 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public List<Item> findByWorkspaceId(long workspaceID) throws DAOException {
-		Object[] values = { workspaceID };
-		String query = "SELECT * FROM item i WHERE i.workspace_id = ?";
-
-		ResultSet result = null;
-		List<Item> items = new ArrayList<Item>();
-
-		try {
-			result = executeQuery(query, values);
-
-			while (result.next()) {
-				Item item = DAOUtil.getItemFromResultSet(result);
-				items.add(item);
-			}
-
-		} catch (SQLException e) {
-			logger.error(e);
-			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
-		}
-
-		return items;
-	}
-
-	@Override
-	public List<ItemMetadata> getItemsByWorkspaceId(Long workspaceId)
+	public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId)
 			throws DAOException {
 
-		Object[] values = { workspaceId };
+		Object[] values = { workspaceId, workspaceId };
 
 		String query = "WITH RECURSIVE q AS "
 				+ "( "
@@ -147,23 +124,25 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 				+ " i.filename, iv.id AS version_id, iv.version, i.is_folder, "
 				+ " iv.size, iv.status, i.mimetype, "
 				+ " iv.checksum, iv.device_id, iv.modified_at, "
-				+ " ARRAY[i.id] AS level_array, '/' AS path "
+				+ " ARRAY[i.id] AS level_array "
 				+ " FROM workspace w  "
 				+ " INNER JOIN item i ON w.id = i.workspace_id "
 				+ " INNER JOIN item_version iv ON i.id = iv.item_id AND i.latest_version = iv.version "
-				+ " WHERE w.id = ? AND i.parent_id IS NULL "
+				+ " WHERE w.id = ?::uuid AND i.parent_id IS NULL "
 				+ " UNION ALL  "
 				+ " SELECT i2.id AS item_id, i2.parent_id, i2.client_parent_file_version, "
 				+ " i2.filename, iv2.id AS version_id, iv2.version, i2.is_folder,  "
 				+ " iv2.size, iv2.status, i2.mimetype, "
 				+ " iv2.checksum, iv2.device_id, iv2.modified_at,  "
-				+ " q.level_array || i2.id, q.path || q.filename::TEXT || '/' "
+				+ " q.level_array || i2.id "
 				+ " FROM q  "
 				+ " JOIN item i2 ON i2.parent_id = q.item_id "
 				+ " INNER JOIN item_version iv2 ON i2.id = iv2.item_id AND i2.latest_version = iv2.version "
+				+ " WHERE i2.workspace_id=?::uuid "
 				+ " )  "
 				+ " SELECT array_upper(level_array, 1) as level, q.*, get_chunks(q.version_id) AS chunks "
-				+ " FROM q  " + " ORDER BY level_array ASC";
+				+ " FROM q  " 
+				+ " ORDER BY level_array ASC";
 
 		ResultSet result = null;
 		List<ItemMetadata> items;
@@ -197,7 +176,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 				+ "    i.parent_id, i.filename, iv.version, i.client_parent_file_version, "
 				+ "    i.is_folder, iv.size, iv.status, "
 				+ "    i.mimetype, iv.checksum, iv.client_name, "
-				+ "    iv.modified_at, ARRAY[i.id] AS level_array, get_path(i.id) AS path "
+				+ "    iv.modified_at, ARRAY[i.id] AS level_array "
 				+ " FROM    item i "
 				+ " INNER JOIN item_version iv ON i.id = iv.item_id AND i.latest_version = iv.version "
 				+ " WHERE   i.id = ? "
@@ -206,7 +185,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 				+ "    i2.filename, iv2.version, i2.is_folder, "
 				+ "    iv2.size, iv2.status, i2.mimetype,  "
 				+ "    iv2.checksum, iv2.client_name, iv2.modified_at, "
-				+ "    q.level_array || i2.id, q.path || q.filename::TEXT || '/' "
+				+ "    q.level_array || i2.id "
 				+ " FROM    q "
 				+ " JOIN    item i2 ON i2.parent_id = q.id "
 				+ " INNER JOIN item_version iv2 ON i2.id = iv2.item_id AND i2.latest_version = iv2.version "
@@ -318,10 +297,10 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public ItemMetadata findByServerUserId(String serverUserId,
+	public ItemMetadata findByUserId(UUID userId,
 			Boolean includeDeleted) throws DAOException {
 		// TODO: check include_deleted
-		Object[] values = { serverUserId };
+		Object[] values = { userId };
 
 		String query = "WITH RECURSIVE q AS "
 				+ " ( "
@@ -334,7 +313,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 				+ "     INNER JOIN workspace_user wu ON u.id = wu.user_id  "
 				+ "     INNER JOIN item i ON wu.workspace_id = i.workspace_id  "
 				+ "     INNER JOIN item_version iv ON i.id = iv.item_id AND i.latest_version = iv.version  "
-				+ "     WHERE u.cloud_id = ? AND i.parent_id IS NULL  "
+				+ "     WHERE u.id = ?::uuid AND i.parent_id IS NULL  "
 				+ "     UNION ALL  "
 				+ "     SELECT i2.id AS item_id, i2.parent_id, i2.client_parent_file_version,  "
 				+ "     i2.filename, iv2.version, i2.is_folder,  "

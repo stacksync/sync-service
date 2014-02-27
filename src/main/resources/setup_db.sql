@@ -1,10 +1,6 @@
 ﻿--
--- PostgreSQL database dump
+-- PostgreSQL database initialization
 --
-
--- Dumped from database version 9.2.3
--- Dumped by pg_dump version 9.2.3
--- Started on 2013-02-14 09:30:45 CET
 
 DROP TABLE IF EXISTS public.item_version_chunk, public.item_version, public.item, public.workspace_user, public.workspace, public.device, public.user1 CASCADE;
 DROP SEQUENCE IF EXISTS public.sequencer_user, public.sequencer_workspace, public.sequencer_device, public.sequencer_item, public.sequencer_item_version, public.sequencer_chunk;
@@ -15,50 +11,12 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
-
---
--- TOC entry 174 (class 3079 OID 11769)
--- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
---
-
--- CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
-
-
---
--- TOC entry 2008 (class 0 OID 0)
--- Dependencies: 174
--- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
---
-
--- COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
-
-
--- SET search_path = public, pg_catalog;
+CREATE EXTENSION "uuid-ossp";
 
 SET default_tablespace = '';
 SET default_with_oids = false;
 
 
-CREATE SEQUENCE public.sequencer_user
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-    
-CREATE SEQUENCE public.sequencer_workspace
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-CREATE SEQUENCE public.sequencer_device
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
 
 CREATE SEQUENCE public.sequencer_item
     START WITH 1
@@ -79,9 +37,10 @@ CREATE SEQUENCE public.sequencer_item_version
 --
 
 CREATE TABLE public.user1 (
-    id bigint NOT NULL,
+    id uuid NOT NULL default uuid_generate_v4(),
     name varchar(100) NOT NULL,
-    cloud_id varchar(100) NOT NULL UNIQUE,
+    swift_user varchar(100) NOT NULL UNIQUE,
+    swift_account varchar(100) NOT NULL,
     email character varying(100) NOT NULL,
     quota_limit integer NOT NULL,
     quota_used integer DEFAULT 0 NOT NULL
@@ -89,18 +48,15 @@ CREATE TABLE public.user1 (
 
 ALTER TABLE public.user1 ADD CONSTRAINT pk_user PRIMARY KEY (id);
 
-ALTER SEQUENCE public.sequencer_user OWNED BY public.user1.id;
-ALTER TABLE ONLY public.user1 ALTER COLUMN id SET DEFAULT nextval('sequencer_user'::regclass);
-
 
 --
 -- TABLE: device
 --
 
 CREATE TABLE public.device (
-    id bigint NOT NULL,
+    id uuid NOT NULL default uuid_generate_v4(),
     name varchar(100) NOT NULL,
-    user_id bigint NOT NULL,
+    user_id uuid NOT NULL,
     os varchar(100) NOT NULL,
     created_at timestamp,
     last_access_at timestamp,
@@ -110,8 +66,6 @@ CREATE TABLE public.device (
 
 ALTER TABLE public.device ADD CONSTRAINT pk_device PRIMARY KEY (id);
 
-ALTER SEQUENCE public.sequencer_device OWNED BY public.device.id;
-ALTER TABLE ONLY public.device ALTER COLUMN id SET DEFAULT nextval('sequencer_device'::regclass);
 ALTER TABLE public.device ADD CONSTRAINT fk1_device FOREIGN KEY (user_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
 
 
@@ -120,17 +74,17 @@ ALTER TABLE public.device ADD CONSTRAINT fk1_device FOREIGN KEY (user_id) REFERE
 --
 
 CREATE TABLE public.workspace (
-    id bigint NOT NULL,
+    id uuid NOT NULL default uuid_generate_v4(),
     latest_revision varchar(45) NOT NULL DEFAULT 0,
-    owner_id bigint NOT NULL,
+    owner_id uuid NOT NULL,
     is_shared boolean NOT NULL,
+    swift_container varchar(45),
+    swift_url varchar(250),
     created_at timestamp DEFAULT now()
 );
 
 ALTER TABLE public.workspace ADD CONSTRAINT pk_workspace PRIMARY KEY (id);
 
-ALTER SEQUENCE public.sequencer_workspace OWNED BY public.workspace.id;
-ALTER TABLE ONLY public.workspace ALTER COLUMN id SET DEFAULT nextval('sequencer_workspace'::regclass);
 ALTER TABLE public.workspace ADD CONSTRAINT fk1_workspace FOREIGN KEY (owner_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
 
 
@@ -139,9 +93,10 @@ ALTER TABLE public.workspace ADD CONSTRAINT fk1_workspace FOREIGN KEY (owner_id)
 --
 
 CREATE TABLE public.workspace_user (
-    workspace_id bigint NOT NULL,
-    user_id bigint NOT NULL,
-    folder_name varchar(255) NOT NULL,
+    workspace_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    workspace_name varchar(255) NOT NULL,
+    parent_item_id bigint,
     created_at timestamp DEFAULT now(),
     modified_at timestamp DEFAULT now()
 );
@@ -151,15 +106,13 @@ ALTER TABLE public.workspace_user ADD CONSTRAINT fk1_workspace_user FOREIGN KEY 
 ALTER TABLE public.workspace_user ADD CONSTRAINT fk2_workspace_user FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
 
 
-
-
 --
 -- TABLE: item
 --
 
 CREATE TABLE public.item (
     id bigint NOT NULL,
-    workspace_id bigint NOT NULL,
+    workspace_id uuid NOT NULL,
     latest_version bigint NOT NULL,
     parent_id bigint,
     filename varchar(100) NOT NULL,
@@ -174,6 +127,7 @@ ALTER SEQUENCE public.sequencer_item OWNED BY public.item.id;
 ALTER TABLE ONLY public.item ALTER COLUMN id SET DEFAULT nextval('sequencer_item'::regclass);
 ALTER TABLE public.item ADD CONSTRAINT fk1_item FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
 ALTER TABLE public.item ADD CONSTRAINT fk2_item FOREIGN KEY (parent_id) REFERENCES public.item (id) ON DELETE CASCADE;
+ALTER TABLE public.workspace_user ADD CONSTRAINT fk3_workspace_user FOREIGN KEY (parent_item_id) REFERENCES public.item (id);
 
 CREATE INDEX item_workspace_id ON public.item (workspace_id);
 CREATE INDEX item_parent_id ON public.item (parent_id);
@@ -187,7 +141,7 @@ CREATE INDEX item_parent_id ON public.item (parent_id);
 CREATE TABLE public.item_version (
     id bigint NOT NULL,
     item_id bigint NOT NULL,
-    device_id bigint NOT NULL,
+    device_id uuid NOT NULL,
     version integer NOT NULL,
     committed_at timestamp,
     checksum bigint NOT NULL,

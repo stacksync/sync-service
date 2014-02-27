@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.test.handler;
 
 import java.sql.Connection;
+import java.util.UUID;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -36,7 +37,9 @@ public class AdvancedHandlerTest {
 	private static DeviceDAO deviceDao;
 	private static ItemDAO objectDao;
 	private static ItemVersionDAO oversionDao;
-
+	private static UUID user1 = UUID.randomUUID();
+	
+	
 	@BeforeClass
 	public static void initializeData() {
 
@@ -55,7 +58,8 @@ public class AdvancedHandlerTest {
 			objectDao = factory.getItemDAO(connection);
 			oversionDao = factory.getItemVersionDAO(connection);
 
-			User user = new User(null, "junituser", "aa", "aa", 1000, 100);
+
+			User user = new User(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			userDao.add(user);
 
 			Workspace workspace = new Workspace(null,  1, user, false);
@@ -71,7 +75,7 @@ public class AdvancedHandlerTest {
 
 	@AfterClass
 	public static void cleanData() throws DAOException {
-		userDao.delete("aa");
+		userDao.delete(user1);
 	}
 
 	@Before

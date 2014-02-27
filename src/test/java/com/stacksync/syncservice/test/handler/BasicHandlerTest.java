@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.test.handler;
 
 import java.sql.Connection;
+import java.util.UUID;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -27,7 +28,8 @@ public class BasicHandlerTest {
 	private static WorkspaceDAO workspaceDAO;
 	private static UserDAO userDao;
 	private static DeviceDAO deviceDao;
-
+	private static UUID user1 = UUID.randomUUID();
+	
 	@BeforeClass
 	public static void initializeData() {
 
@@ -49,7 +51,7 @@ public class BasicHandlerTest {
 			deviceDao = factory.getDeviceDAO(connection);
 			
 
-			User user = new User(null, "junituser", "111aaa", "aa", 1000, 100);
+			User user = new User(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			userDao.add(user);
 
 			Workspace workspace = new Workspace(null, 1, user, false);
@@ -229,7 +231,7 @@ public class BasicHandlerTest {
 
 	@AfterClass
 	public static void cleanDB() throws DAOException {
-		userDao.delete("111aaa");
+		userDao.delete(user1);
 	}
 
 	/*private void printResponse(CommitResponse crm) {

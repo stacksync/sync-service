@@ -38,9 +38,9 @@ public class PostgresqlDAO {
 		return resultSet;
 	}
 
-	protected Long executeUpdate(String query, Object[] values) throws DAOException {
+	protected Object executeUpdate(String query, Object[] values) throws DAOException {
 
-		Long key = null;
+		Object key = null;
 		PreparedStatement preparedStatement = null;
 		ResultSet generatedKeys = null;
 
@@ -55,7 +55,7 @@ public class PostgresqlDAO {
 				generatedKeys = preparedStatement.getGeneratedKeys();
 
 				if (generatedKeys.next()) {
-					key = generatedKeys.getLong(1);
+					key = generatedKeys.getObject(1);
 				} else {
 					throw new DAOException("Creating object failed, no generated key obtained.");
 				}

@@ -3,6 +3,7 @@ package com.stacksync.syncservice.test.benchmark;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.Item;
@@ -79,7 +80,7 @@ public class DBBenchmark extends Thread {
 		String cloudId = name;
 		
 		try {
-			User user = new User(null, name, cloudId, "email@email.com", 1000, 100);
+			User user = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			dbHelper.addUser(user);
 			
 			Workspace workspace = new Workspace(null, 1, user, false);

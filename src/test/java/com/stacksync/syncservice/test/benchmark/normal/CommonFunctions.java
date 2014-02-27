@@ -2,6 +2,7 @@ package com.stacksync.syncservice.test.benchmark.normal;
 
 import java.util.Date;
 import java.util.Random;
+import java.util.UUID;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -34,7 +35,7 @@ public class CommonFunctions {
 		return jArray;
 	}
 
-	private static JsonArray generateObjectsLevel(int numObjects, Long deviceId, ParentRoot parentRoot) {
+	private static JsonArray generateObjectsLevel(int numObjects, UUID deviceId, ParentRoot parentRoot) {
 		JsonArray arrayObjects = new JsonArray();
 
 		Random random = new Random();
@@ -60,7 +61,7 @@ public class CommonFunctions {
 			file.addProperty("lastModified", date.getTime());
 
 			file.addProperty("checksum", random.nextLong());
-			file.addProperty("clientName", deviceId);
+			file.addProperty("clientName", deviceId.toString());
 
 			file.addProperty("fileSize", random.nextLong());
 
@@ -78,7 +79,7 @@ public class CommonFunctions {
 		return arrayObjects;
 	}
 
-	public static String generateObjects(int numObjects, Long deviceId) {
+	public static String generateObjects(int numObjects, UUID deviceId) {
 		return CommonFunctions.generateObjectsLevel(numObjects, deviceId, null).toString();
 	}
 }

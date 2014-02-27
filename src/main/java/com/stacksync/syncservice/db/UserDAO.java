@@ -1,17 +1,16 @@
 package com.stacksync.syncservice.db;
 
 import java.util.List;
+import java.util.UUID;
 
 import com.stacksync.commons.models.User;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface UserDAO {
 
-	public User findByPrimaryKey(Long id) throws DAOException;
-
-	public User findByCloudId(String cloudId) throws DAOException;
+	public User findByPrimaryKey(UUID id) throws DAOException;
 	
-	public User findByEmail(String email) throws DAOException;
+	public User getByEmail(String email) throws DAOException;
 
 	public List<User> findAll() throws DAOException;
 	
@@ -21,7 +20,5 @@ public interface UserDAO {
 
 	public void update(User user) throws DAOException;
 
-	public void delete(Long id) throws DAOException;
-
-	public void delete(String cloudId) throws DAOException;
+	public void delete(UUID id) throws DAOException;
 }

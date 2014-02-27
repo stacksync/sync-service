@@ -19,8 +19,7 @@ public class TestGetWorkspaces {
 
 		long startTotal = System.currentTimeMillis();
 
-		User user = new User();
-		user.setCloudId(Constants.USER);
+		User user = new User(Constants.USER);
 		
 		handler.doGetWorkspaces(user);
 

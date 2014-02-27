@@ -99,7 +99,7 @@ public class TestGetChanges {
 		// Message.GET_CHANGES, Constants.REQUESTID, "benchmark-93539494/", "");
 		
 		User user = new User();
-		user.setCloudId(Constants.USER);
+		user.setId(Constants.USER);
 		Workspace workspace = new Workspace(Constants.WORKSPACE_ID);
 		
 		List<ItemMetadata> listFiles = handler.doGetChanges(user, workspace);

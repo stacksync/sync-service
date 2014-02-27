@@ -62,7 +62,7 @@ public class TestCommit {
 			}
 			
 			ItemMetadata object = new ItemMetadata(fileId, version, Constants.DEVICE_ID, parentFileId, parentFileVersion, status, lastModified,
-					checksum, fileSize, folder, name, mimetype, "", chunks);
+					checksum, fileSize, folder, name, mimetype, chunks);
 
 			metadataList.add(object);
 		}
@@ -84,10 +84,10 @@ public class TestCommit {
 		List<ItemMetadata> objects = getObjectMetadata(rawObjects);
 
 		User user = new User();
-		user.setCloudId(Constants.USER);
+		user.setId(Constants.USER);
 		Device device = new Device( Constants.DEVICE_ID);
 		Workspace workspace = new Workspace(Constants.WORKSPACE_ID);
-		
+
 		handler.doCommit(user, workspace, device, objects);
 
 		long totalTime = System.currentTimeMillis() - startTotal;

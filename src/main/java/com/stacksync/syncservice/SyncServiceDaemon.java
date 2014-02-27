@@ -21,6 +21,9 @@ import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 import com.stacksync.syncservice.omq.SyncServiceImp;
 import com.stacksync.syncservice.rpc.XmlRpcSyncHandler;
 import com.stacksync.syncservice.rpc.XmlRpcSyncServer;
+import com.stacksync.syncservice.storage.StorageFactory;
+import com.stacksync.syncservice.storage.StorageManager;
+import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
 import com.stacksync.syncservice.util.Constants;
 
@@ -81,6 +84,18 @@ public class SyncServiceDaemon implements Daemon {
 			logger.error("Connection to database failed.", e);
 			System.exit(4);
 		}
+		
+		logger.info("Connecting to OpenStack Swift...");
+		
+		try{
+			StorageManager storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
+			storageManager.login();
+			logger.info("Connected to OpenStack Swift successfully");
+		}catch (Exception e) {
+			logger.fatal("Could not connect to Swift.", e);
+			System.exit(7);
+		}
+		
 
 		logger.info("Initializing the messaging middleware...");
 		try {

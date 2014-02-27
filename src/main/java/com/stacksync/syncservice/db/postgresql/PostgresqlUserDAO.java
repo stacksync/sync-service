@@ -5,6 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
@@ -22,11 +23,11 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 	}
 
 	@Override
-	public User findByPrimaryKey(Long userID) throws DAOException {
+	public User findByPrimaryKey(UUID userID) throws DAOException {
 		ResultSet resultSet = null;
 		User user = null;
 
-		String query = "SELECT id, name, email, cloud_id, quota_limit, quota_used " + " FROM \"user1\" WHERE id = ?";
+		String query = "SELECT id, name, email, swift_user, swift_account, quota_limit, quota_used " + " FROM \"user1\" WHERE id = ?::uuid";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { userID });
@@ -41,39 +42,14 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 
 		return user;
 	}
-
-	@Override
-	public User findByCloudId(String cloudID) throws DAOException {
-
-		ResultSet resultSet = null;
-		User user = null;
-
-		String query = "SELECT id, name, email, cloud_id, quota_limit, quota_used " + " FROM \"user1\" WHERE cloud_id = ?";
-
-		try {
-			resultSet = executeQuery(query, new Object[] { cloudID });
-
-			if (resultSet.next()) {
-				user = mapUser(resultSet);
-			}else{
-				throw new NoResultReturnedDAOException(DAOError.USER_NOT_FOUND);
-			}
-			
-		} catch (SQLException e) {
-			logger.error(e);
-			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
-		}
-
-		return user;
-	}
 	
 	@Override
-	public User findByEmail(String email) throws DAOException {
+	public User getByEmail(String email) throws DAOException {
 
 		ResultSet resultSet = null;
 		User user = null;
 
-		String query = "SELECT id, name, email, cloud_id, quota_limit, quota_used " + " FROM \"user1\" WHERE email = ?";
+		String query = "SELECT id, name, email, swift_user, swift_account, quota_limit, quota_used " + " FROM \"user1\" WHERE email = ?";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { email });
@@ -84,7 +60,6 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 				throw new NoResultReturnedDAOException(DAOError.USER_NOT_FOUND);
 			}
 		} catch (SQLException e) {
-			logger.error(e);
 			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
 		}
 
@@ -117,12 +92,12 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			throw new IllegalArgumentException("User attributes not set");
 		}
 
-		Object[] values = { user.getEmail(), user.getName(), user.getCloudId(), user.getQuotaLimit(), user.getQuotaUsed() };
+		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsed() };
 
-		String query = "INSERT INTO user1 (email, name, cloud_id, quota_limit, quota_used) VALUES (?, ?, ?, ?, ?)";
+		String query = "INSERT INTO user1 (email, name, swift_user, swift_account, quota_limit, quota_used) VALUES (?, ?, ?, ?, ?)";
 
 		try {
-			long userId = executeUpdate(query, values);
+			UUID userId = (UUID) executeUpdate(query, values);
 			user.setId(userId);
 		} catch (DAOException e) {
 			logger.error(e);
@@ -136,9 +111,9 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			throw new IllegalArgumentException("User attributes not set");
 		}
 
-		Object[] values = { user.getEmail(), user.getName(), user.getCloudId(), user.getQuotaLimit(), user.getQuotaUsed(), user.getId() };
+		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsed(), user.getId() };
 
-		String query = "UPDATE user1 SET email = ?, name = ?, cloud_id = ?, quota_limit = ?, quota_used = ? WHERE id = ?";
+		String query = "UPDATE user1 SET email = ?, name = ?, swift_user = ?, swift_account = ?, quota_limit = ?, quota_used = ? WHERE id = ?::uuid";
 
 		try {
 			executeUpdate(query, values);
@@ -149,7 +124,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 	}
 
 	@Override
-	public void delete(Long userID) throws DAOException {
+	public void delete(UUID userID) throws DAOException {
 		Object[] values = { userID };
 
 		String query = "DELETE FROM user1 WHERE id = ?";
@@ -157,22 +132,13 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		executeUpdate(query, values);
 	}
 
-	@Override
-	public void delete(String cloudID) throws DAOException {
-
-		Object[] values = { cloudID };
-
-		String query = "DELETE FROM user1 WHERE cloud_id = ?";
-
-		executeUpdate(query, values);
-	}
-
 	private User mapUser(ResultSet resultSet) throws SQLException {
 		User user = new User();
-		user.setId(resultSet.getLong("id"));
+		user.setId(UUID.fromString(resultSet.getString("id")));
 		user.setEmail(resultSet.getString("email"));
 		user.setName(resultSet.getString("name"));
-		user.setCloudId(resultSet.getString("cloud_id"));
+		user.setSwiftUser(resultSet.getString("swift_user"));
+		user.setSwiftAccount(resultSet.getString("swift_account"));
 		user.setQuotaLimit(resultSet.getInt("quota_limit"));
 		user.setQuotaUsed(resultSet.getInt("quota_used"));
 		return user;
@@ -184,7 +150,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		Object[] values = { itemId };
 
 		String query = "SELECT u.* " + " FROM item i " + " INNER JOIN workspace_user wu ON i.workspace_id = wu.workspace_id "
-				+ " INNER JOIN user1 u ON wu.user_id = u.id " + " WHERE o.id = ?";
+				+ " INNER JOIN user1 u ON wu.user_id = u.id " + " WHERE i.id = ?";
 
 		ResultSet result = null;
 

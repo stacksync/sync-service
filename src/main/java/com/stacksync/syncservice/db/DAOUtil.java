@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import com.stacksync.commons.models.Chunk;
 import com.stacksync.commons.models.Item;
@@ -231,7 +232,7 @@ public final class DAOUtil {
 		metadata.setId(getLongFromResultSet(result, "item_id"));
 		metadata.setParentId(getLongFromResultSet(result, "parent_id"));
 		metadata.setParentVersion((getLongFromResultSet(result, "client_parent_file_version")));
-		metadata.setDeviceId(result.getLong("device_id"));
+		metadata.setDeviceId(UUID.fromString(result.getString("device_id")));
 		metadata.setFilename(result.getString("filename"));
 		metadata.setVersion(result.getLong("version"));
 		metadata.setIsFolder(result.getBoolean("is_folder"));
@@ -239,7 +240,6 @@ public final class DAOUtil {
 		metadata.setMimetype(result.getString("mimetype"));
 		metadata.setChecksum(result.getLong("checksum"));
 		metadata.setSize(result.getLong("size"));
-		metadata.setPath(result.getString("path"));
 		metadata.setModifiedAt(result.getTimestamp("modified_at"));
 		
 		metadata.setLevel(getIntFromResultSet(result, "level"));
@@ -279,9 +279,10 @@ public final class DAOUtil {
 		item.setFilename(result.getString("filename"));
 		item.setMimetype(result.getString("mimetype"));
 		item.setIsFolder(result.getBoolean("is_folder"));
+		item.setClientParentFileVersion((getLongFromResultSet(result, "client_parent_file_version")));
 
 		Workspace w = new Workspace();
-		w.setId(result.getLong("workspace_id"));
+		w.setId(UUID.fromString(result.getString("workspace_id")));
 		item.setWorkspace(w);
 
 		Item parent = new Item();

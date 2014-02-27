@@ -2,6 +2,7 @@ package com.stacksync.syncservice.test.benchmark.db;
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.UUID;
 
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.Item;
@@ -107,14 +108,14 @@ public class DatabaseHelper {
 
 	public void addWorkspace(User user, Workspace workspace) throws IllegalArgumentException, DAOException {
 		workspaceDAO.add(workspace);
-		workspaceDAO.addUser(user, workspace, "untitled_folder");
+		workspaceDAO.addUser(user, workspace);
 	}
 
 	public void addDevice(Device device) throws IllegalArgumentException, DAOException {
 		deviceDao.add(device);
 	}
 
-	public void deleteUser(String cloudId) throws DAOException {
-		userDao.delete(cloudId);
+	public void deleteUser(UUID id) throws DAOException {
+		userDao.delete(id);
 	}
 }

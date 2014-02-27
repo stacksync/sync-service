@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.omq;
 
 import java.util.List;
+import java.util.UUID;
 
 import omq.common.broker.Broker;
 import omq.common.util.ParameterQueue;
@@ -9,8 +10,10 @@ import omq.server.RemoteObject;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.models.AccountInfo;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
@@ -19,18 +22,23 @@ import com.stacksync.commons.notifications.ShareProposalNotification;
 import com.stacksync.commons.omq.ISyncService;
 import com.stacksync.commons.omq.RemoteClient;
 import com.stacksync.commons.omq.RemoteWorkspace;
+import com.stacksync.commons.requests.CommitRequest;
+import com.stacksync.commons.requests.GetAccountRequest;
+import com.stacksync.commons.requests.GetChangesRequest;
 import com.stacksync.commons.requests.GetWorkspacesRequest;
 import com.stacksync.commons.requests.ShareProposalRequest;
 import com.stacksync.commons.requests.UpdateDeviceRequest;
+import com.stacksync.commons.requests.UpdateWorkspaceRequest;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.commons.exceptions.DeviceNotUpdatedException;
 import com.stacksync.commons.exceptions.DeviceNotValidException;
 import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLHandler;
+import com.stacksync.syncservice.util.Config;
 
 public class SyncServiceImp extends RemoteObject implements ISyncService {
 
@@ -55,14 +63,19 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		for (int i = 0; i < numThreads; i++) {
 			handlers[i] = new SQLHandler(this.pool);
 		}
-
 	}
 
 	@Override
-	public List<ItemMetadata> getChanges(String requestId, User user, Workspace workspace) {
-		logger.debug("GetChanges -->[User:" + user + ", Request:" + requestId + ", Workspace: " + workspace + "]");
+	public List<ItemMetadata> getChanges(GetChangesRequest request) {
+
+		logger.debug(request);
+
+		User user = new User();
+		user.setId(request.getUserId());
+		Workspace workspace = new Workspace(request.getWorkspaceId());
 
 		List<ItemMetadata> list = getHandler().doGetChanges(user, workspace);
+
 		return list;
 	}
 
@@ -71,7 +84,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		logger.debug(request.toString());
 
 		User user = new User();
-		user.setCloudId(request.getUserId());
+		user.setId(request.getUserId());
 
 		List<Workspace> workspaces = getHandler().doGetWorkspaces(user);
 
@@ -79,28 +92,28 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	}
 
 	@Override
-	public void commit(String requestId, User user, Workspace workspace, Device device, List<ItemMetadata> items) {
-		logger.debug("Commit -->[User:" + user + ", Request:" + requestId + ", RemoteWorkspace:" + workspace
-				+ ", Device: " + device + "]");
-		logger.debug("Commit objects -> " + items);
+	public void commit(CommitRequest request) {
+		logger.debug(request);
 
 		try {
-			List<CommitInfo> committedItems = getHandler().doCommit(user, workspace, device, items);
 
-			CommitNotification result = new CommitNotification(requestId, committedItems);
-			String id = Long.toString(workspace.getId());
+			User user = new User();
+			user.setId(request.getUserId());
+			Device device = new Device(request.getDeviceId());
+			Workspace workspace = new Workspace(request.getWorkspaceId());
 
-			RemoteWorkspace commitNotifier = broker.lookupMulti(id, RemoteWorkspace.class);
+			List<CommitInfo> committedItems = getHandler().doCommit(user, workspace, device, request.getItems());
+
+			CommitNotification result = new CommitNotification(request.getRequestId(), committedItems);
+			UUID id = workspace.getId();
+
+			RemoteWorkspace commitNotifier = broker.lookupMulti(id.toString(), RemoteWorkspace.class);
 			commitNotifier.notifyCommit(result);
 
 			logger.debug("Consumer: Response sent to workspace \"" + workspace + "\"");
-		} catch (DAOException e) {
-			// debe enterarse el cliente?
-			// se recupera?
-			e.printStackTrace();
+
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e);
 		}
 	}
 
@@ -111,13 +124,13 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	}
 
 	@Override
-	public Long updateDevice(UpdateDeviceRequest request) throws UserNotFoundException, DeviceNotValidException,
+	public UUID updateDevice(UpdateDeviceRequest request) throws UserNotFoundException, DeviceNotValidException,
 			DeviceNotUpdatedException {
 
 		logger.debug(request.toString());
 
 		User user = new User();
-		user.setCloudId(request.getUserId());
+		user.setId(request.getUserId());
 
 		Device device = new Device();
 		device.setId(request.getDeviceId());
@@ -127,37 +140,76 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		device.setLastIp(request.getIp());
 		device.setAppVersion(request.getAppVersion());
 
-		Long deviceId = getHandler().doUpdateDevice(device);
+		UUID deviceId = getHandler().doUpdateDevice(device);
 
 		return deviceId;
 	}
 
 	@Override
-	public Long createShareProposal(ShareProposalRequest request) throws ShareProposalNotCreatedException,
+	public ShareProposalNotification createShareProposal(ShareProposalRequest request) throws ShareProposalNotCreatedException,
 			UserNotFoundException {
 
 		logger.debug(request);
 
 		User user = new User();
-		user.setCloudId(request.getUserId());
+		user.setId(request.getUserId());
 
-		//Create share proposal
+		// Create share proposal
 		Workspace workspace = getHandler().doCreateShareProposal(user, request.getEmails(), request.getFolderName());
 
 		// Create notification
 		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
-				request.getFolderName(), 0L, workspace.getOwner().getCloudId(), workspace.getOwner().getName());
+				request.getFolderName(), 0L, workspace.getOwner().getId(), workspace.getOwner().getName(),
+				workspace.getSwiftContainer(), workspace.getSwiftUrl());
 
-		//Send notifications to users
+		// Send notifications to users
 		for (User addressee : workspace.getUsers()) {
 			try {
-				RemoteClient client = broker.lookupMulti(addressee.getCloudId(), RemoteClient.class);
+				RemoteClient client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
 				client.notifyShareProposal(notification);
 			} catch (RemoteException e) {
-				logger.error(String.format("Could not notify user (cloudId): '%s'", addressee.getCloudId()), e);
+				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
 			}
 		}
 
-		return workspace.getId();
+		return notification;
+	}
+
+	@Override
+	public Boolean updateWorkspace(UpdateWorkspaceRequest request) throws UserNotFoundException,
+			WorkspaceNotUpdatedException {
+		logger.debug(request);
+
+		User user = new User();
+		user.setId(request.getUserId());
+		Item item = new Item(request.getParentItemId());
+
+		Workspace workspace = new Workspace(request.getWorkspaceId());
+		workspace.setName(request.getWorkspaceName());
+		workspace.setParentItem(item);
+
+		getHandler().doUpdateWorkspace(user, workspace);
+
+		return true;
+	}
+
+	@Override
+	public AccountInfo getAccountInfo(GetAccountRequest request) throws UserNotFoundException {
+		logger.debug(request);
+		
+		User user = getHandler().doGetUser(request.getEmail());
+		
+		AccountInfo accountInfo = new AccountInfo();
+		
+		accountInfo.setUserId(user.getId());
+		accountInfo.setName(user.getName());
+		accountInfo.setEmail(user.getEmail());
+		accountInfo.setQuotaLimit(user.getQuotaLimit());
+		accountInfo.setQuotaUsed(user.getQuotaUsed());
+		accountInfo.setSwiftUser(user.getSwiftUser());
+		accountInfo.setSwiftTenant(Config.getSwiftTenant());
+		accountInfo.setSwiftAuthUrl(Config.getSwiftAuthUrl());
+		
+		return accountInfo;
 	}
 }

@@ -51,7 +51,7 @@ public class GetMetadataTest {
 
 	@AfterClass
 	public static void cleanData() throws DAOException {
-		userDao.delete("bb");
+		//userDao.delete("bb");
 	}
 
 	@Test

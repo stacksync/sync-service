@@ -10,6 +10,7 @@ import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.log4j.xml.DOMConfigurator;
 import org.junit.BeforeClass;
@@ -65,7 +66,7 @@ public class PostgresqlDAOTest {
 	public void testCreateNewValidUser() throws IllegalArgumentException, DAOException {
 		User user = new User();
 		user.setName(nextString());
-		user.setCloudId(nextString());
+		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
 		user.setQuotaLimit(2048);
 		user.setQuotaUsed(1403);
@@ -81,13 +82,13 @@ public class PostgresqlDAOTest {
 	}
 
 	@Test
-	public void testCreateNewUserSameCloudId() throws IllegalArgumentException, DAOException {
+	public void testCreateNewUserSameId() throws IllegalArgumentException, DAOException {
 
-		String cloudId = nextString();
+		UUID userId = UUID.randomUUID();
 
 		User user = new User();
 		user.setName(nextString());
-		user.setCloudId(cloudId);
+		user.setId(userId);
 		user.setEmail(nextString());
 		user.setQuotaLimit(2048);
 		user.setQuotaUsed(1403);
@@ -99,7 +100,7 @@ public class PostgresqlDAOTest {
 		} else {
 			User user2 = new User();
 			user2.setName(nextString());
-			user2.setCloudId(cloudId);
+			user2.setId(userId);
 			user2.setEmail(nextString());
 			user2.setQuotaLimit(2048);
 			user2.setQuotaUsed(1403);
@@ -118,7 +119,7 @@ public class PostgresqlDAOTest {
 
 		User user = new User();
 		user.setName(nextString());
-		user.setCloudId(nextString());
+		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
 		user.setQuotaLimit(2048);
 		user.setQuotaUsed(1403);
@@ -129,15 +130,15 @@ public class PostgresqlDAOTest {
 			assertTrue("Could not retrieve the User ID", false);
 		} else {
 
-			Long id = user.getId();
+			UUID id = user.getId();
 			String newName = nextString();
-			String newCloudId = nextString();
+			UUID newUserId = UUID.randomUUID();
 			String newEmail = nextString();
 			Integer newQuotaLimit = 123;
 			Integer newQuotaUsed = 321;
 
 			user.setName(newName);
-			user.setCloudId(newCloudId);
+			user.setId(newUserId);
 			user.setEmail(newEmail);
 			user.setQuotaLimit(newQuotaLimit);
 			user.setQuotaUsed(newQuotaUsed);
@@ -157,7 +158,7 @@ public class PostgresqlDAOTest {
 	@Test
 	public void testGetNonExistingUserById() {
 		try {
-			User user = userDao.findByPrimaryKey(999999L);
+			User user = userDao.findByPrimaryKey(UUID.randomUUID());
 
 			if (user == null) {
 				assertTrue(true);
@@ -175,7 +176,7 @@ public class PostgresqlDAOTest {
 
 		User user = new User();
 		user.setName(nextString());
-		user.setCloudId(nextString());
+		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
 		user.setQuotaLimit(2048);
 		user.setQuotaUsed(1403);
@@ -208,7 +209,7 @@ public class PostgresqlDAOTest {
 	@Test
 	public void testCreateNewWorkspaceInvalidOwner() {
 
-		User user = new User(12345L);
+		User user = new User(UUID.randomUUID());
 
 		Workspace workspace = new Workspace();
 		workspace.setOwner(user);
@@ -226,7 +227,7 @@ public class PostgresqlDAOTest {
 
 		User user = new User();
 		user.setName(nextString());
-		user.setCloudId(nextString());
+		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
 		user.setQuotaLimit(2048);
 		user.setQuotaUsed(1403);
@@ -249,7 +250,7 @@ public class PostgresqlDAOTest {
 
 		User user = new User();
 		user.setName(nextString());
-		user.setCloudId(nextString());
+		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
 		user.setQuotaLimit(2048);
 		user.setQuotaUsed(1403);
@@ -278,59 +279,6 @@ public class PostgresqlDAOTest {
 
 	}
 
-	@Test
-	public void testGetObjectByWorkspaceId() throws DAOException {
-
-		List<Item> objects = objectDao.findByWorkspaceId(1);
-
-		if (objects != null && !objects.isEmpty()) {
-
-			/*
-			 * for (Object1 object : objects) {
-			 * System.out.println(object.toString()); }
-			 */
-			assertTrue(true);
-
-		} else {
-			assertTrue(false);
-		}
-
-	}
-
-	@Test
-	public void testGetObjectVersionByObjectIdAndVersion() throws DAOException {
-
-		List<Item> objects = objectDao.findByWorkspaceId(1);
-
-		ItemMetadata metadata = oversionDao.findByItemIdAndVersion(objects.get(0).getId(), objects.get(0).getLatestVersion());
-		ItemVersion objectVersion = new ItemVersion(metadata);
-		
-		if (objectVersion != null) {
-			System.out.println(objectVersion.toString());
-			assertTrue(true);
-		} 
-	}
-
-	@Test
-	public void testGetChunksByObjectVersionId() throws DAOException {
-
-		List<Item> objects = objectDao.findByWorkspaceId(1);
-
-		ItemMetadata metadata = oversionDao.findByItemIdAndVersion(objects.get(0).getId(), objects.get(0).getLatestVersion());
-		ItemVersion objectVersion = new ItemVersion(metadata);
-		List<Chunk> chunks = oversionDao.findChunks(objectVersion.getId());
-
-		if (chunks != null && !chunks.isEmpty()) {
-
-			for (Chunk chunk : chunks) {
-				System.out.println(chunk.toString());
-			}
-
-			assertTrue(true);
-		} else {
-			assertTrue(false);
-		}
-	}
 
 	@Test
 	public void testGetObjectByClientFileIdAndWorkspace() throws DAOException {
@@ -347,26 +295,9 @@ public class PostgresqlDAOTest {
 	}
 
 	@Test
-	public void testGetObjectsByWorkspaceId() throws DAOException {
-
-		List<Item> objects = objectDao.findByWorkspaceId(1L);
-
-		if (objects != null && !objects.isEmpty()) {
-
-			for (Item object : objects) {
-				System.out.println(object.toString());
-			}
-
-			assertTrue(true);
-		} else {
-			assertTrue(false);
-		}
-	}
-
-	@Test
 	public void testGetObjectMetadataByWorkspaceName() throws DAOException {
 
-		List<ItemMetadata> objects = objectDao.getItemsByWorkspaceId(1L);
+		List<ItemMetadata> objects = objectDao.getItemsByWorkspaceId(UUID.randomUUID());
 
 		if (objects != null && !objects.isEmpty()) {
 
@@ -433,10 +364,10 @@ public class PostgresqlDAOTest {
 	@Test
 	public void testGetObjectMetadataByServerUserId() throws DAOException {
 
-		String serverUserId = "bb";
+		UUID userId = UUID.randomUUID();
 		boolean includeDeleted = false;
 
-		ItemMetadata object = objectDao.findByServerUserId(serverUserId, includeDeleted);
+		ItemMetadata object = objectDao.findByUserId(userId, includeDeleted);
 
 		if (object != null) {
 			System.out.println(object.toString());

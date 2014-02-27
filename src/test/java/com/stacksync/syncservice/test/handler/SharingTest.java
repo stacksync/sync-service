@@ -3,6 +3,7 @@ package com.stacksync.syncservice.test.handler;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -12,6 +13,7 @@ import org.junit.Test;
 
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
+import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
@@ -31,41 +33,30 @@ public class SharingTest {
 	private static UserDAO userDao;
 	private static User user1;
 	private static User user2;
+	private static Workspace workspace1;
 
 	@BeforeClass
-	public static void initializeData() {
+	public static void initializeData() throws Exception {
 
-		try {
-			Config.loadProperties();
+		Config.loadProperties();
 
-			String datasource = Config.getDatasource();
-			ConnectionPool pool = ConnectionPoolFactory
-					.getConnectionPool(datasource);
+		String datasource = Config.getDatasource();
+		ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
 
-			handler = new SQLHandler(pool);
-			DAOFactory factory = new DAOFactory(datasource);
+		handler = new SQLHandler(pool);
+		DAOFactory factory = new DAOFactory(datasource);
 
-			Connection connection = pool.getConnection();
+		Connection connection = pool.getConnection();
 
-			workspaceDAO = factory.getWorkspaceDao(connection);
-			userDao = factory.getUserDao(connection);
+		workspaceDAO = factory.getWorkspaceDao(connection);
+		userDao = factory.getUserDao(connection);
 
-			user1 = new User(null, "junituser", "aa", "aa", 1000, 100);
-			try {
-				userDao.add(user1);
-				Workspace workspace1 = new Workspace(null, 1,
-						user1, false);
-				workspaceDAO.add(workspace1);
-			} catch (DAOException e) {
-				System.out.println("User already exists.");
-				user1 = userDao.findByCloudId("aa");
-			}
-			
-			
+		user1 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		userDao.add(user1);
+		workspace1 = new Workspace(null, 1, user1, false);
+		workspaceDAO.add(workspace1);
+
 	}
 
 	@AfterClass
@@ -76,44 +67,44 @@ public class SharingTest {
 	@Test
 	public void createShareProposal() throws DAOException, ShareProposalNotCreatedException, UserNotFoundException {
 
-		user2 = new User(null, "junituser", "bb", "user2@users.com", 1000, 100);
-		try {
-			userDao.add(user2);
-		} catch (DAOException e) {
-			System.out.println("User already exists.");
-			user2 = userDao.findByCloudId("bb");
-		}
-		
+		user2 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+
+		userDao.add(user2);
+
 		List<String> emails = new ArrayList<String>();
 		emails.add(user2.getEmail());
 		emails.add("fakemail@fake.com");
 
-		
-		Workspace result = handler.doCreateShareProposal(user1, emails, "shared_folder");
+		Workspace result = handler.doCreateShareProposal (user1, emails, "shared_folder");
 
-		System.out.println("Result: " + result.getId() );
+		System.out.println("Result: " + result.getId());
 
-		assertNotEquals(-1L, result.getId().longValue());
+		assertNotEquals("-1", result.getId());
 	}
-	
-	@Test (expected = ShareProposalNotCreatedException.class)
-	public void createShareProposalFakeMail() throws DAOException, ShareProposalNotCreatedException, UserNotFoundException {
 
-		user2 = new User(null, "junituser", "bb", "user2@users.com", 1000, 100);
-		try {
-			userDao.add(user2);
-		} catch (DAOException e) {
-			System.out.println("User already exists.");
-			user2 = userDao.findByCloudId("bb");
-		}
-		
+	@Test(expected = ShareProposalNotCreatedException.class)
+	public void createShareProposalFakeMail() throws DAOException, ShareProposalNotCreatedException,
+			UserNotFoundException {
+
+		user2 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+		userDao.add(user2);
+
+
 		List<String> emails = new ArrayList<String>();
 		emails.add("fakemail@fake.com");
 
-		
 		Workspace result = handler.doCreateShareProposal(user1, emails, "shared_folder");
 
-		System.out.println("Result: " + result.getId() );
+		System.out.println("Result: " + result.getId());
+	}
+
+	@Test
+	public void updateWorkspace() throws UserNotFoundException, WorkspaceNotUpdatedException {
+
+		workspace1.setName("workspace_folder");
+		workspace1.setParentItem(null);
+
+		handler.doUpdateWorkspace(user1, workspace1);
 	}
 
 }

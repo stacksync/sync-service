@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
@@ -34,21 +35,29 @@ import com.stacksync.commons.exceptions.DeviceNotValidException;
 import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
+import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 import com.stacksync.syncservice.exceptions.dao.NoRowsAffectedDAOException;
+import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
+import com.stacksync.syncservice.storage.StorageFactory;
+import com.stacksync.syncservice.storage.StorageManager;
+import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
 import com.stacksync.syncservice.util.Constants;
 
 public class SQLHandler implements Handler {
+
 	private static final Logger logger = Logger.getLogger(SQLHandler.class.getName());
+
 	private Connection connection;
+	private StorageManager storageManager;
 	private WorkspaceDAO workspaceDAO;
 	private UserDAO userDao;
 	private DeviceDAO deviceDao;
@@ -57,12 +66,14 @@ public class SQLHandler implements Handler {
 
 	private Device apiDevice = new Device(Constants.API_DEVICE_ID);
 
-	public SQLHandler(ConnectionPool pool) throws SQLException {
+	public SQLHandler(ConnectionPool pool) throws SQLException, NoStorageManagerAvailable {
 		connection = pool.getConnection();
 
 		String dataSource = Config.getDatasource();
 
 		DAOFactory factory = new DAOFactory(dataSource);
+
+		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
 
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		userDao = factory.getUserDao(connection);
@@ -97,6 +108,15 @@ public class SQLHandler implements Handler {
 					Long parentId = tempIds.get(item.getParentId());
 					if (parentId != null) {
 						item.setParentId(parentId);
+					}
+				}
+
+				// if the item does not have ID but has a TempID, maybe it was
+				// set
+				if (item.getId() == null && item.getTempId() != null) {
+					Long newId = tempIds.get(item.getTempId());
+					if (newId != null) {
+						item.setId(newId);
 					}
 				}
 
@@ -151,7 +171,7 @@ public class SQLHandler implements Handler {
 
 			if (fileId == null) {
 				// retrieve metadata from the root folder
-				responseObject = this.itemDao.findByServerUserId(user.getCloudId(), includeDeleted);
+				responseObject = this.itemDao.findByUserId(user.getId(), includeDeleted);
 
 			} else {
 
@@ -187,25 +207,25 @@ public class SQLHandler implements Handler {
 		List<Workspace> workspaces = new ArrayList<Workspace>();
 
 		try {
-			workspaces = workspaceDAO.findByUserCloudId(user.getCloudId());
+			workspaces = workspaceDAO.findByUserId(user.getId());
 
 		} catch (NoResultReturnedDAOException e) {
-
+			logger.error(e);
+			throw new NoWorkspacesFoundException(String.format("No workspaces found for user: %s", user.getId()));
 		} catch (DAOException e) {
 			logger.error(e);
-			throw new NoWorkspacesFoundException(String.format("No workspaces found for user (cloud_id): %s",
-					user.getCloudId()));
+			throw new NoWorkspacesFoundException(e);
 		}
 
 		return workspaces;
 	}
 
 	@Override
-	public Long doUpdateDevice(Device device) throws UserNotFoundException, DeviceNotValidException,
+	public UUID doUpdateDevice(Device device) throws UserNotFoundException, DeviceNotValidException,
 			DeviceNotUpdatedException {
 
 		try {
-			User dbUser = userDao.findByCloudId(device.getUser().getCloudId());
+			User dbUser = userDao.findByPrimaryKey(device.getUser().getId());
 			device.setUser(dbUser);
 
 		} catch (NoResultReturnedDAOException e) {
@@ -242,7 +262,7 @@ public class SQLHandler implements Handler {
 
 		// Check the owner
 		try {
-			user = userDao.findByCloudId(user.getCloudId());
+			user = userDao.findByPrimaryKey(user.getId());
 		} catch (NoResultReturnedDAOException e) {
 			logger.warn(e);
 			throw new UserNotFoundException(e);
@@ -251,14 +271,16 @@ public class SQLHandler implements Handler {
 			throw new ShareProposalNotCreatedException(e);
 		}
 
-		
 		// Check the addressees
 		List<User> addressees = new ArrayList<User>();
 		for (String email : emails) {
 			User addressee;
 			try {
-				addressee = userDao.findByEmail(email);
-				addressees.add(addressee);
+				addressee = userDao.getByEmail(email);
+				if (!addressee.getId().equals(user.getId())) {
+					addressees.add(addressee);
+				}
+
 			} catch (IllegalArgumentException e) {
 				logger.error(e);
 				throw new ShareProposalNotCreatedException(e);
@@ -266,42 +288,111 @@ public class SQLHandler implements Handler {
 				logger.warn(String.format("Email '%s' does not correspond with any user. ", email), e);
 			}
 		}
-		
-		if (addressees.isEmpty()){
+
+		if (addressees.isEmpty()) {
 			throw new ShareProposalNotCreatedException("No addressees found");
 		}
-		
+
 		// Create the new workspace
+		String container = UUID.randomUUID().toString();
+
 		Workspace workspace = new Workspace();
 		workspace.setShared(true);
+		workspace.setName(folderName);
 		workspace.setOwner(user);
 		workspace.setUsers(addressees);
-		
+		workspace.setSwiftContainer(container);
+		workspace.setSwiftUrl(Config.getSwiftUrl() + "/" + user.getSwiftAccount());
+
+		// Create container in Swift
+		try {
+			storageManager.createNewWorkspace(user, workspace);
+		} catch (Exception e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		// Save the workspace to the DB
 		try {
 			workspaceDAO.add(workspace);
 			// add the owner to the workspace
-			workspaceDAO.addUser(user, workspace, folderName);
-			
+			workspaceDAO.addUser(user, workspace);
+
 		} catch (DAOException e) {
 			logger.error(e);
 			throw new ShareProposalNotCreatedException(e);
 		}
-		
-		
+
+		// Grant user to container in Swift
+		try {
+			storageManager.grantUserToWorkspace(user, user, workspace);
+		} catch (Exception e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
 		// Add the addressees to the workspace
 		for (User addressee : addressees) {
 			try {
-				workspaceDAO.addUser(addressee, workspace, folderName);
-				
+				workspaceDAO.addUser(addressee, workspace);
+
 			} catch (DAOException e) {
 				workspace.getUsers().remove(addressee);
-				logger.error(
-						String.format("An error ocurred when adding the user (cloudId) '%s' to workspace '%s'",
-								addressee.getCloudId(), workspace.getId()), e);
+				logger.error(String.format("An error ocurred when adding the user '%s' to workspace '%s'",
+						addressee.getId(), workspace.getId()), e);
+			}
+			
+			// Grant the user to container in Swift
+			try {
+				storageManager.grantUserToWorkspace(user, addressee, workspace);
+			} catch (Exception e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
 			}
 		}
 
 		return workspace;
+	}
+
+	public void doUpdateWorkspace(User user, Workspace workspace) throws UserNotFoundException,
+			WorkspaceNotUpdatedException {
+
+		// Check the owner
+		try {
+			user = userDao.findByPrimaryKey(user.getId());
+		} catch (NoResultReturnedDAOException e) {
+			logger.warn(e);
+			throw new UserNotFoundException(e);
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new WorkspaceNotUpdatedException(e);
+		}
+
+		// Update the workspace
+		try {
+			workspaceDAO.update(user, workspace);
+		} catch (NoRowsAffectedDAOException e) {
+			logger.error(e);
+			throw new WorkspaceNotUpdatedException(e);
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new WorkspaceNotUpdatedException(e);
+		}
+	}
+
+	public User doGetUser(String email) throws UserNotFoundException {
+
+		try {
+			User user = userDao.getByEmail(email);
+			return user;
+
+		} catch (NoResultReturnedDAOException e) {
+			logger.error(e);
+			throw new UserNotFoundException(e);
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new UserNotFoundException(e);
+		}
 	}
 
 	@Override
@@ -612,19 +703,20 @@ public class SQLHandler implements Handler {
 
 			// TODO To Test!!
 			String status = metadata.getStatus();
-			if (status.equals(Status.RENAMED.toString()) || status.equals(Status.MOVED.toString())) {
+			if (status.equals(Status.RENAMED.toString()) || status.equals(Status.MOVED.toString())
+					|| status.equals(Status.DELETED.toString())) {
 
 				serverItem.setFilename(metadata.getFilename());
 
 				Long parentFileId = metadata.getParentId();
 				if (parentFileId == null) {
 					serverItem.setClientParentFileVersion(null);
+					serverItem.setParent(null);
 				} else {
 					serverItem.setClientParentFileVersion(metadata.getParentVersion());
 					Item parent = itemDao.findById(parentFileId);
 					serverItem.setParent(parent);
 				}
-
 			}
 
 			// Update object latest version
@@ -695,7 +787,7 @@ public class SQLHandler implements Handler {
 		// FIXME: return real path ?
 
 		ItemMetadata object = new ItemMetadata(null, version, Constants.API_DEVICE_ID, parentFileId, parentFileVersion,
-				status, date, checksum, fileSize, folder, fileName, mimetype, "", chunks);
+				status, date, checksum, fileSize, folder, fileName, mimetype, chunks);
 
 		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
 		objects.add(object);
@@ -761,7 +853,7 @@ public class SQLHandler implements Handler {
 		// FIXME: return real path ?
 
 		ItemMetadata item = new ItemMetadata(itemId, version, Constants.API_DEVICE_ID, parentFileID, parentFileVersion,
-				status, date, checksum, fileSize, folder, itemToSave.getFilename(), "inode/directory", "", chunks);
+				status, date, checksum, fileSize, folder, itemToSave.getFilename(), "inode/directory", chunks);
 
 		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 		items.add(item);
@@ -820,7 +912,7 @@ public class SQLHandler implements Handler {
 	private boolean userHasPermission(User user, List<User> users) {
 		boolean hasPermission = false;
 		for (User u : users) {
-			if (u.getCloudId().equals(user.getCloudId())) {
+			if (u.getId().equals(user.getId())) {
 				hasPermission = true;
 				break;
 			}
