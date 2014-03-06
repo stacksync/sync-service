@@ -19,6 +19,7 @@ import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.commons.notifications.ShareProposalNotification;
+import com.stacksync.commons.notifications.UpdateWorkspaceNotification;
 import com.stacksync.commons.omq.ISyncService;
 import com.stacksync.commons.omq.RemoteClient;
 import com.stacksync.commons.omq.RemoteWorkspace;
@@ -146,7 +147,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	}
 
 	@Override
-	public ShareProposalNotification createShareProposal(ShareProposalRequest request) throws ShareProposalNotCreatedException,
+	public void createShareProposal(ShareProposalRequest request) throws ShareProposalNotCreatedException,
 			UserNotFoundException {
 
 		logger.debug(request);
@@ -162,21 +163,30 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 				request.getFolderName(), 0L, workspace.getOwner().getId(), workspace.getOwner().getName(),
 				workspace.getSwiftContainer(), workspace.getSwiftUrl());
 
+		notification.setRequestId(request.getRequestId());
+
+		// Send notification to owner
+		RemoteClient client;
+		try {
+			client = broker.lookupMulti(user.getId().toString(), RemoteClient.class);
+			client.notifyShareProposal(notification);
+		} catch (RemoteException e1) {
+			logger.error(String.format("Could not notify user: '%s'", user.getId()), e1);
+		}
+
 		// Send notifications to users
 		for (User addressee : workspace.getUsers()) {
 			try {
-				RemoteClient client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
+				client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
 				client.notifyShareProposal(notification);
 			} catch (RemoteException e) {
 				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
 			}
 		}
-
-		return notification;
 	}
 
 	@Override
-	public Boolean updateWorkspace(UpdateWorkspaceRequest request) throws UserNotFoundException,
+	public void updateWorkspace(UpdateWorkspaceRequest request) throws UserNotFoundException,
 			WorkspaceNotUpdatedException {
 		logger.debug(request);
 
@@ -190,17 +200,29 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		getHandler().doUpdateWorkspace(user, workspace);
 
-		return true;
+		// Create notification
+		UpdateWorkspaceNotification notification = new UpdateWorkspaceNotification(workspace.getId(),
+				workspace.getName(), workspace.getParentItem().getId());
+		notification.setRequestId(request.getRequestId());
+
+		// Send notification to owner
+		RemoteClient client;
+		try {
+			client = broker.lookupMulti(user.getId().toString(), RemoteClient.class);
+			client.notifyUpdateWorkspace(notification);
+		} catch (RemoteException e1) {
+			logger.error(String.format("Could not notify user: '%s'", user.getId()), e1);
+		}
 	}
 
 	@Override
 	public AccountInfo getAccountInfo(GetAccountRequest request) throws UserNotFoundException {
 		logger.debug(request);
-		
+
 		User user = getHandler().doGetUser(request.getEmail());
-		
+
 		AccountInfo accountInfo = new AccountInfo();
-		
+
 		accountInfo.setUserId(user.getId());
 		accountInfo.setName(user.getName());
 		accountInfo.setEmail(user.getEmail());
@@ -209,7 +231,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		accountInfo.setSwiftUser(user.getSwiftUser());
 		accountInfo.setSwiftTenant(Config.getSwiftTenant());
 		accountInfo.setSwiftAuthUrl(Config.getSwiftAuthUrl());
-		
+
 		return accountInfo;
 	}
 }

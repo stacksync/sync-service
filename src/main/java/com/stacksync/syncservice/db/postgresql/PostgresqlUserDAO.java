@@ -23,7 +23,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 	}
 
 	@Override
-	public User findByPrimaryKey(UUID userID) throws DAOException {
+	public User findById(UUID userID) throws DAOException {
 		ResultSet resultSet = null;
 		User user = null;
 

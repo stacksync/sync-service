@@ -9,6 +9,7 @@ import com.stacksync.syncservice.SyncServiceDaemon;
 public class ServerTest {
 	
 	public static void main(String[] args) throws Exception  {
+				
 		SyncServiceDaemon daemon = new SyncServiceDaemon();
 		try {
 			DaemonContext dc = new DaemonContext() {

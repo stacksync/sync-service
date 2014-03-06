@@ -1,7 +1,6 @@
 package com.stacksync.syncservice.storage;
 
 import java.io.IOException;
-import java.util.UUID;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -12,6 +11,10 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.joda.time.DateTime;
+import org.joda.time.Period;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 
 import com.google.gson.Gson;
 import com.stacksync.commons.models.User;
@@ -24,15 +27,16 @@ import com.stacksync.syncservice.storage.swift.ServiceObject;
 import com.stacksync.syncservice.util.Config;
 
 public class SwiftManager extends StorageManager {
-	
+
 	private static StorageManager instance = null;
-	
+
 	private String authUrl;
 	private String user;
 	private String tenant;
 	private String password;
 	private String storageUrl;
 	private String authToken;
+	private DateTime expirationDate;
 
 	private SwiftManager() {
 
@@ -40,17 +44,19 @@ public class SwiftManager extends StorageManager {
 		this.user = Config.getSwiftUser();
 		this.tenant = Config.getSwiftTenant();
 		this.password = Config.getSwiftPassword();
+		this.expirationDate = DateTime.now();
 	}
-	
-	public static synchronized StorageManager getInstance(){
-		if (instance == null){
+
+	public static synchronized StorageManager getInstance() {
+		if (instance == null) {
 			instance = new SwiftManager();
 		}
-		
+
 		return instance;
 	}
 
-	public void login() throws EndpointNotFoundException, UnauthorizedException, UnexpectedStatusCodeException, IOException {
+	public void login() throws EndpointNotFoundException, UnauthorizedException, UnexpectedStatusCodeException,
+			IOException {
 
 		HttpClient httpClient = new DefaultHttpClient();
 
@@ -64,36 +70,50 @@ public class SwiftManager extends StorageManager {
 			entity.setContentType("application/json");
 			request.setEntity(entity);
 			HttpResponse response = httpClient.execute(request);
-			
+
 			SwiftResponse swiftResponse = new SwiftResponse(response);
-			
+
 			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 				throw new UnauthorizedException("404 User unauthorized");
 			}
-			
+
 			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
 				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
 			}
-			
+
 			String responseBody = swiftResponse.getResponseBodyAsString();
-			
+
 			Gson gson = new Gson();
 			LoginResponseObject loginResponse = gson.fromJson(responseBody, LoginResponseObject.class);
-			
+
 			this.authToken = loginResponse.getAccess().getToken().getId();
-			
+
 			Boolean endpointFound = false;
-			
-			for (ServiceObject service : loginResponse.getAccess().getServiceCatalog()){
-				
-				if (service.getType().equals("object-store")){
+
+			for (ServiceObject service : loginResponse.getAccess().getServiceCatalog()) {
+
+				if (service.getType().equals("object-store")) {
 					this.storageUrl = service.getEndpoints().get(0).getPublicURL();
 					endpointFound = true;
 					break;
 				}
 			}
-			
-			if (!endpointFound){
+
+			// get the token issue swift date
+			DateTimeFormatter dateStringFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+			DateTime issuedAt = dateStringFormat.parseDateTime(loginResponse.getAccess().getToken().getIssuedAt());
+
+			// get the token expiration swift date
+			dateStringFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
+			DateTime expiresAt = dateStringFormat.parseDateTime(loginResponse.getAccess().getToken().getExpires());
+
+			// calculate the period between these two dates and add it to our
+			// current time because datetime can differ from Swift and this
+			// device
+			Period period = new Period(issuedAt, expiresAt);
+			expirationDate = DateTime.now().plus(period);
+
+			if (!endpointFound) {
 				throw new EndpointNotFoundException();
 			}
 
@@ -105,23 +125,27 @@ public class SwiftManager extends StorageManager {
 	@Override
 	public void createNewWorkspace(User user, Workspace workspace) throws Exception {
 
+		if(!isTokenActive()){
+			login();
+		}
+		
 		HttpClient httpClient = new DefaultHttpClient();
 
 		String url = workspace.getSwiftUrl() + "/" + workspace.getSwiftContainer();
-		
+
 		try {
 
 			HttpPut request = new HttpPut(url);
 			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
 
 			HttpResponse response = httpClient.execute(request);
-			
+
 			SwiftResponse swiftResponse = new SwiftResponse(response);
-			
+
 			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-				throw new UnauthorizedException("404 User unauthorized");
+				throw new UnauthorizedException("401 User unauthorized");
 			}
-			
+
 			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
 				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
 			}
@@ -130,21 +154,24 @@ public class SwiftManager extends StorageManager {
 			httpClient.getConnectionManager().shutdown();
 		}
 	}
-	
+
 	@Override
 	public void grantUserToWorkspace(User owner, User user, Workspace workspace) throws Exception {
-
 		
-		String permissions = getWorkspacePermissions(owner, workspace);
-		
-		String tenantUser = Config.getSwiftTenant() + ":" + user.getSwiftUser();
-		
-		if (permissions.contains(tenantUser)){
-			return;
+		if(!isTokenActive()){
+			login();
 		}
 		
+		String permissions = getWorkspacePermissions(owner, workspace);
+
+		String tenantUser = Config.getSwiftTenant() + ":" + user.getSwiftUser();
+
+		if (permissions.contains(tenantUser)) {
+			return;
+		}
+
 		permissions += "," + tenantUser;
-		
+
 		HttpClient httpClient = new DefaultHttpClient();
 		String url = workspace.getSwiftUrl() + "/" + workspace.getSwiftContainer();
 
@@ -156,13 +183,13 @@ public class SwiftManager extends StorageManager {
 			request.setHeader(SwiftResponse.X_CONTAINER_WRITE, permissions);
 
 			HttpResponse response = httpClient.execute(request);
-			
+
 			SwiftResponse swiftResponse = new SwiftResponse(response);
-			
+
 			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 				throw new UnauthorizedException("404 User unauthorized");
 			}
-			
+
 			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
 				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
 			}
@@ -171,45 +198,50 @@ public class SwiftManager extends StorageManager {
 			httpClient.getConnectionManager().shutdown();
 		}
 	}
-	
-	private String getWorkspacePermissions(User user, Workspace workspace) throws Exception {
 
+	private String getWorkspacePermissions(User user, Workspace workspace) throws Exception {
+		
+		if(!isTokenActive()){
+			login();
+		}
+		
 		HttpClient httpClient = new DefaultHttpClient();
 
 		String url = workspace.getSwiftUrl() + "/" + workspace.getSwiftContainer();
-		
+
 		try {
 
-			HttpHead  request = new HttpHead(url);
+			HttpHead request = new HttpHead(url);
 			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
 
 			HttpResponse response = httpClient.execute(request);
-			
+
 			SwiftResponse swiftResponse = new SwiftResponse(response);
-			
+
 			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 				throw new UnauthorizedException("404 User unauthorized");
 			}
-			
+
 			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
 				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
 			}
-			
-			//We suppose there are the same permissions for read and write
+
+			// We suppose there are the same permissions for read and write
 			Header containerWriteHeader = swiftResponse.getResponseHeader(SwiftResponse.X_CONTAINER_WRITE);
-			
-			if (containerWriteHeader == null){
+
+			if (containerWriteHeader == null) {
 				return "";
 			}
-			
+
 			return containerWriteHeader.getValue();
-			
+
 		} finally {
 			httpClient.getConnectionManager().shutdown();
 		}
 	}
-	
-	
-	
-	
+
+	private boolean isTokenActive() {
+		return DateTime.now().isBefore(expirationDate);
+	}
+
 }

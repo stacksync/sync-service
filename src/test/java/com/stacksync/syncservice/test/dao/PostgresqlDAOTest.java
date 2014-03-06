@@ -146,7 +146,7 @@ public class PostgresqlDAOTest {
 			try {
 				userDao.add(user);
 
-				User user2 = userDao.findByPrimaryKey(id);
+				User user2 = userDao.findById(id);
 				assertEquals(user, user2);
 
 			} catch (DAOException e) {
@@ -158,7 +158,7 @@ public class PostgresqlDAOTest {
 	@Test
 	public void testGetNonExistingUserById() {
 		try {
-			User user = userDao.findByPrimaryKey(UUID.randomUUID());
+			User user = userDao.findById(UUID.randomUUID());
 
 			if (user == null) {
 				assertTrue(true);
@@ -188,7 +188,7 @@ public class PostgresqlDAOTest {
 		} else {
 
 			try {
-				User user2 = userDao.findByPrimaryKey(user.getId());
+				User user2 = userDao.findById(user.getId());
 
 				if (user2 == null) {
 					assertTrue("User should exist", false);

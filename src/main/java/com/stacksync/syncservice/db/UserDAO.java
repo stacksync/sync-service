@@ -8,7 +8,7 @@ import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface UserDAO {
 
-	public User findByPrimaryKey(UUID id) throws DAOException;
+	public User findById(UUID id) throws DAOException;
 	
 	public User getByEmail(String email) throws DAOException;
 

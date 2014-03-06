@@ -225,7 +225,7 @@ public class SQLHandler implements Handler {
 			DeviceNotUpdatedException {
 
 		try {
-			User dbUser = userDao.findByPrimaryKey(device.getUser().getId());
+			User dbUser = userDao.findById(device.getUser().getId());
 			device.setUser(dbUser);
 
 		} catch (NoResultReturnedDAOException e) {
@@ -262,7 +262,7 @@ public class SQLHandler implements Handler {
 
 		// Check the owner
 		try {
-			user = userDao.findByPrimaryKey(user.getId());
+			user = userDao.findById(user.getId());
 		} catch (NoResultReturnedDAOException e) {
 			logger.warn(e);
 			throw new UserNotFoundException(e);
@@ -359,7 +359,7 @@ public class SQLHandler implements Handler {
 
 		// Check the owner
 		try {
-			user = userDao.findByPrimaryKey(user.getId());
+			user = userDao.findById(user.getId());
 		} catch (NoResultReturnedDAOException e) {
 			logger.warn(e);
 			throw new UserNotFoundException(e);
