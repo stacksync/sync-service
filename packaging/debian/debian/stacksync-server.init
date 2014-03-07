@@ -17,7 +17,18 @@ EXEC="/usr/bin/jsvc"
 
 # The path to the folder containing StackSyncServer.jar
 FILE_PATH="/usr/lib/$NAME"
+
+# Path to configuration folder
 CONFIG_PATH="/etc/$NAME"
+
+# Path to the log folder
+LOG_PATH="/var/log/$NAME"
+
+# Path to std output log
+LOG_STD_PATH="$LOG_PATH/stacksync-server.out"
+
+# Path to error output log
+LOG_ERR_PATH="$LOG_PATH/stacksync-server.err"
 
 # The path to the folder containing the java runtime
 JAVA_HOME="/usr/lib/jvm/java-7-oracle"
@@ -40,7 +51,7 @@ PID="/var/run/$NAME.pid"
 jsvc_exec()
 {   
     cd $FILE_PATH
-    $EXEC -home $JAVA_HOME -cp $CLASS_PATH -user $USER -pidfile $PID -wait 10 $1 $CLASS $ARGS
+    $EXEC -outfile $LOG_STD_PATH -errfile $LOG_ERR_PATH -home $JAVA_HOME -cp $CLASS_PATH -user $USER -pidfile $PID -wait 10 $1 $CLASS $ARGS
 }
 
 case "$1" in
@@ -51,7 +62,7 @@ case "$1" in
         jsvc_exec
         
         if [ $? != "0" ]; then
-            echo "$DESC could not start, check the log file for more information."
+            echo "$DESC could not start."
             exit 1
         fi
         

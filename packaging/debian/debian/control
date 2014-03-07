@@ -4,7 +4,7 @@ Section: net
 Priority: extra
 Installed-Size: 4156
 Architecture: all
-Build-Depends: jsvc
+Depends: jsvc
 Homepage: http://www.stacksync.org/
 Maintainer: Adrian Moreno <adrian@morenomartinez.com>
 Description: StackSync is an open-source scalable Personal Cloud

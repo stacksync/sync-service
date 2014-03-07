@@ -13,6 +13,9 @@ if ! getent passwd stacksync >/dev/null; then
                 --disabled-login stacksync
 fi
 
+
+touch /var/log/stacksync-server/stacksync-server.out
+touch /var/log/stacksync-server/stacksync-server.err
 chown -R stacksync:stacksync /usr/lib/stacksync-server
 chown -R stacksync:stacksync /var/log/stacksync-server
 chmod +r /var/log/stacksync-server -R
