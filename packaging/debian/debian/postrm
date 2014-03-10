@@ -7,5 +7,10 @@ update-rc.d stacksync-server remove >/dev/null
 #fi
 # End automatically added section
 
-rm -rf /var/log/stacksync-server
-rm /etc/init.d/stacksync-server
+if [ -d "/var/log/stacksync-server" ]; then
+	rm -rf /var/log/stacksync-server
+fi
+
+if [ -x "/etc/init.d/stacksync-server" ]; then
+	rm /etc/init.d/stacksync-server
+fi
