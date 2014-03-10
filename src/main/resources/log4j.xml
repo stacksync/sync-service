@@ -6,7 +6,7 @@
     <appender name="stderr" class="org.apache.log4j.ConsoleAppender">
         <param name="Threshold" value="ERROR" />
         <param name="target" value="System.err"/>
-        <layout class="org.apache.log4j.PatternLayout">
+        <layout class="com.stacksync.syncservice.util.NoStackTracePatternLayout">
             <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss]} %-5p %c{1}:%L - %m%n" />
         </layout>
     </appender>
@@ -14,7 +14,7 @@
     <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
         <param name="Threshold" value="DEBUG" />
         <param name="target" value="System.out"/>
-        <layout class="org.apache.log4j.PatternLayout">
+        <layout class="com.stacksync.syncservice.util.NoStackTracePatternLayout">
             <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss]} %-5p %c{1}:%L - %m%n" />
         </layout>
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
@@ -37,7 +37,7 @@
             <param name="MaxFileSize" value="10000000"/> 
         </triggeringPolicy> 
         
-        <layout class="org.apache.log4j.PatternLayout">
+        <layout class="com.stacksync.syncservice.util.NoStackTracePatternLayout">
             <param value="%d{[yyyy-MM-dd HH:mm:ss]} %-5p %c{1}:%L - %m%n" name="ConversionPattern"/>
         </layout>        
     </appender>
