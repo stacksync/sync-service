@@ -3,7 +3,6 @@ package com.stacksync.syncservice.db.postgresql;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import org.apache.log4j.Logger;
 import org.postgresql.ds.PGPoolingDataSource;
 
 import com.stacksync.syncservice.db.ConnectionPool;
@@ -11,7 +10,6 @@ import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 
 public class PostgresqlConnectionPool extends ConnectionPool {
 
-	private static final Logger logger = Logger.getLogger(PostgresqlConnectionPool.class.getName());
 	private PGPoolingDataSource source;
 
 	public PostgresqlConnectionPool(String host, int port, String database, String username, String password, int initialConns, int maxConns)
@@ -31,10 +29,9 @@ public class PostgresqlConnectionPool extends ConnectionPool {
 			source.getConnection().close();
 
 		} catch (ClassNotFoundException e) {
-			logger.error("Where is your PostgreSQL JDBC Driver? " + "Include in your library path!");
-			throw new DAOConfigurationException("PostgreSQL JDBC driver not found");
+			throw new DAOConfigurationException("PostgreSQL JDBC driver not found", e);
 		} catch (SQLException e) {
-			logger.error("SQLException catched at DAOFactory", e);
+			throw new DAOConfigurationException("SQLException catched at DAOFactory", e);
 		}
 
 	}

@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.DAOError;
@@ -135,6 +136,14 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		workspace.setSwiftContainer(result.getString("swift_container"));
 		workspace.setSwiftUrl(result.getString("swift_url"));
 
+		Long parentItemId = result.getLong("parent_item_id");
+		
+		if (parentItemId == 0L){
+			parentItemId = null;
+		}
+		
+		workspace.setParentItem(new Item(parentItemId));
+		
 		User owner = new User();
 		owner.setId(UUID.fromString(result.getString("owner_id")));
 

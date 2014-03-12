@@ -12,8 +12,6 @@ import omq.common.broker.Broker;
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonInitException;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.stacksync.commons.omq.ISyncService;
@@ -45,7 +43,12 @@ public class SyncServiceDaemon implements Daemon {
 		
 		logger.info(String.format("Initializing StackSync Server v%s...",
 				SyncServiceDaemon.getVersion()));
-
+		
+		logger.info(String.format("Java VM: %s" , System.getProperty("java.vm.name")));
+		logger.info(String.format("Java VM version: %s" , System.getProperty("java.vm.version")));
+		logger.info(String.format("Java Home: %s" , System.getProperty("java.home")));
+		logger.info(String.format("Java version: %s" , System.getProperty("java.version")));
+		
 		try {
 			String[] argv = dc.getArguments();
 			

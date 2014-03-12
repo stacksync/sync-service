@@ -9,6 +9,11 @@ if [ `id -u` != `id -u stacksync` -a `id -u` != 0  ] ; then
     exit 1
 fi
 
+# If JAVA_HOME environment variable is not set, get the default java VM
+if [ -z "$JAVA_HOME" ]; then
+        JAVA_HOME=/usr/lib/jvm/default-java
+fi;
+
 NAME="stacksync-server"
 DESC="StackSync Server"
 
@@ -29,9 +34,6 @@ LOG_STD_PATH="$LOG_PATH/stacksync-server.out"
 
 # Path to error output log
 LOG_ERR_PATH="$LOG_PATH/stacksync-server.err"
-
-# The path to the folder containing the java runtime
-JAVA_HOME="/usr/lib/jvm/java-7-oracle"
 
 # Our classpath including our jar file and the Apache Commons Daemon library
 CLASS_PATH="$FILE_PATH/stacksync-server.jar:$FILE_PATH/lib/commons-daemon-1.0.15.jar"
