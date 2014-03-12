@@ -2,7 +2,7 @@ Package: stacksync-server
 Version: VERSION
 Section: net
 Priority: extra
-Installed-Size: INSTALLED_SIZE
+Installed-Size: 4156
 Architecture: all
 Depends: jsvc
 Homepage: http://www.stacksync.org/
