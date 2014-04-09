@@ -12,6 +12,7 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
@@ -100,9 +101,10 @@ public class SwiftManager extends StorageManager {
 			}
 
 			// get the token issue swift date
+			DateTimeZone.setDefault(DateTimeZone.UTC);
 			DateTimeFormatter dateStringFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
 			DateTime issuedAt = dateStringFormat.parseDateTime(loginResponse.getAccess().getToken().getIssuedAt());
-
+			
 			// get the token expiration swift date
 			dateStringFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 			DateTime expiresAt = dateStringFormat.parseDateTime(loginResponse.getAccess().getToken().getExpires());

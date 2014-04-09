@@ -83,7 +83,7 @@ public class DBBenchmark extends Thread {
 			User user = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			dbHelper.addUser(user);
 			
-			Workspace workspace = new Workspace(null, 1, user, false);
+			Workspace workspace = new Workspace(null, 1, user, false, false);
 			dbHelper.addWorkspace(user, workspace);
 
 			String deviceName = name + "_device";

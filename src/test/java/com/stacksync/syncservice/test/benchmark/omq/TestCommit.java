@@ -32,7 +32,7 @@ public class TestCommit {
 		DAOFactory factory = new DAOFactory(datasource);
 		WorkspaceDAO workspaceDao = factory.getWorkspaceDao(pool.getConnection());
 
-		Workspace workspace = workspaceDao.findById(Constants.WORKSPACE_ID);
+		Workspace workspace = workspaceDao.getById(Constants.WORKSPACE_ID);
 
 		long startTotal = System.currentTimeMillis();
 		// server.commit(Constants.USER, Constants.REQUESTID, rWorkspace,

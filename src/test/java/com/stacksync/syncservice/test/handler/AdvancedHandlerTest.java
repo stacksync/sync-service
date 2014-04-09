@@ -62,7 +62,7 @@ public class AdvancedHandlerTest {
 			User user = new User(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			userDao.add(user);
 
-			Workspace workspace = new Workspace(null,  1, user, false);
+			Workspace workspace = new Workspace(null,  1, user, false, false);
 			workspaceDAO.add(workspace);
 
 			Device device = new Device(null, "junitdevice", user);

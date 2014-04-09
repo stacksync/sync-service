@@ -14,10 +14,15 @@ public class ApiGetMetadata {
 		config.setServerURL(new URL("http://127.0.0.1:" + Constants.XMLRPC_PORT));
 		XmlRpcClient client = new XmlRpcClient();
 		client.setConfig(config);
-
-		Object[] params = new Object[] { Constants.USER, Constants.REQUESTID, "", "", "", "", "" };
-																			// strFileId, strIncludeList, strIncludeDeleted, strIncludeChunks,
-																			// strVersion
+		
+		String strUserId = "159a1286-33df-4453-bf80-cff4af0d97b0";
+		String strItemId = "100";
+		String strIncludeList = "true";
+		String strIncludeDeleted = "true";
+		String strIncludeChunks = "true";
+		String strVersion = "null";
+		
+		Object[] params = new Object[] { strUserId, strItemId, strIncludeList, strIncludeDeleted, strIncludeChunks, strVersion};
 
 		long startTotal = System.currentTimeMillis();
 		String strResponse = (String) client.execute("XmlRpcSyncHandler.getMetadata", params);

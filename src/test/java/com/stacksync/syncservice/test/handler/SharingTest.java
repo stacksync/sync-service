@@ -54,7 +54,7 @@ public class SharingTest {
 		user1 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 
 		userDao.add(user1);
-		workspace1 = new Workspace(null, 1, user1, false);
+		workspace1 = new Workspace(null, 1, user1, false, false);
 		workspaceDAO.add(workspace1);
 
 	}
@@ -75,7 +75,7 @@ public class SharingTest {
 		emails.add(user2.getEmail());
 		emails.add("fakemail@fake.com");
 
-		Workspace result = handler.doCreateShareProposal (user1, emails, "shared_folder");
+		Workspace result = handler.doCreateShareProposal (user1, emails, "shared_folder", false);
 
 		System.out.println("Result: " + result.getId());
 
@@ -93,7 +93,7 @@ public class SharingTest {
 		List<String> emails = new ArrayList<String>();
 		emails.add("fakemail@fake.com");
 
-		Workspace result = handler.doCreateShareProposal(user1, emails, "shared_folder");
+		Workspace result = handler.doCreateShareProposal(user1, emails, "shared_folder", false);
 
 		System.out.println("Result: " + result.getId());
 	}

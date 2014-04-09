@@ -124,8 +124,8 @@ public class JSONParser implements IParser {
 			return jMetadata;
 		}
 
-		jMetadata.addProperty("file_id", metadata.getId());
-		jMetadata.addProperty("parent_file_id", metadata.getParentId());
+		jMetadata.addProperty("id", metadata.getId());
+		jMetadata.addProperty("parent_id", metadata.getParentId());
 		jMetadata.addProperty("filename", metadata.getFilename());
 		jMetadata.addProperty("is_folder", metadata.isFolder());
 		jMetadata.addProperty("status", metadata.getStatus());
@@ -133,7 +133,7 @@ public class JSONParser implements IParser {
 		if (metadata.getModifiedAt() != null) {
 			jMetadata.addProperty("modified_at", metadata
 					.getModifiedAt().toString());
-		}
+		}		
 
 		jMetadata.addProperty("version", metadata.getVersion());
 		jMetadata.addProperty("checksum", metadata.getChecksum());

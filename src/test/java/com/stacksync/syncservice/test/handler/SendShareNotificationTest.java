@@ -16,7 +16,7 @@ public class SendShareNotificationTest {
 		Broker broker = new Broker(Config.getProperties());
 
 		ShareProposalNotification notification = new ShareProposalNotification(UUID.randomUUID(), "folder name", null,
-				UUID.randomUUID(), "Owner name", "container999", "http://asdasddsa");
+				UUID.randomUUID(), "Owner name", "container999", "http://asdasddsa", false);
 
 		RemoteClient client = broker.lookupMulti("AUTH_b9d5665bc46145b7985c2e0c37f817d1", RemoteClient.class);
 		client.notifyShareProposal(notification);

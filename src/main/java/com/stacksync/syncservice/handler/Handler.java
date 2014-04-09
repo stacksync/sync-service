@@ -45,7 +45,7 @@ public interface Handler {
 	public APICommitResponse ApiCommitMetadata(User user, Boolean overwrite, ItemMetadata fileToSave,
 			ItemMetadata parentMetadata);
 
-	public APICreateFolderResponse ApiCreateFolder(User user, ItemMetadata itemToSave, ItemMetadata parentMetadata);
+	public APICreateFolderResponse ApiCreateFolder(User user, ItemMetadata item);
 
 	public APIRestoreMetadata ApiRestoreMetadata(User user, ItemMetadata item);
 
@@ -55,7 +55,7 @@ public interface Handler {
 
 	public Connection getConnection();
 
-	public Workspace doCreateShareProposal(User user, List<String> emails, String folderName)
+	public Workspace doCreateShareProposal(User user, List<String> emails, String folderName, boolean isEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException;
 
 	public void doUpdateWorkspace(User user, Workspace workspace) throws UserNotFoundException,

@@ -26,7 +26,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 	}
 
 	@Override
-	public Workspace findById(UUID workspaceID) throws DAOException {
+	public Workspace getById(UUID workspaceID) throws DAOException {
 		ResultSet resultSet = null;
 		Workspace workspace = null;
 
@@ -47,7 +47,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 	}
 
 	@Override
-	public List<Workspace> findByUserId(UUID userId) throws DAOException {
+	public List<Workspace> getByUserId(UUID userId) throws DAOException {
 
 		Object[] values = { userId };
 
@@ -77,6 +77,35 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 		return workspaces;
 	}
+	
+	@Override
+	public Workspace getDefaultWorkspaceByUserId(UUID userId) throws DAOException {
+
+		Object[] values = { userId };
+
+		String query = "SELECT w.*, wu.* FROM workspace w "
+			 + " INNER JOIN workspace_user wu ON wu.workspace_id = w.id " 
+			 + " WHERE w.owner_id=?::uuid AND w.is_shared = false LIMIT 1";
+
+		ResultSet result = null;
+		Workspace workspace;
+
+		try {
+			result = executeQuery(query, values);
+
+			if (result.next()) {
+				workspace = mapWorkspace(result);
+			}else {
+				throw new NoResultReturnedDAOException(DAOError.WORKSPACES_NOT_FOUND);
+			}
+
+		} catch (SQLException e) {
+			logger.error(e);
+			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
+		}
+
+		return workspace;
+	}
 
 	@Override
 	public void add(Workspace workspace) throws DAOException {
@@ -84,10 +113,10 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 			throw new IllegalArgumentException("Workspace attributes not set");
 		}
 
-		Object[] values = { workspace.getLatestRevision(), workspace.getOwner().getId(), workspace.isShared(),
+		Object[] values = { workspace.getLatestRevision(), workspace.getOwner().getId(), workspace.isShared(), workspace.isEncrypted(),
 				workspace.getSwiftContainer(), workspace.getSwiftUrl() };
 
-		String query = "INSERT INTO workspace (latest_revision, owner_id, is_shared, swift_container, swift_url) VALUES (?, ?, ?, ?, ?)";
+		String query = "INSERT INTO workspace (latest_revision, owner_id, is_shared, is_encrypted, swift_container, swift_url) VALUES (?, ?, ?, ?, ?, ?)";
 
 		UUID id = (UUID)executeUpdate(query, values);
 
@@ -130,7 +159,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		workspace.setId(UUID.fromString(result.getString("id")));
 		workspace.setLatestRevision(result.getInt("latest_revision"));
 		workspace.setShared(result.getBoolean("is_shared"));
-
+		workspace.setEncrypted(result.getBoolean("is_encrypted"));
 		workspace.setName(result.getString("workspace_name"));
 
 		workspace.setSwiftContainer(result.getString("swift_container"));

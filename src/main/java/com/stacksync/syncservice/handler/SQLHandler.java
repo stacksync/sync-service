@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
@@ -88,7 +87,7 @@ public class SQLHandler implements Handler {
 
 		HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
 
-		workspace = workspaceDAO.findById(workspace.getId());
+		workspace = workspaceDAO.getById(workspace.getId());
 		// TODO: check if the workspace belongs to the user or its been given
 		// access
 
@@ -162,6 +161,7 @@ public class SQLHandler implements Handler {
 	@Override
 	public APIGetMetadata ApiGetMetadata(User user, Long fileId, Boolean includeList, Boolean includeDeleted,
 			Boolean includeChunks, Long version) {
+
 		ItemMetadata responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;
@@ -175,7 +175,7 @@ public class SQLHandler implements Handler {
 
 			} else {
 
-				// check if user has permission over this file
+				// check if user has permission on this file
 				List<User> users = this.userDao.findByItemId(fileId);
 
 				if (users.isEmpty()) {
@@ -207,7 +207,7 @@ public class SQLHandler implements Handler {
 		List<Workspace> workspaces = new ArrayList<Workspace>();
 
 		try {
-			workspaces = workspaceDAO.findByUserId(user.getId());
+			workspaces = workspaceDAO.getByUserId(user.getId());
 
 		} catch (NoResultReturnedDAOException e) {
 			logger.error(e);
@@ -257,7 +257,7 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public Workspace doCreateShareProposal(User user, List<String> emails, String folderName)
+	public Workspace doCreateShareProposal(User user, List<String> emails, String folderName, boolean isEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
 
 		// Check the owner
@@ -298,6 +298,7 @@ public class SQLHandler implements Handler {
 
 		Workspace workspace = new Workspace();
 		workspace.setShared(true);
+		workspace.setEncrypted(isEncrypted);
 		workspace.setName(folderName);
 		workspace.setOwner(user);
 		workspace.setUsers(addressees);
@@ -341,7 +342,7 @@ public class SQLHandler implements Handler {
 				logger.error(String.format("An error ocurred when adding the user '%s' to workspace '%s'",
 						addressee.getId(), workspace.getId()), e);
 			}
-			
+
 			// Grant the user to container in Swift
 			try {
 				storageManager.grantUserToWorkspace(user, addressee, workspace);
@@ -426,10 +427,42 @@ public class SQLHandler implements Handler {
 	}
 
 	@Override
-	public APICreateFolderResponse ApiCreateFolder(User user, ItemMetadata itemToSave, ItemMetadata parentMetadata) {
-		String folderName = itemToSave.getFilename();
+	public APICreateFolderResponse ApiCreateFolder(User user, ItemMetadata item) {
+
+		// Check the owner
+		try {
+			user = userDao.findById(user.getId());
+		} catch (DAOException e) {
+			logger.error(e);
+			APICreateFolderResponse response = new APICreateFolderResponse(item, false, 404,
+					"User not found.");
+			return response;
+		}
+
+		// get metadata of the parent item
+		APIGetMetadata parentResponse = ApiGetMetadata(user, item.getParentId(), true, true, false, null);
+		ItemMetadata parentMetadata = parentResponse.getItemMetadata();
+		
+		// if it is the root, get the default workspace
+		
+		
+		if (parentMetadata.isRoot()){
+			
+			try {
+				Workspace workspace = workspaceDAO.getDefaultWorkspaceByUserId(user.getId());
+				parentMetadata.setWorkspaceId(workspace.getId());
+			} catch (DAOException e) {
+				logger.error(e);
+				APICreateFolderResponse response = new APICreateFolderResponse(item, false, 404,
+						"Workspace not found.");
+				return response;
+			}
+		}
+
+		String folderName = item.getFilename();
 		List<ItemMetadata> files = parentMetadata.getChildren();
 
+		// check if there exists a folder with the same name
 		ItemMetadata object = null;
 		for (ItemMetadata file : files) {
 			if (file.getFilename().equals(folderName) && !file.getStatus().equals("DELETED")) {
@@ -438,16 +471,21 @@ public class SQLHandler implements Handler {
 			}
 		}
 
-		if (object == null) {
-
-			object = this.createNewFolder(user, itemToSave, parentMetadata);
-
-			APICreateFolderResponse responseAPI = new APICreateFolderResponse(object, true, 0, "");
-			return responseAPI;
-		} else {
+		if (object != null) {
 			APICreateFolderResponse response = new APICreateFolderResponse(object, false, 400, "Folder already exists.");
 			return response;
 		}
+
+		boolean succeded = this.createNewFolder(user, item, parentMetadata);
+
+		if (!succeded) {
+			APICreateFolderResponse response = new APICreateFolderResponse(item, false, 500,
+					"Item could not be committed.");
+			return response;
+		}
+
+		APICreateFolderResponse responseAPI = new APICreateFolderResponse(item, true, 0, "");
+		return responseAPI;
 	}
 
 	@Override
@@ -827,45 +865,37 @@ public class SQLHandler implements Handler {
 
 	}
 
-	private ItemMetadata createNewFolder(User user, ItemMetadata itemToSave, ItemMetadata parent) {
-
-		Random rand = new Random();
+	private boolean createNewFolder(User user, ItemMetadata item, ItemMetadata parent) {
 
 		// Create metadata
-		Long itemId = rand.nextLong();
-		Long version = 1L;
 
-		Long parentFileID = null;
-		Long parentFileVersion = null;
 		if (!parent.isRoot()) {
-			parentFileID = parent.getId();
-			parentFileVersion = parent.getVersion();
+			item.setParentId(parent.getId());
+			item.setParentVersion(parent.getVersion());
 		}
 
-		String status = "NEW";
-		Long fileSize = 0L;
-		List<String> chunks = null;
-		Long checksum = 0L;
-		Boolean folder = true;
-
-		Date date = new Date();
-
-		// FIXME: return real path ?
-
-		ItemMetadata item = new ItemMetadata(itemId, version, Constants.API_DEVICE_ID, parentFileID, parentFileVersion,
-				status, date, checksum, fileSize, folder, itemToSave.getFilename(), "inode/directory", chunks);
+		item.setVersion(1L);
+		item.setWorkspaceId(parent.getWorkspaceId());
+		item.setStatus("NEW");
+		item.setSize(0L);
+		item.setIsFolder(true);
+		item.setMimetype("inode/directory");
+		item.setModifiedAt(new Date());
+		item.setDeviceId(Constants.API_DEVICE_ID);
+		item.setChecksum(0L);
 
 		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 		items.add(item);
+		
+		Workspace workspace = new Workspace(item.getWorkspaceId());
 
 		try {
-			this.doCommit(user, null, apiDevice, items);
+			List<CommitInfo> commitInfo = this.doCommit(user, workspace, apiDevice, items);
+			return commitInfo.get(0).isCommitSucceed();
 		} catch (DAOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			logger.error(e);
+			return false;
 		}
-
-		return item;
 	}
 
 	private APIDeleteResponse deleteItemsAPI(User user, Workspace workspace, List<ItemMetadata> filesToDelete) {

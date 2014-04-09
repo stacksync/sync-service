@@ -9,9 +9,11 @@ import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface WorkspaceDAO {
 
-	public Workspace findById(UUID id) throws DAOException;
+	public Workspace getById(UUID id) throws DAOException;
 
-	public List<Workspace> findByUserId(UUID userId) throws DAOException;
+	public List<Workspace> getByUserId(UUID userId) throws DAOException;
+	
+	public Workspace getDefaultWorkspaceByUserId(UUID userId) throws DAOException;
 	
 	public Workspace getByItemId(Long itemId) throws DAOException;
 

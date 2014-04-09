@@ -49,7 +49,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		ResultSet resultSet = null;
 		User user = null;
 
-		String query = "SELECT id, name, email, swift_user, swift_account, quota_limit, quota_used " + " FROM \"user1\" WHERE email = ?";
+		String query = "SELECT * " + " FROM \"user1\" WHERE email = lower(?)";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { email });
@@ -149,8 +149,11 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		ArrayList<User> users = new ArrayList<User>();
 		Object[] values = { itemId };
 
-		String query = "SELECT u.* " + " FROM item i " + " INNER JOIN workspace_user wu ON i.workspace_id = wu.workspace_id "
-				+ " INNER JOIN user1 u ON wu.user_id = u.id " + " WHERE i.id = ?";
+		String query = "SELECT u.* " 
+				+ " FROM item i " 
+				+ " INNER JOIN workspace_user wu ON i.workspace_id = wu.workspace_id "
+				+ " INNER JOIN user1 u ON wu.user_id = u.id " 
+				+ " WHERE i.id = ?";
 
 		ResultSet result = null;
 

@@ -210,6 +210,36 @@ public final class DAOUtil {
 		return result;
 	}
 	
+	/**
+	 * Returns a string list corresponding to the given field on the given
+	 * ResultSet. If the value cannot be parsed to an array, or does not exist, it
+	 * returns an empty value.
+	 * 
+	 * @param rs
+	 *            ResultSet
+	 * @param field
+	 *            Field we want to obtain the value from
+	 * @return Long value if the field exists and can be parsed to Long. Null otherwise.
+	 */
+	public static List<String> getArrayFromResultSet(ResultSet rs, String field) {
+
+		List<String> result;
+		
+		try {
+			Array arrayChunks = rs.getArray("chunks");
+			String[] chunks = (String[]) arrayChunks.getArray();
+			result = Arrays.asList(chunks);
+			
+			if (result.contains(null)) {
+				result = new ArrayList<String>();
+			}
+		} catch (Exception e) {
+			result = new ArrayList<String>();
+		}
+		
+		return result;
+	}
+	
 	public static Integer getIntFromResultSet(ResultSet rs, String field) {
 
 		Integer result = null;
@@ -233,6 +263,7 @@ public final class DAOUtil {
 		metadata.setParentId(getLongFromResultSet(result, "parent_id"));
 		metadata.setParentVersion((getLongFromResultSet(result, "client_parent_file_version")));
 		metadata.setDeviceId(UUID.fromString(result.getString("device_id")));
+		metadata.setWorkspaceId(UUID.fromString(result.getString("workspace_id")));
 		metadata.setFilename(result.getString("filename"));
 		metadata.setVersion(result.getLong("version"));
 		metadata.setIsFolder(result.getBoolean("is_folder"));
@@ -245,16 +276,7 @@ public final class DAOUtil {
 		metadata.setLevel(getIntFromResultSet(result, "level"));
 
 		if (!metadata.isFolder()) {
-			Array arrayChunks = result.getArray("chunks");
-			String[] chunks = (String[]) arrayChunks.getArray();
-
-			List<String> chunksList = Arrays.asList(chunks);
-			if (chunksList.contains(null)) {
-				// FIXME: In this case the list contains a null parameter.
-				// If this happens "parseItemMetadata" function from
-				// JSONReader fails.
-				chunksList = new ArrayList<String>();
-			}
+			List<String> chunksList = getArrayFromResultSet(result, "chunks");
 			metadata.setChunks(chunksList);
 		}
 

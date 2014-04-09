@@ -11,6 +11,7 @@ import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.User;
 import com.stacksync.syncservice.db.DeviceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.util.Constants;
 
 public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 
@@ -22,6 +23,12 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 
 	@Override
 	public Device get(UUID deviceID) throws DAOException {
+		
+		// API device ID is not stored in the database
+		if(deviceID == Constants.API_DEVICE_ID){
+			return new Device(Constants.API_DEVICE_ID);
+		}
+		
 		ResultSet resultSet = null;
 		Device device = null;
 
