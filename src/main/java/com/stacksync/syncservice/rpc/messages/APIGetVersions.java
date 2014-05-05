@@ -7,7 +7,7 @@ public class APIGetVersions extends APIResponse {
 	private ItemMetadata itemMetadata;
 	
 	public APIGetVersions(ItemMetadata item, Boolean success, int error, String description) {
-		super(null);
+		super();
 
 		this.success = success;
 		this.itemMetadata = item;

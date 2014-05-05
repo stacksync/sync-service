@@ -14,20 +14,11 @@ public abstract class APIResponse {
 	public static String COMMIT_API = "commit_api";
 	public static String DO_DELETE = "do_delete";
 
-	private String requestId;
 	protected CommitInfo item;
 
 	protected Boolean success;
 	protected int errorCode;
 	protected String description;
-
-	public APIResponse(String requestId) {
-		this.requestId = requestId;
-	}
-
-	public String getRequestId() {
-		return requestId;
-	}
 
 	public Boolean getSuccess() {
 		return success;

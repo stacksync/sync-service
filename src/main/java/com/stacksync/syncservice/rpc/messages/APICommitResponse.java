@@ -10,7 +10,7 @@ public class APICommitResponse extends APIResponse {
 	private String description;
 
 	public APICommitResponse(ItemMetadata item, Boolean success, int error, String description) {
-		super(null);
+		super();
 		this.success = success;
 		this.error = error;
 		this.description = description;
