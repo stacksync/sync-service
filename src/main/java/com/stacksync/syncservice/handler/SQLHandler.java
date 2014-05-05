@@ -45,6 +45,7 @@ import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
+import com.stacksync.syncservice.rpc.messages.APIUserMetadata;
 import com.stacksync.syncservice.storage.StorageFactory;
 import com.stacksync.syncservice.storage.StorageManager;
 import com.stacksync.syncservice.storage.StorageManager.StorageType;
@@ -610,6 +611,34 @@ public class SQLHandler implements Handler {
 		}
 
 		APIGetVersions response = new APIGetVersions(responseObject, success, errorCode, description);
+		return response;
+	}
+	
+	@Override
+	public APIUserMetadata ApiGetUserMetadata(User user) {
+		
+		User userMetadata = null;
+		Integer errorCode = 0;
+		Boolean success = false;
+		String description = "";
+		
+		try {
+			
+			// check if user has permission over this file
+			userMetadata = userDao.findById(user.getId());
+
+			if (userMetadata == null) {
+				throw new DAOException(DAOError.USER_NOT_FOUND);
+			}
+
+			success = true;
+		} catch (DAOException e) {
+			description = e.getError().getMessage();
+			errorCode = e.getError().getCode();
+			logger.error(e.toString(), e);
+		}
+		
+		APIUserMetadata response = new APIUserMetadata(userMetadata, success, errorCode, description);
 		return response;
 	}
 

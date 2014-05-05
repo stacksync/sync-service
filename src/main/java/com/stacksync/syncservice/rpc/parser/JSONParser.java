@@ -17,11 +17,9 @@ import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 
 public class JSONParser implements IParser {
 
-	private static final Logger logger = Logger.getLogger(JSONParser.class
-			.getName());
+	private static final Logger logger = Logger.getLogger(JSONParser.class.getName());
 
-	public JSONParser() {
-	}
+	public JSONParser() { }
 
 	public String createResponse(APIResponse response) {
 		JsonObject jResponse = null;
@@ -29,11 +27,9 @@ public class JSONParser implements IParser {
 
 		try {
 			if (response instanceof APIGetMetadata) {
-				jResponse = this
-						.createGetMetadataResponse((APIGetMetadata) response);
+				jResponse = this.createGetMetadataResponse((APIGetMetadata) response);
 			} else if (response instanceof APIGetVersions) {
-				jResponse = this
-						.createGetVersionsResponse((APIGetVersions) response);
+				jResponse = this.createGetVersionsResponse((APIGetVersions) response);
 			} else if (response instanceof APICommitResponse
 					|| response instanceof APIDeleteResponse
 					|| response instanceof APIRestoreMetadata
@@ -131,8 +127,7 @@ public class JSONParser implements IParser {
 		jMetadata.addProperty("status", metadata.getStatus());
 
 		if (metadata.getModifiedAt() != null) {
-			jMetadata.addProperty("modified_at", metadata
-					.getModifiedAt().toString());
+			jMetadata.addProperty("modified_at", metadata.getModifiedAt().toString());
 		}		
 
 		jMetadata.addProperty("version", metadata.getVersion());
@@ -174,8 +169,7 @@ public class JSONParser implements IParser {
 		if (metadata.getParentId() == null) {
 			jMetadata.addProperty("parent_file_version", "");
 		} else {
-			jMetadata.addProperty("parent_file_version",
-					metadata.getParentVersion());
+			jMetadata.addProperty("parent_file_version", metadata.getParentVersion());
 		}
 
 		// TODO: send only chunks when is a file

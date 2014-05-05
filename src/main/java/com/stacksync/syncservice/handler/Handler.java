@@ -22,6 +22,7 @@ import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
+import com.stacksync.syncservice.rpc.messages.APIUserMetadata;
 
 public interface Handler {
 
@@ -52,6 +53,8 @@ public interface Handler {
 	public APIDeleteResponse ApiDeleteMetadata(User user, ItemMetadata item);
 
 	public APIGetVersions ApiGetVersions(User user, ItemMetadata item);
+	
+	public APIUserMetadata ApiGetUserMetadata(User user);
 
 	public Connection getConnection();
 
