@@ -45,12 +45,12 @@ public class XmlRpcSyncHandler {
 		}
 	}
 
-	public String getMetadata(String strUserId, String strItemId, String strIncludeList, String strIncludeDeleted,
-			String strIncludeChunks, String strVersion) {
+	// Return item metadata, not content if the item is a folder.
+	public String getMetadata(String strUserId, String strItemId, String strIncludeChunks, String strVersion) {
 
 		logger.debug(String
-				.format("XMLRPC Request. getMetadata [userId: %s, fileId: %s, includeList: %s, includeDeleted: %s, version: %s]",
-						strUserId, strItemId, strIncludeList, strIncludeDeleted, strIncludeChunks, strVersion));
+				.format("XMLRPC Request. getMetadata [userId: %s, fileId: %s, chunks: %s, version: %s]",
+						strUserId, strItemId, strIncludeChunks, strVersion));
 
 		Long fileId = null;
 		try {
@@ -58,8 +58,6 @@ public class XmlRpcSyncHandler {
 		} catch (NumberFormatException ex) {
 		}
 
-		Boolean includeList = Boolean.parseBoolean(strIncludeList);
-		Boolean includeDeleted = Boolean.parseBoolean(strIncludeDeleted);
 		Boolean includeChunks = Boolean.parseBoolean(strIncludeChunks);
 
 		Long version = null;
@@ -80,8 +78,62 @@ public class XmlRpcSyncHandler {
 
 		return strResponse;
 	}
+	
+	public String getFolderContents(String strUserId, String strFolderId, String strIncludeDeleted) {
 
-	public String createFolder(String strUserId, String strFolderName, String strParentId) {
+		Boolean includeList = true;
+		
+		logger.debug(String
+				.format("XMLRPC Request. getMetadata [userId: %s, fileId: %s, includeList: %s]",
+						strUserId, strFolderId, includeList, strIncludeDeleted));
+
+		Long fileId = null;
+		try {
+			fileId = Long.parseLong(strFolderId);
+		} catch (NumberFormatException ex) {
+		}
+
+		Boolean includeDeleted = Boolean.parseBoolean(strIncludeDeleted);
+
+		User user = new User();
+		user.setId(UUID.fromString(strUserId));
+
+		APIGetMetadata response = this.handler.ApiGetMetadata(user, fileId, includeList, includeDeleted, includeChunks,
+				version);
+
+		String strResponse = this.parser.createResponse(response);
+
+		logger.debug(String.format("XMLRPC Response. %s", strResponse));
+
+		return strResponse;
+	}
+	
+	public String getVersions(UUID userId, String strFileId) {
+
+		Long itemId = null;
+		try {
+			itemId = Long.parseLong(strFileId);
+		} catch (NumberFormatException ex) {
+		}
+
+		// TODO: filtrar versiones borradas!!
+		logger.debug("XMLRPC -> get_versions -->[User:" + userId + ", itemId:" + itemId
+				+ "]");
+
+		User user = new User();
+		user.setId(userId);
+
+		ItemMetadata item = new ItemMetadata();
+		item.setId(itemId);
+
+		APIGetVersions response = this.handler.ApiGetVersions(user, item);
+		String strResponse = this.parser.createResponse(response);
+
+		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		return strResponse;
+	}
+
+	public String newFolder(String strUserId, String strFolderName, String strParentId) {
 
 		logger.debug(String.format("XMLRPC Request. createFolder [userId: %s, folderName: %s, parentId: %s]",
 				strUserId, strFolderName, strParentId));
@@ -101,20 +153,6 @@ public class XmlRpcSyncHandler {
 		
 		User user = new User();
 		user.setId(UUID.fromString(strUserId));
-
-		/*
-		
-		APIGetMetadata metadataResponse = getParentMetadata(userId, parentId);
-		String strParentResponse = checkParentMetadata(parentId, metadataResponse);
-
-		if (strParentResponse.length() > 0) {// error
-			logger.debug("XMLRPC -> Error resp -->[" + strParentResponse + "]");
-			return strParentResponse;
-		}
-		
-
-		ItemMetadata parentMetadata = metadataResponse.getItemMetadata();
-		*/
 		
 		ItemMetadata item = new ItemMetadata();
 		item.setFilename(strFolderName);
@@ -136,31 +174,232 @@ public class XmlRpcSyncHandler {
 		return strResponse;
 	}
 
-	public String getVersions(UUID userId, String strRequestId, String strFileId) {
+	// This is a TOUCH in the server!!!
+	public String newFile(String strUserId, String strFileName, String strParentId) {
 
-		Long itemId = null;
+		Long parentId = null;
 		try {
-			itemId = Long.parseLong(strFileId);
+			parentId = Long.parseLong(strParentId);
 		} catch (NumberFormatException ex) {
 		}
 
-		// TODO: filtrar versiones borradas!!
-		logger.debug("XMLRPC -> get_versions -->[User:" + userId + ", Request:" + strRequestId + ", itemId:" + itemId
-				+ "]");
+		logger.debug("XMLRPC -> put_metadata_file -->[User:" + strUserId + ", FileName:"
+				+ strFileName + ", parentId: " + strParentId + "]");
+
+		UUID userId = UUID.fromString(strUserId);
+		
+		APIGetMetadata metadataResponse = getParentMetadata(userId, parentId);
+		String strParentResponse = checkParentMetadata(parentId, metadataResponse);
+
+		if (strParentResponse.length() > 0) {// error
+			logger.debug("XMLRPC -> Error resp -->[" + strParentResponse + "]");
+			return strParentResponse;
+		}
+
+		/*
+		ItemMetadata parentItem = metadataResponse.getItemMetadata();
+		ItemMetadata item = new ItemMetadata();
+
+		item.setFilename(strFileName);
+		item.setSize(fileSize);
+		item.setChecksum(checksum);
+		item.setMimetype(strMimetype);
+		item.setChunks(strChunks);
 
 		User user = new User();
 		user.setId(userId);
 
-		ItemMetadata item = new ItemMetadata();
-		item.setId(itemId);
+		APICommitResponse response = this.handler.ApiCommitMetadata(user, overwrite, item, parentItem);
+		*/
 
-		APIGetVersions response = this.handler.ApiGetVersions(user, item);
+		// Call a handler function: this.handler.touchFile(....)
+		
+		if (response.getSuccess()) {
+			this.sendMessageToClients(null, response);
+		}
+
+		String strResponse = this.parser.createResponse(response);
+
+		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		return strResponse;
+	}
+	
+	public String updateData(String strUserId, String strFileId, String strParentId, String strChecksum, 
+			String strFileSize, String strMimetype, List<String> strChunks) {
+		
+		Long checksum = null;
+		try {
+			checksum = Long.parseLong(strChecksum);
+		} catch (NumberFormatException ex) {
+		}
+
+		Long fileSize = null;
+		try {
+			fileSize = Long.parseLong(strFileSize);
+		} catch (NumberFormatException ex) {
+		}
+
+		Long parentId = null;
+		try {
+			parentId = Long.parseLong(strParentId);
+		} catch (NumberFormatException ex) {
+		}
+
+		logger.debug("XMLRPC -> put_metadata_file -->[User:" + strUserId + ", parentId: " + strParentId 
+				+ ", Checksum: " + checksum + ", Filesize: " + fileSize + ", Mimetype: " + strMimetype
+				+ ", Chunks: " + strChunks + "]");
+
+		UUID userId = UUID.fromString(strUserId);
+		
+		APIGetMetadata metadataResponse = getParentMetadata(userId, parentId);
+		String strParentResponse = checkParentMetadata(parentId, metadataResponse);
+
+		if (strParentResponse.length() > 0) {// error
+			logger.debug("XMLRPC -> Error resp -->[" + strParentResponse + "]");
+			return strParentResponse;
+		}
+
+		/*
+		ItemMetadata parentItem = metadataResponse.getItemMetadata();
+		ItemMetadata item = new ItemMetadata();
+
+		item.setFilename(strFileName);
+		item.setSize(fileSize);
+		item.setChecksum(checksum);
+		item.setMimetype(strMimetype);
+		item.setChunks(strChunks);
+
+		User user = new User();
+		user.setId(userId);
+
+		APICommitResponse response = this.handler.ApiCommitMetadata(user, overwrite, item, parentItem);
+		*/
+		
+		// Call handler function with new metadata
+		
+		if (response.getSuccess()) {
+			this.sendMessageToClients(null, response);
+		}
+
+		String strResponse = this.parser.createResponse(response);
+
+		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		return strResponse;
+	}
+	
+	public String updateMetadata(String strUserId, String strFileId, String strNewFileName, String strNewParentId) {
+
+		Long parentId = null;
+		try {
+			parentId = Long.parseLong(strNewParentId);
+		} catch (NumberFormatException ex) {
+		}
+
+		logger.debug("XMLRPC -> put_metadata_file -->[User:" + strUserId + ", FileName:"
+				+ strNewFileName + ", parentId: " + strNewParentId + "]");
+
+		UUID userId = UUID.fromString(strUserId);
+		
+		APIGetMetadata metadataResponse = getParentMetadata(userId, parentId);
+		String strParentResponse = checkParentMetadata(parentId, metadataResponse);
+
+		if (strParentResponse.length() > 0) {// error
+			logger.debug("XMLRPC -> Error resp -->[" + strParentResponse + "]");
+			return strParentResponse;
+		}
+		
+		/*
+		ItemMetadata parentItem = metadataResponse.getItemMetadata();
+		ItemMetadata item = new ItemMetadata();
+
+		item.setFilename(strNewFileName);
+		item.setSize(fileSize);
+		item.setChecksum(checksum);
+		item.setMimetype(strMimetype);
+		item.setChunks(strChunks);
+
+		User user = new User();
+		user.setId(userId);
+
+		APICommitResponse response = this.handler.ApiCommitMetadata(user, overwrite, item, parentItem);
+		*/
+		
+		// 1. Check if want to update filename, parent or both.
+		// 2. Call handler function: this.handler.ApiUpdateMetadata(....);
+		
+		if (response.getSuccess()) {
+			this.sendMessageToClients(null, response);
+		}
+
 		String strResponse = this.parser.createResponse(response);
 
 		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
 		return strResponse;
 	}
 
+	public String deleteItem(UUID userId, String strFileId) {
+		Long fileId = null;
+		try {
+			fileId = Long.parseLong(strFileId);
+		} catch (NumberFormatException ex) {
+		}
+
+		logger.debug("XMLRPC -> delete_metadata_file -->[User:" + userId + ", fileId:"	+ fileId + "]");
+
+		ItemMetadata object = new ItemMetadata();
+		object.setId(fileId);
+
+		User user = new User();
+		user.setId(userId);
+
+		APIDeleteResponse response = this.handler.ApiDeleteMetadata(user, object);
+		String strResponse = this.parser.createResponse(response);
+
+		if (response.getSuccess()) {
+			this.sendMessageToClients(null, response);
+		}
+
+		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		return strResponse;
+	}
+
+	// necessary?
+	public String restoreMetadata(UUID userId, String strRequestId, String strFileId, String strVersion) {
+		Long fileId = null;
+		try {
+			fileId = Long.parseLong(strFileId);
+		} catch (NumberFormatException ex) {
+		}
+
+		Long version = null;
+		try {
+			version = Long.parseLong(strVersion);
+		} catch (NumberFormatException ex) {
+		}
+
+		logger.debug("XMLRPC -> restore_file -->[User:" + userId + ", Request:" + strRequestId + ", fileId:"
+				+ strFileId + ", version: " + strVersion + "]");
+
+		String workspace = userId + "/";
+
+		ItemMetadata object = new ItemMetadata();
+		object.setId(fileId);
+		object.setVersion(version);
+
+		User user = new User();
+		user.setId(userId);
+
+		APIRestoreMetadata response = this.handler.ApiRestoreMetadata(user, object);
+		String strResponse = this.parser.createResponse(response);
+
+		if (response.getSuccess()) {
+			this.sendMessageToClients(workspace, response);
+		}
+
+		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		return strResponse;
+	}
+	
 	private APIGetMetadata getParentMetadata(UUID userId, Long parentId) {
 		Long version = null;
 		Boolean list = true;
@@ -199,131 +438,6 @@ public class XmlRpcSyncHandler {
 			strResponse = this.parser.createResponse(response);
 		}
 
-		return strResponse;
-	}
-
-	public String putMetadataFile(UUID userId, String strRequestId, String strFileName, String strParentId,
-			String strOverwrite, String strChecksum, String strFileSize, String strMimetype, List<String> strChunks) {
-
-		Long checksum = null;
-		try {
-			checksum = Long.parseLong(strChecksum);
-		} catch (NumberFormatException ex) {
-		}
-
-		Long fileSize = null;
-		try {
-			fileSize = Long.parseLong(strFileSize);
-		} catch (NumberFormatException ex) {
-		}
-
-		Long parentId = null;
-		try {
-			parentId = Long.parseLong(strParentId);
-		} catch (NumberFormatException ex) {
-		}
-
-		Boolean overwrite = true;
-		if (strOverwrite.length() > 0) {
-			overwrite = Boolean.parseBoolean(strOverwrite);
-		}
-
-		logger.debug("XMLRPC -> put_metadata_file -->[User:" + userId + ", Request:" + strRequestId + ", FileName:"
-				+ strFileName + ", parentId: " + strParentId + ", Overwrite: " + overwrite + ", Checksum: " + checksum
-				+ ", Filesize: " + fileSize + ", Mimetype: " + strMimetype + ", Chunks: " + strChunks + "]");
-
-		APIGetMetadata metadataResponse = getParentMetadata(userId, parentId);
-		String strParentResponse = checkParentMetadata(parentId, metadataResponse);
-
-		if (strParentResponse.length() > 0) {// error
-			logger.debug("XMLRPC -> Error resp -->[" + strParentResponse + "]");
-			return strParentResponse;
-		}
-
-		ItemMetadata parentItem = metadataResponse.getItemMetadata();
-		ItemMetadata item = new ItemMetadata();
-
-		item.setFilename(strFileName);
-		item.setSize(fileSize);
-		item.setChecksum(checksum);
-		item.setMimetype(strMimetype);
-		item.setChunks(strChunks);
-
-		User user = new User();
-		user.setId(userId);
-
-		APICommitResponse response = this.handler.ApiCommitMetadata(user, overwrite, item, parentItem);
-
-		if (response.getSuccess()) {
-			this.sendMessageToClients(null, response);
-		}
-
-		String strResponse = this.parser.createResponse(response);
-
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
-	}
-
-	public String deleteMetadataFile(UUID userId, String strRequestId, String strFileId) {
-		Long fileId = null;
-		try {
-			fileId = Long.parseLong(strFileId);
-		} catch (NumberFormatException ex) {
-		}
-
-		logger.debug("XMLRPC -> delete_metadata_file -->[User:" + userId + ", Request:" + strRequestId + ", fileId:"
-				+ fileId + "]");
-
-		ItemMetadata object = new ItemMetadata();
-		object.setId(fileId);
-
-		User user = new User();
-		user.setId(userId);
-
-		APIDeleteResponse response = this.handler.ApiDeleteMetadata(user, object);
-		String strResponse = this.parser.createResponse(response);
-
-		if (response.getSuccess()) {
-			this.sendMessageToClients(null, response);
-		}
-
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
-	}
-
-	public String restoreMetadata(UUID userId, String strRequestId, String strFileId, String strVersion) {
-		Long fileId = null;
-		try {
-			fileId = Long.parseLong(strFileId);
-		} catch (NumberFormatException ex) {
-		}
-
-		Long version = null;
-		try {
-			version = Long.parseLong(strVersion);
-		} catch (NumberFormatException ex) {
-		}
-
-		logger.debug("XMLRPC -> restore_file -->[User:" + userId + ", Request:" + strRequestId + ", fileId:"
-				+ strFileId + ", version: " + strVersion + "]");
-
-		String workspace = userId + "/";
-
-		ItemMetadata object = new ItemMetadata();
-		object.setId(fileId);
-		object.setVersion(version);
-
-		User user = new User();
-		user.setId(userId);
-
-		APIRestoreMetadata response = this.handler.ApiRestoreMetadata(user, object);
-		String strResponse = this.parser.createResponse(response);
-
-		if (response.getSuccess()) {
-			this.sendMessageToClients(workspace, response);
-		}
-
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
 		return strResponse;
 	}
 
