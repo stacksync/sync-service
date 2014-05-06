@@ -12,8 +12,7 @@ import com.stacksync.syncservice.rpc.messages.APIUserMetadata;
 
 public interface APIHandler {
 	
-	public APIGetMetadata ApiGetMetadata(User user, Long fileId, Boolean includeList, Boolean includeDeleted,
-			Boolean includeChunks, Long version);
+	public APIGetMetadata getMetadata(User user, Long fileId, Boolean includeChunks, Long version);
 	
 	public APICommitResponse ApiCommitMetadata(User user, Boolean overwrite, ItemMetadata fileToSave,
 			ItemMetadata parentMetadata);

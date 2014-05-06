@@ -30,13 +30,13 @@ import com.stacksync.syncservice.rpc.parser.IParser;
 public class XmlRpcSyncHandler {
 
 	private static final Logger logger = Logger.getLogger(XmlRpcSyncHandler.class.getName());
-	private SQLAPIHandler handler;
+	private SQLAPIHandler apiHandler;
 	private IParser parser;
 	private Broker broker;
 
 	public XmlRpcSyncHandler(Broker broker, ConnectionPool pool) {
 		try {
-			this.handler = new SQLAPIHandler(pool);
+			this.apiHandler = new SQLAPIHandler(pool);
 			this.broker = broker;
 			this.parser = Reader.getInstance("com.stacksync.syncservice.rpc.parser.JSONParser");
 
@@ -70,8 +70,7 @@ public class XmlRpcSyncHandler {
 		User user = new User();
 		user.setId(UUID.fromString(strUserId));
 
-		APIGetMetadata response = this.handler.ApiGetMetadata(user, fileId, includeList, includeDeleted, includeChunks,
-				version);
+		APIGetMetadata response = this.apiHandler.getMetadata(user, fileId, includeChunks, version);
 
 		String strResponse = this.parser.createResponse(response);
 
@@ -99,7 +98,7 @@ public class XmlRpcSyncHandler {
 		User user = new User();
 		user.setId(UUID.fromString(strUserId));
 
-		APIGetMetadata response = this.handler.ApiGetMetadata(user, fileId, includeList, includeDeleted, includeChunks,
+		APIGetMetadata response = this.apiHandler.ApiGetMetadata(user, fileId, includeList, includeDeleted, includeChunks,
 				version);
 
 		String strResponse = this.parser.createResponse(response);
@@ -127,7 +126,7 @@ public class XmlRpcSyncHandler {
 		ItemMetadata item = new ItemMetadata();
 		item.setId(itemId);
 
-		APIGetVersions response = this.handler.ApiGetVersions(user, item);
+		APIGetVersions response = this.apiHandler.ApiGetVersions(user, item);
 		String strResponse = this.parser.createResponse(response);
 
 		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
@@ -160,7 +159,7 @@ public class XmlRpcSyncHandler {
 		item.setIsFolder(true);
 		item.setParentId(parentId);
 
-		APIResponse response = this.handler.ApiCreateFolder(user, item);
+		APIResponse response = this.apiHandler.ApiCreateFolder(user, item);
 
 		String workspace = response.getItem().getMetadata().getWorkspaceId().toString();
 
@@ -353,7 +352,7 @@ public class XmlRpcSyncHandler {
 		User user = new User();
 		user.setId(userId);
 
-		APIDeleteResponse response = this.handler.ApiDeleteMetadata(user, object);
+		APIDeleteResponse response = this.apiHandler.ApiDeleteMetadata(user, object);
 		String strResponse = this.parser.createResponse(response);
 
 		if (response.getSuccess()) {
@@ -390,7 +389,7 @@ public class XmlRpcSyncHandler {
 		User user = new User();
 		user.setId(userId);
 
-		APIRestoreMetadata response = this.handler.ApiRestoreMetadata(user, object);
+		APIRestoreMetadata response = this.apiHandler.ApiRestoreMetadata(user, object);
 		String strResponse = this.parser.createResponse(response);
 
 		if (response.getSuccess()) {
@@ -410,7 +409,7 @@ public class XmlRpcSyncHandler {
 		User user = new User();
 		user.setId(userId);
 
-		APIGetMetadata metadataResponse = this.handler.ApiGetMetadata(user, parentId, list, includeDeleted,
+		APIGetMetadata metadataResponse = this.apiHandler.ApiGetMetadata(user, parentId, list, includeDeleted,
 				includeChunks, version);
 
 		return metadataResponse;

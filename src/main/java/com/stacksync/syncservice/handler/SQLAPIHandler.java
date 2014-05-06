@@ -39,8 +39,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 	
 	@Override
-	public APIGetMetadata ApiGetMetadata(User user, Long fileId, Boolean includeList, Boolean includeDeleted,
-			Boolean includeChunks, Long version) {
+	public APIGetMetadata getMetadata(User user, Long fileId, Boolean includeChunks, Long version) {
 		
 		ItemMetadata responseObject = null;
 		Integer errorCode = 0;
@@ -50,9 +49,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		try {
 
 			if (fileId == null) {
-				// retrieve metadata from the root folder
-				responseObject = this.itemDao.findByUserId(user.getId(), includeDeleted);
-
+				throw new DAOException(DAOError.FILE_NOT_FOUND);
 			} else {
 
 				// check if user has permission on this file
@@ -66,7 +63,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 					throw new DAOException(DAOError.USER_NOT_AUTHORIZED);
 				}
 
-				responseObject = this.itemDao.findById(fileId, includeList, version, includeDeleted, includeChunks);
+				responseObject = this.itemDao.findById(fileId, false, version, false, includeChunks);
 			}
 
 			success = true;
@@ -127,7 +124,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 
 		// get metadata of the parent item
-		APIGetMetadata parentResponse = ApiGetMetadata(user, item.getParentId(), true, true, false, null);
+		APIGetMetadata parentResponse = this.getMetadata(user, item.getParentId(), false, null);
 		ItemMetadata parentMetadata = parentResponse.getItemMetadata();
 		
 		// if it is the root, get the default workspace
