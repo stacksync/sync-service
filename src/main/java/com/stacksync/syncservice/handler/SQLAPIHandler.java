@@ -296,7 +296,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIGetVersions ApiGetVersions(User user, ItemMetadata item) {
+	public APIGetVersions getVersions(User user, ItemMetadata item) {
 		ItemMetadata responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;

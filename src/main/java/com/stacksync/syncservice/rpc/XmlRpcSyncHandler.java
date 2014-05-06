@@ -120,11 +120,10 @@ public class XmlRpcSyncHandler {
 		ItemMetadata item = new ItemMetadata();
 		item.setId(itemId);
 
-		APIGetVersions response = this.apiHandler.ApiGetVersions(user, item);
-		String strResponse = this.parser.createResponse(response);
+		APIGetVersions response = this.apiHandler.getVersions(user, item);
 
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
+		logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
+		return response.toString();
 	}
 
 	public String newFolder(String strUserId, String strFolderName, String strParentId) {

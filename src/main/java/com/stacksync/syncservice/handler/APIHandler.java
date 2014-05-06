@@ -23,7 +23,7 @@ public interface APIHandler {
 
 	public APIDeleteResponse ApiDeleteMetadata(User user, ItemMetadata item);
 
-	public APIGetVersions ApiGetVersions(User user, ItemMetadata item);
+	public APIGetVersions getVersions(User user, ItemMetadata item);
 	
 	public APIUserMetadata ApiGetUserMetadata(User user);
 }
