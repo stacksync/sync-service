@@ -21,7 +21,7 @@ public interface APIHandler {
 
 	public APIRestoreMetadata ApiRestoreMetadata(User user, ItemMetadata item);
 
-	public APIDeleteResponse ApiDeleteMetadata(User user, ItemMetadata item);
+	public APIDeleteResponse deleteItem(User user, ItemMetadata item);
 
 	public APIGetVersions getVersions(User user, ItemMetadata item);
 	

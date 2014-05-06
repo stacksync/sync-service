@@ -274,7 +274,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIDeleteResponse ApiDeleteMetadata(User user, ItemMetadata item) {
+	public APIDeleteResponse deleteItem(User user, ItemMetadata item) {
 		List<ItemMetadata> filesToDelete;
 		APIDeleteResponse response = null;
 

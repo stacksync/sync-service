@@ -345,15 +345,14 @@ public class XmlRpcSyncHandler {
 		User user = new User();
 		user.setId(userId);
 
-		APIDeleteResponse response = this.apiHandler.ApiDeleteMetadata(user, object);
-		String strResponse = this.parser.createResponse(response);
+		APIDeleteResponse response = this.apiHandler.deleteItem(user, object);
 
 		if (response.getSuccess()) {
 			this.sendMessageToClients(null, response);
 		}
 
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
+		logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
+		return response.toString();
 	}
 
 	// necessary?

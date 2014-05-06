@@ -44,6 +44,50 @@ public abstract class APIResponse {
 		return item.getMetadata();
 	}
 	
+	@Override
+	public String toString() {
+		JsonObject jResponse = new JsonObject();
+		jResponse.addProperty("description", getDescription());
+
+		if (!getSuccess()) {
+			jResponse.addProperty("error", getErrorCode());
+		} else {
+			ItemMetadata file = getItem().getMetadata();
+			JsonObject metadata = this.parseItemMetadata(file);
+			jResponse.add("metadata", metadata);
+		}
+
+		return jResponse.toString();
+	}
+	
+	private JsonObject parseItemMetadata(ItemMetadata metadata) {
+		JsonObject jMetadata = parseMetadata(metadata);
+
+		if (metadata.getParentId() == null) {
+			jMetadata.addProperty("parent_file_id", "");
+		} else {
+			jMetadata.addProperty("parent_file_id", metadata.getParentId());
+		}
+
+		if (metadata.getParentId() == null) {
+			jMetadata.addProperty("parent_file_version", "");
+		} else {
+			jMetadata.addProperty("parent_file_version", metadata.getParentVersion());
+		}
+
+		// TODO: send only chunks when is a file
+		if (!metadata.isFolder()) {
+			JsonArray chunks = new JsonArray();
+			for (String chunk : metadata.getChunks()) {
+				JsonElement elem = new JsonPrimitive(chunk);
+				chunks.add(elem);
+			}
+			jMetadata.add("chunks", chunks);
+		}
+
+		return jMetadata;
+	}
+	
 	protected JsonObject parseObjectMetadataForAPI(ItemMetadata metadata) {
 		JsonObject jMetadata = parseMetadata(metadata);
 
