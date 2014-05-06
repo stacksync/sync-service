@@ -76,7 +76,46 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		APIGetMetadata response = new APIGetMetadata(responseObject, success, errorCode, description);
 		return response;
+	}
+	
+	public APIGetMetadata getFolderContent(User user, Long folderId, Boolean includeDeleted) {
 		
+		ItemMetadata responseObject = null;
+		Integer errorCode = 0;
+		Boolean success = false;
+		String description = "";
+
+		try {
+
+			if (folderId == null) {
+				// retrieve metadata from the root folder
+				responseObject = this.itemDao.findByUserId(user.getId(), includeDeleted);
+			} else {
+
+				// check if user has permission on this file
+				List<User> users = this.userDao.findByItemId(folderId);
+
+				if (users.isEmpty()) {
+					throw new DAOException(DAOError.FILE_NOT_FOUND);
+				}
+
+				if (!userHasPermission(user, users)) {
+					throw new DAOException(DAOError.USER_NOT_AUTHORIZED);
+				}
+
+				responseObject = this.itemDao.findById(folderId, true, null, includeDeleted, false);
+			}
+
+			success = true;
+
+		} catch (DAOException e) {
+			description = e.getError().getMessage();
+			errorCode = e.getError().getCode();
+			logger.error(e.toString(), e);
+		}
+
+		APIGetMetadata response = new APIGetMetadata(responseObject, success, errorCode, description);
+		return response;
 	}
 	
 

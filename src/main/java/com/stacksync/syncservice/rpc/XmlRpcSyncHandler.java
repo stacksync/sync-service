@@ -46,7 +46,6 @@ public class XmlRpcSyncHandler {
 		}
 	}
 
-	// Return item metadata, not content if the item is a folder.
 	public String getMetadata(String strUserId, String strItemId, String strIncludeChunks, String strVersion) {
 
 		logger.debug(String
@@ -72,11 +71,9 @@ public class XmlRpcSyncHandler {
 
 		APIGetMetadata response = this.apiHandler.getMetadata(user, fileId, includeChunks, version);
 
-		String strResponse = this.parser.createResponse(response);
+		logger.debug(String.format("XMLRPC Response. %s", response.toString()));
 
-		logger.debug(String.format("XMLRPC Response. %s", strResponse));
-
-		return strResponse;
+		return response.toString();
 	}
 	
 	public String getFolderContents(String strUserId, String strFolderId, String strIncludeDeleted) {
@@ -87,9 +84,9 @@ public class XmlRpcSyncHandler {
 				.format("XMLRPC Request. getMetadata [userId: %s, fileId: %s, includeList: %s]",
 						strUserId, strFolderId, includeList, strIncludeDeleted));
 
-		Long fileId = null;
+		Long folderId = null;
 		try {
-			fileId = Long.parseLong(strFolderId);
+			folderId = Long.parseLong(strFolderId);
 		} catch (NumberFormatException ex) {
 		}
 
@@ -98,14 +95,11 @@ public class XmlRpcSyncHandler {
 		User user = new User();
 		user.setId(UUID.fromString(strUserId));
 
-		APIGetMetadata response = this.apiHandler.ApiGetMetadata(user, fileId, includeList, includeDeleted, includeChunks,
-				version);
+		APIGetMetadata response = this.apiHandler.getFolderContent(user, folderId, includeDeleted);
 
-		String strResponse = this.parser.createResponse(response);
+		logger.debug(String.format("XMLRPC Response. %s", response.toString()));
 
-		logger.debug(String.format("XMLRPC Response. %s", strResponse));
-
-		return strResponse;
+		return response.toString();
 	}
 	
 	public String getVersions(UUID userId, String strFileId) {
