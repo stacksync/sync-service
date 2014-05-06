@@ -151,7 +151,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APICreateFolderResponse ApiCreateFolder(User user, ItemMetadata item) {
+	public APICreateFolderResponse createFolder(User user, ItemMetadata item) {
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
@@ -167,8 +167,6 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		ItemMetadata parentMetadata = parentResponse.getItemMetadata();
 		
 		// if it is the root, get the default workspace
-		
-		
 		if (parentMetadata.isRoot()){
 			
 			try {

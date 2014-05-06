@@ -152,19 +152,17 @@ public class XmlRpcSyncHandler {
 		item.setIsFolder(true);
 		item.setParentId(parentId);
 
-		APIResponse response = this.apiHandler.ApiCreateFolder(user, item);
+		APIResponse response = this.apiHandler.createFolder(user, item);
 
 		String workspace = response.getItem().getMetadata().getWorkspaceId().toString();
 
 		if (response.getSuccess()) {
 			this.sendMessageToClients(workspace, response);
 		}
-
-		String strResponse = this.parser.createResponse(response);
 		
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
 
-		return strResponse;
+		return response.toString();
 	}
 
 	// This is a TOUCH in the server!!!
