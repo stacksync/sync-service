@@ -4,7 +4,7 @@ import com.stacksync.commons.models.User;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.handler.Handler;
-import com.stacksync.syncservice.handler.SQLHandler;
+import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.test.benchmark.Constants;
 import com.stacksync.syncservice.util.Config;
 
@@ -15,7 +15,7 @@ public class TestGetWorkspaces {
 		Config.loadProperties();
 		String datasource = Config.getDatasource();
 		ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
-		Handler handler = new SQLHandler(pool);
+		Handler handler = new SQLSyncHandler(pool);
 
 		long startTotal = System.currentTimeMillis();
 

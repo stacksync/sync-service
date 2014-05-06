@@ -23,7 +23,7 @@ import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
-import com.stacksync.syncservice.handler.SQLHandler;
+import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.util.Config;
 
 public class SharingTest {
@@ -43,7 +43,7 @@ public class SharingTest {
 		String datasource = Config.getDatasource();
 		ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
 
-		handler = new SQLHandler(pool);
+		handler = new SQLSyncHandler(pool);
 		DAOFactory factory = new DAOFactory(datasource);
 
 		Connection connection = pool.getConnection();

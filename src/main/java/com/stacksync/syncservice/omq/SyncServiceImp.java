@@ -37,8 +37,8 @@ import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
-import com.stacksync.syncservice.handler.Handler;
-import com.stacksync.syncservice.handler.SQLHandler;
+import com.stacksync.syncservice.handler.SQLSyncHandler;
+import com.stacksync.syncservice.handler.SyncHandler;
 import com.stacksync.syncservice.util.Config;
 
 public class SyncServiceImp extends RemoteObject implements ISyncService {
@@ -48,7 +48,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	private transient int index;
 	private transient int numThreads;
 	private transient ConnectionPool pool;
-	private transient Handler[] handlers;
+	private transient SyncHandler[] handlers;
 	private transient Broker broker;
 
 	public SyncServiceImp(Broker broker, ConnectionPool pool) throws Exception {
@@ -59,10 +59,10 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		index = 0;
 		// Create handlers
 		numThreads = Integer.parseInt(this.broker.getEnvironment().getProperty(ParameterQueue.NUM_THREADS, "1"));
-		handlers = new Handler[numThreads];
+		handlers = new SyncHandler[numThreads];
 
 		for (int i = 0; i < numThreads; i++) {
-			handlers[i] = new SQLHandler(this.pool);
+			handlers[i] = new SQLSyncHandler(this.pool);
 		}
 	}
 
@@ -118,8 +118,8 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		}
 	}
 
-	private synchronized Handler getHandler() {
-		Handler handler = handlers[index++ % numThreads];
+	private synchronized SyncHandler getHandler() {
+		SyncHandler handler = handlers[index++ % numThreads];
 		logger.debug("Using handler: " + handler + " using connection: " + handler.getConnection());
 		return handler;
 	}

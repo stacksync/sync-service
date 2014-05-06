@@ -16,7 +16,8 @@ import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.commons.omq.RemoteWorkspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.handler.Handler;
-import com.stacksync.syncservice.handler.SQLHandler;
+import com.stacksync.syncservice.handler.SQLAPIHandler;
+import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
@@ -29,13 +30,13 @@ import com.stacksync.syncservice.rpc.parser.IParser;
 public class XmlRpcSyncHandler {
 
 	private static final Logger logger = Logger.getLogger(XmlRpcSyncHandler.class.getName());
-	private Handler handler;
+	private SQLAPIHandler handler;
 	private IParser parser;
 	private Broker broker;
 
 	public XmlRpcSyncHandler(Broker broker, ConnectionPool pool) {
 		try {
-			this.handler = new SQLHandler(pool);
+			this.handler = new SQLAPIHandler(pool);
 			this.broker = broker;
 			this.parser = Reader.getInstance("com.stacksync.syncservice.rpc.parser.JSONParser");
 
