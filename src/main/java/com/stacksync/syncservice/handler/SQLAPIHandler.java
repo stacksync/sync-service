@@ -118,6 +118,31 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		return response;
 	}
 	
+	@Override
+	public APICommitResponse createFile(User user, ItemMetadata fileToSave, ItemMetadata parentMetadata) {
+		
+		List<ItemMetadata> files = parentMetadata.getChildren();
+
+		ItemMetadata fileToModify = null;
+		for (ItemMetadata file : files) {
+			if (file.getFilename().equals(fileToSave.getFilename())) {
+				fileToModify = file;
+				break;
+			}
+		}
+
+		ItemMetadata object = null;
+		if (fileToModify == null) {
+			object = saveNewItemAPI(user, fileToSave, parentMetadata);
+		} else {
+			/*
+			 * TODO Create conflict copy
+			 */
+		}
+
+		APICommitResponse responseAPI = new APICommitResponse(object, true, 0, "");
+		return responseAPI;
+	}
 
 	@Override
 	public APICommitResponse ApiCommitMetadata(User user, Boolean overwrite, ItemMetadata fileToSave,
@@ -135,7 +160,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		ItemMetadata object = null;
 		if (fileToModify == null) {
-			object = saveNewItemAPI(user, null, fileToSave, parentMetadata);
+			object = saveNewItemAPI(user, fileToSave, parentMetadata);
 		} else {
 			if (overwrite) {
 				object = saveNewVersionAPI(user, fileToSave, fileToModify);
@@ -372,7 +397,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		return hasPermission;
 	}
 	
-	private ItemMetadata saveNewItemAPI(User user, Workspace workspace, ItemMetadata itemToSave, ItemMetadata parent) {
+	private ItemMetadata saveNewItemAPI(User user, ItemMetadata itemToSave, ItemMetadata parent) {
 
 		Long version = 1L;
 		String fileName = itemToSave.getFilename();
@@ -397,11 +422,25 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		ItemMetadata object = new ItemMetadata(null, version, Constants.API_DEVICE_ID, parentFileId, parentFileVersion,
 				status, date, checksum, fileSize, folder, fileName, mimetype, chunks);
+		object.setTempId(itemToSave.getTempId());
 
 		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
 		objects.add(object);
 
 		try {
+			Workspace workspace;
+			if (itemToSave.getId() != null) {
+				// If file already exists, get its workspace
+				workspace = workspaceDAO.getByItemId(itemToSave.getId());
+			} else if (parent.isRoot()) {
+				// If the file is new and it will be in the root workspace
+				// we have to get the default user workspace
+				workspace = workspaceDAO.getDefaultWorkspaceByUserId(user.getId());
+			} else {
+				// Otherwise, get the workspace of the parent
+				workspace = workspaceDAO.getByItemId(parent.getId());
+			}
+			
 			this.doCommit(user, workspace, apiDevice, objects);
 		} catch (DAOException e) {
 			// TODO Auto-generated catch block
@@ -525,5 +564,4 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		APIDeleteResponse response = new APIDeleteResponse(fileToDelete, success, 0, "");
 		return response;
 	}
-	
 }

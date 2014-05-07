@@ -14,6 +14,8 @@ public interface APIHandler {
 	
 	public APIGetMetadata getMetadata(User user, Long fileId, Boolean includeChunks, Long version);
 	
+	public APICommitResponse createFile(User user, ItemMetadata fileToSave, ItemMetadata parentMetadata);
+	
 	public APICommitResponse ApiCommitMetadata(User user, Boolean overwrite, ItemMetadata fileToSave,
 			ItemMetadata parentMetadata);
 
