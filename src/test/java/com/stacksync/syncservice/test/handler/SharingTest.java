@@ -64,7 +64,7 @@ public class SharingTest {
 		// userDao.delete("aa");
 	}
 
-	@Test
+	/*@Test
 	public void createShareProposal() throws DAOException, ShareProposalNotCreatedException, UserNotFoundException {
 
 		user2 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
@@ -105,6 +105,6 @@ public class SharingTest {
 		workspace1.setParentItem(null);
 
 		handler.doUpdateWorkspace(user1, workspace1);
-	}
+	}*/
 
 }

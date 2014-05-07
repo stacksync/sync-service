@@ -19,9 +19,9 @@ public class TestGetWorkspaces {
 
 		long startTotal = System.currentTimeMillis();
 
-		User user = new User(Constants.USER);
+		/*User user = new User(Constants.USER);
 		
-		handler.doGetWorkspaces(user);
+		handler.doGetWorkspaces(user);*/
 
 		/*
 		 * List<RemoteWorkspace> list = new ArrayList<RemoteWorkspace>(); for

@@ -67,7 +67,7 @@ public class UpdateDeviceTest {
 		// userDao.delete("aa");
 	}
 
-	@Test
+	/*@Test
 	public void registerNewDevice() throws Exception {
 
 		Device device = new Device();
@@ -132,6 +132,6 @@ public class UpdateDeviceTest {
 		System.out.println("Result: " + result + " | Device: " + device);
 
 		assertEquals("-1", result);
-	}
+	}*/
 
 }

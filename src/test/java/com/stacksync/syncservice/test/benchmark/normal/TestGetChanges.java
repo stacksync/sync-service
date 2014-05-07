@@ -84,7 +84,7 @@ public class TestGetChanges {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Config.loadProperties();
+		/*Config.loadProperties();
 
 		String datasource = Config.getDatasource();
 		ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
@@ -121,7 +121,7 @@ public class TestGetChanges {
 		long totalTime = System.currentTimeMillis() - startTotal;
 		// System.out.println("Objects -> " + ((GetChangesResponseMessage)
 		// response).getMetadata().size());
-		System.out.println("Total level time --> " + totalTime + " ms");
+		System.out.println("Total level time --> " + totalTime + " ms");*/
 	}
 
 }
