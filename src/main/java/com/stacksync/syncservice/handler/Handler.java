@@ -31,8 +31,9 @@ import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.util.Config;
 
 public class Handler {
-	
-	private static final Logger logger = Logger.getLogger(Handler.class.getName());
+
+	private static final Logger logger = Logger.getLogger(Handler.class
+			.getName());
 
 	protected Connection connection;
 	protected WorkspaceDAO workspaceDAO;
@@ -40,12 +41,13 @@ public class Handler {
 	protected DeviceDAO deviceDao;
 	protected ItemDAO itemDao;
 	protected ItemVersionDAO itemVersionDao;
-	
+
 	public enum Status {
 		NEW, DELETED, CHANGED, RENAMED, MOVED
 	};
-	
-	public Handler(ConnectionPool pool) throws SQLException, NoStorageManagerAvailable {
+
+	public Handler(ConnectionPool pool) throws SQLException,
+			NoStorageManagerAvailable {
 		connection = pool.getConnection();
 
 		String dataSource = Config.getDatasource();
@@ -59,8 +61,8 @@ public class Handler {
 		itemVersionDao = factory.getItemVersionDAO(connection);
 	}
 
-	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items)
-			throws DAOException {
+	public List<CommitInfo> doCommit(User user, Workspace workspace,
+			Device device, List<ItemMetadata> items) throws DAOException {
 
 		HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
 
@@ -116,21 +118,23 @@ public class Handler {
 				committed = true;
 			}
 
-			responseObjects.add(new CommitInfo(item.getVersion(), committed, objectResponse));
+			responseObjects.add(new CommitInfo(item.getVersion(), committed,
+					objectResponse));
 		}
 
 		return responseObjects;
 	}
-	
+
 	public Connection getConnection() {
 		return this.connection;
 	}
-	
+
 	/*
 	 * Private functions
 	 */
 
-	private void commitObject(ItemMetadata item, Workspace workspace, Device device) throws CommitWrongVersionNoParent,
+	private void commitObject(ItemMetadata item, Workspace workspace,
+			Device device) throws CommitWrongVersionNoParent,
 			CommitWrongVersion, CommitExistantVersion, DAOException {
 
 		Item serverItem = itemDao.findById(item.getId());
@@ -162,7 +166,8 @@ public class Handler {
 		}
 	}
 
-	private void saveNewObject(ItemMetadata metadata, Workspace workspace, Device device) throws DAOException {
+	private void saveNewObject(ItemMetadata metadata, Workspace workspace,
+			Device device) throws DAOException {
 		// Create workspace and parent instances
 		Long parentId = metadata.getParentId();
 		Item parent = null;
@@ -216,8 +221,8 @@ public class Handler {
 		}
 	}
 
-	private void saveNewVersion(ItemMetadata metadata, Item serverItem, Workspace workspace, Device device)
-			throws DAOException {
+	private void saveNewVersion(ItemMetadata metadata, Item serverItem,
+			Workspace workspace, Device device) throws DAOException {
 
 		beginTransaction();
 
@@ -243,7 +248,8 @@ public class Handler {
 
 			// TODO To Test!!
 			String status = metadata.getStatus();
-			if (status.equals(Status.RENAMED.toString()) || status.equals(Status.MOVED.toString())
+			if (status.equals(Status.RENAMED.toString())
+					|| status.equals(Status.MOVED.toString())
 					|| status.equals(Status.DELETED.toString())) {
 
 				serverItem.setFilename(metadata.getFilename());
@@ -253,7 +259,8 @@ public class Handler {
 					serverItem.setClientParentFileVersion(null);
 					serverItem.setParent(null);
 				} else {
-					serverItem.setClientParentFileVersion(metadata.getParentVersion());
+					serverItem.setClientParentFileVersion(metadata
+							.getParentVersion());
 					Item parent = itemDao.findById(parentFileId);
 					serverItem.setParent(parent);
 				}
@@ -269,46 +276,56 @@ public class Handler {
 			rollbackTransaction();
 		}
 	}
-	
-	private void createChunks(List<String> chunksString, ItemVersion objectVersion) throws IllegalArgumentException,
+
+	private void createChunks(List<String> chunksString,
+			ItemVersion objectVersion) throws IllegalArgumentException,
 			DAOException {
-	
-		if (chunksString.size() > 0) {
-			List<Chunk> chunks = new ArrayList<Chunk>();
-			int i = 0;
-		
-			for (String chunkName : chunksString) {
-				chunks.add(new Chunk(chunkName, i));
-				i++;
+		if (chunksString != null) {
+			if (chunksString.size() > 0) {
+				List<Chunk> chunks = new ArrayList<Chunk>();
+				int i = 0;
+
+				for (String chunkName : chunksString) {
+					chunks.add(new Chunk(chunkName, i));
+					i++;
+				}
+
+				itemVersionDao.insertChunks(chunks, objectVersion.getId());
 			}
-		
-			itemVersionDao.insertChunks(chunks, objectVersion.getId());
 		}
 	}
 
-	private void saveExistentVersion(Item serverObject, ItemMetadata clientMetadata) throws CommitWrongVersion,
+	private void saveExistentVersion(Item serverObject,
+			ItemMetadata clientMetadata) throws CommitWrongVersion,
 			CommitExistantVersion, DAOException {
 
-		ItemMetadata serverMetadata = this.getServerObjectVersion(serverObject, clientMetadata.getVersion());
+		ItemMetadata serverMetadata = this.getServerObjectVersion(serverObject,
+				clientMetadata.getVersion());
 
 		if (!clientMetadata.equals(serverMetadata)) {
 			throw new CommitWrongVersion("Invalid version.", serverObject);
 		}
 
-		boolean lastVersion = (serverObject.getLatestVersion().equals(clientMetadata.getVersion()));
+		boolean lastVersion = (serverObject.getLatestVersion()
+				.equals(clientMetadata.getVersion()));
 
 		if (!lastVersion) {
-			throw new CommitExistantVersion("This version already exists.", serverObject, clientMetadata.getVersion());
+			throw new CommitExistantVersion("This version already exists.",
+					serverObject, clientMetadata.getVersion());
 		}
 	}
-	
-	private ItemMetadata getCurrentServerVersion(Item serverObject) throws DAOException {
-		return getServerObjectVersion(serverObject, serverObject.getLatestVersion());
+
+	private ItemMetadata getCurrentServerVersion(Item serverObject)
+			throws DAOException {
+		return getServerObjectVersion(serverObject,
+				serverObject.getLatestVersion());
 	}
 
-	private ItemMetadata getServerObjectVersion(Item serverObject, long requestedVersion) throws DAOException {
+	private ItemMetadata getServerObjectVersion(Item serverObject,
+			long requestedVersion) throws DAOException {
 
-		ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(serverObject.getId(), requestedVersion);
+		ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(
+				serverObject.getId(), requestedVersion);
 
 		return metadata;
 	}
@@ -338,5 +355,5 @@ public class Handler {
 			throw new DAOException(e);
 		}
 	}
-	
+
 }

@@ -22,7 +22,7 @@ public class ServerTest {
 				
 				@Override
 				public String[] getArguments() {
-					return new String[]{"/home/amoreno/projects/stacksync/sync-service/config.properties"};
+					return new String[]{"/home/edgar/workspace/sync-service/config.properties"};
 				}
 			};
 			
