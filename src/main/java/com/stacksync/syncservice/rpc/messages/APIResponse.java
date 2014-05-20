@@ -65,6 +65,7 @@ public abstract class APIResponse {
 
 		if (metadata.getParentId() == null) {
 			jMetadata.addProperty("parent_file_id", "");
+			
 		} else {
 			jMetadata.addProperty("parent_file_id", metadata.getParentId());
 		}

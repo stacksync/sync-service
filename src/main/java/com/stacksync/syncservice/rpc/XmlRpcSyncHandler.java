@@ -212,11 +212,15 @@ public class XmlRpcSyncHandler {
 
 		APICommitResponse response = this.apiHandler.createFile(user, item, parentItem);
 		
+		//TODO: Ask to Cristian about sendMessageToClients function
+		/*
+		 
 		if (response.getSuccess()) {
 			this.sendMessageToClients(null, response);
 		}
+		*/
 
-		logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
+		//logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
 		return response.toString();
 	}
 	
@@ -339,23 +343,23 @@ public class XmlRpcSyncHandler {
 		return null;
 	}
 
-	public String deleteItem(UUID userId, String strFileId) {
+	public String deleteItem(String strUserId, String strFileId) {
 		Long fileId = null;
 		try {
 			fileId = Long.parseLong(strFileId);
 		} catch (NumberFormatException ex) {
 		}
 
-		logger.debug("XMLRPC -> delete_metadata_file -->[User:" + userId + ", fileId:"	+ fileId + "]");
+		logger.debug("XMLRPC -> delete_metadata_file -->[User:" + strUserId + ", fileId:"	+ fileId + "]");
 
 		ItemMetadata object = new ItemMetadata();
 		object.setId(fileId);
 
 		User user = new User();
-		user.setId(userId);
+		user.setId(UUID.fromString(strUserId));
 
 		APIDeleteResponse response = this.apiHandler.deleteItem(user, object);
-
+		
 		if (response.getSuccess()) {
 			this.sendMessageToClients(null, response);
 		}

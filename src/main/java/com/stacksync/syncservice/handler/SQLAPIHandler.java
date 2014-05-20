@@ -78,6 +78,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		return response;
 	}
 	
+	
 	public APIGetMetadata getFolderContent(User user, Long folderId, Boolean includeDeleted) {
 		
 		ItemMetadata responseObject = null;
@@ -188,7 +189,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 
 		// get metadata of the parent item
-		APIGetMetadata parentResponse = this.getMetadata(user, item.getParentId(), false, null);
+		APIGetMetadata parentResponse = this.getFolderContent(user, item.getParentId(), false);
 		ItemMetadata parentMetadata = parentResponse.getItemMetadata();
 		
 		// if it is the root, get the default workspace
@@ -419,12 +420,16 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		Date date = new Date();
 
 		// FIXME: return real path ?
-
+		
+		//TODO: The follow object will return without chunks parameter. After this line I set the chunks using setter.
 		ItemMetadata object = new ItemMetadata(null, version, Constants.API_DEVICE_ID, parentFileId, parentFileVersion,
 				status, date, checksum, fileSize, folder, fileName, mimetype, chunks);
 		object.setTempId(itemToSave.getTempId());
-
+		/**********/
+		object.setChunks(chunks);
+		/**********/
 		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
+		
 		objects.add(object);
 
 		try {
