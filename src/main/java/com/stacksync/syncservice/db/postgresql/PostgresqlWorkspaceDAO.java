@@ -160,8 +160,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		workspace.setLatestRevision(result.getInt("latest_revision"));
 		workspace.setShared(result.getBoolean("is_shared"));
 		workspace.setEncrypted(result.getBoolean("is_encrypted"));
-		//workspace.setName(result.getString("workspace_name"));
-		workspace.setName("default");
+		workspace.setName(result.getString("workspace_name"));
 
 		workspace.setSwiftContainer(result.getString("swift_container"));
 		workspace.setSwiftUrl(result.getString("swift_url"));
@@ -207,7 +206,10 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		ResultSet resultSet = null;
 		Workspace workspace = null;
 
-		String query = "SELECT * FROM workspace w INNER JOIN item i ON w.id = i.workspace_id WHERE i.id = ?";
+		String query = "SELECT * FROM workspace w " +
+				" INNER JOIN workspace_user wu ON wu.workspace_id = w.id " +
+				" INNER JOIN item i ON w.id = i.workspace_id " +
+				" WHERE i.id = ?";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { itemId });
