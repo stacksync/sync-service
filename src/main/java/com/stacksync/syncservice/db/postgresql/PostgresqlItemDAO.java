@@ -367,10 +367,10 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		// TODO: check include_deleted
 		Object[] values = { fileId };
 		
-		String query = "SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, i.filename, i.is_folder, i.mimetype, "
-				+ " iv.version, iv.size, iv.status, iv.checksum, "
+		String query = "SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, i.filename, i.is_folder, i.mimetype, i.workspace_id, "
+				+ " iv.version, iv.size, iv.status, iv.checksum, iv.device_id, "
 				+ " iv.modified_at, '1' AS level, '' AS path FROM item i "
-				+ " inner join item_version iv on iv.item_id = i.id  where i.id = ? order by iv.version DESC ";
+				+ " inner join item_version iv on iv.item_id = i.id  where i.id = ? ORDER BY iv.version DESC ";
 
 		ResultSet result = null;
 
