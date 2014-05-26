@@ -210,15 +210,15 @@ public class XmlRpcSyncHandler {
 
 		APICommitResponse response = this.apiHandler.createFile(user, item, parentItem);
 
-		// TODO: Ask to Cristian about sendMessageToClients function
-		/*
-		 * 
-		 * if (response.getSuccess()) { this.sendMessageToClients(null,
-		 * response); }
-		 */
 
-		// logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
-		return response.toString();
+		if (response.getSuccess()) {
+			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
+		}
+
+		String strResponse = this.parser.createResponse(response);
+
+		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		return strResponse;
 	}
 
 	public String updateData(String strUserId, String strFileId, String strChecksum,
@@ -228,6 +228,12 @@ public class XmlRpcSyncHandler {
 				+ strChecksum + ", Filesize: " + strFileSize + ", Mimetype: " + strMimetype + ", Chunks: " + strChunks
 				+ "]");
 
+		Long fileId = null;
+		try {
+			fileId = Long.parseLong(strFileId);
+		} catch (NumberFormatException ex) {
+		}
+		
 		Long checksum = null;
 		try {
 			checksum = Long.parseLong(strChecksum);
@@ -244,7 +250,7 @@ public class XmlRpcSyncHandler {
 
 		ItemMetadata item = new ItemMetadata();
 
-		//item.setFilename(strFileName);
+		item.setId(fileId);
 		item.setSize(fileSize);
 		item.setChecksum(checksum);
 		item.setMimetype(strMimetype);
@@ -253,10 +259,10 @@ public class XmlRpcSyncHandler {
 		User user = new User();
 		user.setId(userId);
 
-		APICommitResponse response = this.apiHandler.updateMetadata(user, item);
+		APICommitResponse response = this.apiHandler.updateData(user, item);
 
 		if (response.getSuccess()) {
-			this.sendMessageToClients(null, response);
+			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
 		}
 
 		String strResponse = this.parser.createResponse(response);
@@ -296,7 +302,7 @@ public class XmlRpcSyncHandler {
 		APICommitResponse response = this.apiHandler.updateMetadata(user, file);
 
 		if (response.getSuccess()) {
-			this.sendMessageToClients(null, response);
+			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
 		}
 
 		String strResponse = this.parser.createResponse(response);
@@ -323,7 +329,7 @@ public class XmlRpcSyncHandler {
 		APIDeleteResponse response = this.apiHandler.deleteItem(user, object);
 
 		if (response.getSuccess()) {
-			this.sendMessageToClients(null, response);
+			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
 		}
 
 		logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
