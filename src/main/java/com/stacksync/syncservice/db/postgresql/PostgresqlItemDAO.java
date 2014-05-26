@@ -170,7 +170,8 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	@Override
 	public List<ItemMetadata> getItemsById(Long id) throws DAOException {
 		Object[] values = { id };
-
+		//FIXME: fix column names
+		
 		String query = "WITH    RECURSIVE "
 				+ " q AS  "
 				+ " (  "

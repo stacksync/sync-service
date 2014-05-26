@@ -16,8 +16,9 @@ public interface APIHandler {
 	
 	public APICommitResponse createFile(User user, ItemMetadata fileToSave, ItemMetadata parentMetadata);
 	
-	public APICommitResponse ApiCommitMetadata(User user, Boolean overwrite, ItemMetadata fileToSave,
-			ItemMetadata parentMetadata);
+	public APICommitResponse updateData(User user, ItemMetadata fileToUpdate);
+	
+	public APICommitResponse updateMetadata(User user, ItemMetadata fileToUpdate);
 
 	public APICreateFolderResponse createFolder(User user, ItemMetadata item);
 

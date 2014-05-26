@@ -31,16 +31,16 @@ import com.stacksync.syncservice.util.Constants;
 public class SQLAPIHandler extends Handler implements APIHandler {
 
 	private static final Logger logger = Logger.getLogger(SQLAPIHandler.class.getName());
-	
+
 	private Device apiDevice = new Device(Constants.API_DEVICE_ID);
-	
+
 	public SQLAPIHandler(ConnectionPool pool) throws SQLException, NoStorageManagerAvailable {
 		super(pool);
 	}
-	
+
 	@Override
 	public APIGetMetadata getMetadata(User user, Long fileId, Boolean includeChunks, Long version) {
-		
+
 		ItemMetadata responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;
@@ -77,10 +77,9 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		APIGetMetadata response = new APIGetMetadata(responseObject, success, errorCode, description);
 		return response;
 	}
-	
-	
+
 	public APIGetMetadata getFolderContent(User user, Long folderId, Boolean includeDeleted) {
-		
+
 		ItemMetadata responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;
@@ -118,10 +117,10 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		APIGetMetadata response = new APIGetMetadata(responseObject, success, errorCode, description);
 		return response;
 	}
-	
+
 	@Override
 	public APICommitResponse createFile(User user, ItemMetadata fileToSave, ItemMetadata parentMetadata) {
-		
+
 		List<ItemMetadata> files = parentMetadata.getChildren();
 
 		ItemMetadata fileToModify = null;
@@ -146,33 +145,173 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APICommitResponse ApiCommitMetadata(User user, Boolean overwrite, ItemMetadata fileToSave,
-			ItemMetadata parentMetadata) {
+	public APICommitResponse updateData(User user, ItemMetadata fileToUpdate) {
+
+		// Check the owner
+		try {
+			user = userDao.findById(user.getId());
+		} catch (DAOException e) {
+			logger.error(e);
+			return new APICommitResponse(fileToUpdate, false, 404, "User not found.");
+		}
 		
-		List<ItemMetadata> files = parentMetadata.getChildren();
+		// Get user workspaces
+		try {
+			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
+			user.setWorkspaces(workspaces);
+		} catch (DAOException e) {
+			logger.error(e);
+			return new APICommitResponse(fileToUpdate, false, 404, "No workspaces found for the user.");
+		}
+		
 
-		ItemMetadata fileToModify = null;
-		for (ItemMetadata file : files) {
-			if (file.getFilename().equals(fileToSave.getFilename())) {
-				fileToModify = file;
-				break;
-			}
+		boolean includeList = true;
+		Long version = null;
+		boolean includeDeleted = false;
+		boolean includeChunks = false;
+
+		// check that the given file ID exists
+		ItemMetadata file;
+		try {
+			file = itemDao.findById(fileToUpdate.getId(), includeList, version, includeDeleted, includeChunks);
+		} catch (DAOException e) {
+			return new APICommitResponse(fileToUpdate, false, 404, "File not found");
 		}
 
-		ItemMetadata object = null;
-		if (fileToModify == null) {
-			object = saveNewItemAPI(user, fileToSave, parentMetadata);
+		// check if the user has permission on the file and parent
+		boolean permission = false;
+		for (Workspace w : user.getWorkspaces()) {
+			if (w.getId().equals(file.getWorkspaceId())) {
+				permission = true;
+			}
+		}
+		if (!permission) {
+			return new APICommitResponse(fileToUpdate, false, 403, "You are not allowed to modify this file");
+		}
+
+		// update file attributes
+
+		file.setMimetype(fileToUpdate.getMimetype());
+		file.setChecksum(fileToUpdate.getChecksum());
+		file.setSize(fileToUpdate.getSize());
+		file.setChunks(fileToUpdate.getChunks());
+		file.setVersion(file.getVersion() + 1L);
+		file.setStatus(Status.CHANGED.toString());
+		
+		// Commit the file
+		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		items.add(file);
+		
+		Workspace workspace = new Workspace(file.getWorkspaceId());
+		
+		try {
+			this.doCommit(user, workspace, apiDevice, items);
+		} catch (DAOException e) {
+			return new APICommitResponse(fileToUpdate, false, e.getError().getCode(), e.getMessage());
+		}
+
+		APICommitResponse responseAPI = new APICommitResponse(file, true, 0, "");
+		return responseAPI;
+	}
+	
+	
+	@Override
+	public APICommitResponse updateMetadata(User user, ItemMetadata fileToUpdate) {
+
+		// Check the owner
+		try {
+			user = userDao.findById(user.getId());
+		} catch (DAOException e) {
+			logger.error(e);
+			return new APICommitResponse(fileToUpdate, false, 404, "User not found.");
+		}
+		
+		// Get user workspaces
+		try {
+			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
+			user.setWorkspaces(workspaces);
+		} catch (DAOException e) {
+			logger.error(e);
+			return new APICommitResponse(fileToUpdate, false, 404, "No workspaces found for the user.");
+		}
+		
+
+		boolean includeList = true;
+		Long version = null;
+		boolean includeDeleted = false;
+		boolean includeChunks = false;
+
+		// check that the given file ID exists
+		ItemMetadata file;
+		try {
+			file = itemDao.findById(fileToUpdate.getId(), includeList, version, includeDeleted, includeChunks);
+		} catch (DAOException e) {
+			return new APICommitResponse(fileToUpdate, false, 404, "File not found");
+		}
+
+		// check that the given parent ID exists
+		ItemMetadata parent;
+		if (fileToUpdate.getParentId() != null) {
+			try {
+				parent = itemDao.findById(fileToUpdate.getParentId(), includeList, version, includeDeleted,
+						includeChunks);
+			} catch (DAOException e) {
+				return new APICommitResponse(fileToUpdate, false, 404, "Parent folder not found");
+			}
 		} else {
-			if (overwrite) {
-				object = saveNewVersionAPI(user, fileToSave, fileToModify);
-			} else {
-				/*
-				 * TODO Create conflict copy
-				 */
+			try {
+				parent = this.itemDao.findByUserId(user.getId(), includeDeleted);
+			} catch (DAOException e) {
+				return new APICommitResponse(fileToUpdate, false, e.getError().getCode(), e.getMessage());
 			}
 		}
 
-		APICommitResponse responseAPI = new APICommitResponse(object, true, 0, "");
+		// check if the user has permission on the file and parent
+		boolean permissionFile = false;
+		boolean permissionParent = false;
+		for (Workspace w : user.getWorkspaces()) {
+			if (w.getId().equals(file.getWorkspaceId())) {
+				permissionFile = true;
+			}
+			if (parent.isRoot() || w.getId().equals(parent.getWorkspaceId())) {
+				permissionParent = true;
+			}
+		}
+		if (!permissionFile || !permissionParent) {
+			return new APICommitResponse(fileToUpdate, false, 403, "You are not allowed to modify this file");
+		}
+
+		// check if there is already a file with the same name
+		boolean repeated = false;
+		for (ItemMetadata child : parent.getChildren()) {
+			if (child.getFilename().equals(fileToUpdate.getFilename())) {
+				repeated = true;
+			}
+		}
+		if (repeated) {
+			return new APICommitResponse(fileToUpdate, false, 400,
+					"This name is already used in the same folder. Please use a different one. ");
+		}
+
+		// update file attributes
+		file.setFilename(fileToUpdate.getFilename());
+		file.setParentId(fileToUpdate.getParentId());
+		file.setVersion(file.getVersion() + 1L);
+		file.setStatus(Status.RENAMED.toString());
+		
+		// Commit the file
+		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		items.add(file);
+		
+		Workspace workspace = new Workspace(file.getWorkspaceId());
+		
+		try {
+			this.doCommit(user, workspace, apiDevice, items);
+		} catch (DAOException e) {
+			return new APICommitResponse(fileToUpdate, false, e.getError().getCode(), e.getMessage());
+		}
+
+		APICommitResponse responseAPI = new APICommitResponse(file, true, 0, "");
 		return responseAPI;
 	}
 
@@ -183,25 +322,23 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			user = userDao.findById(user.getId());
 		} catch (DAOException e) {
 			logger.error(e);
-			APICreateFolderResponse response = new APICreateFolderResponse(item, false, 404,
-					"User not found.");
+			APICreateFolderResponse response = new APICreateFolderResponse(item, false, 404, "User not found.");
 			return response;
 		}
 
 		// get metadata of the parent item
 		APIGetMetadata parentResponse = this.getFolderContent(user, item.getParentId(), false);
 		ItemMetadata parentMetadata = parentResponse.getItemMetadata();
-		
+
 		// if it is the root, get the default workspace
-		if (parentMetadata.isRoot()){
-			
+		if (parentMetadata.isRoot()) {
+
 			try {
 				Workspace workspace = workspaceDAO.getDefaultWorkspaceByUserId(user.getId());
 				parentMetadata.setWorkspaceId(workspace.getId());
 			} catch (DAOException e) {
 				logger.error(e);
-				APICreateFolderResponse response = new APICreateFolderResponse(item, false, 404,
-						"Workspace not found.");
+				APICreateFolderResponse response = new APICreateFolderResponse(item, false, 404, "Workspace not found.");
 				return response;
 			}
 		}
@@ -366,9 +503,9 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		Integer errorCode = 0;
 		Boolean success = false;
 		String description = "";
-		
+
 		try {
-			
+
 			// check if user has permission over this file
 			userMetadata = userDao.findById(user.getId());
 
@@ -382,7 +519,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			errorCode = e.getError().getCode();
 			logger.error(e.toString(), e);
 		}
-		
+
 		APIUserMetadata response = new APIUserMetadata(userMetadata, success, errorCode, description);
 		return response;
 	}
@@ -397,7 +534,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 		return hasPermission;
 	}
-	
+
 	private ItemMetadata saveNewItemAPI(User user, ItemMetadata itemToSave, ItemMetadata parent) {
 
 		Long version = 1L;
@@ -420,8 +557,9 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		Date date = new Date();
 
 		// FIXME: return real path ?
-		
-		//TODO: The follow object will return without chunks parameter. After this line I set the chunks using setter.
+
+		// TODO: The follow object will return without chunks parameter. After
+		// this line I set the chunks using setter.
 		ItemMetadata object = new ItemMetadata(null, version, Constants.API_DEVICE_ID, parentFileId, parentFileVersion,
 				status, date, checksum, fileSize, folder, fileName, mimetype, chunks);
 		object.setTempId(itemToSave.getTempId());
@@ -429,7 +567,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		object.setChunks(chunks);
 		/**********/
 		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
-		
+
 		objects.add(object);
 
 		try {
@@ -445,7 +583,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 				// Otherwise, get the workspace of the parent
 				workspace = workspaceDAO.getByItemId(parent.getId());
 			}
-			
+
 			this.doCommit(user, workspace, apiDevice, objects);
 		} catch (DAOException e) {
 			// TODO Auto-generated catch block
@@ -455,31 +593,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		return object;
 	}
 
-	private ItemMetadata saveNewVersionAPI(User user, ItemMetadata fileToSave, ItemMetadata fileToModify) {
 
-		fileToModify.setStatus("CHANGED");
-		fileToModify.setSize(fileToSave.getSize());
-		fileToModify.setChunks(fileToSave.getChunks());
-		fileToModify.setChecksum(fileToSave.getChecksum());
-		fileToModify.setVersion(fileToModify.getVersion() + 1);
-
-		Date date = new Date();
-		fileToModify.setModifiedAt(date);
-
-		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
-		items.add(fileToModify);
-
-		try {
-			this.doCommit(user, null, apiDevice, items);
-		} catch (DAOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return fileToModify;
-
-	}
-	
 	private boolean createNewFolder(User user, ItemMetadata item, ItemMetadata parent) {
 
 		// Create metadata
@@ -501,7 +615,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 		items.add(item);
-		
+
 		Workspace workspace = new Workspace(item.getWorkspaceId());
 
 		try {
@@ -512,19 +626,19 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			return false;
 		}
 	}
-	
+
 	private void createChunks(List<String> chunksString, ItemVersion objectVersion) throws IllegalArgumentException,
 			DAOException {
-		
+
 		if (chunksString.size() > 0) {
 			List<Chunk> chunks = new ArrayList<Chunk>();
 			int i = 0;
-		
+
 			for (String chunkName : chunksString) {
 				chunks.add(new Chunk(chunkName, i));
 				i++;
 			}
-		
+
 			itemVersionDao.insertChunks(chunks, objectVersion.getId());
 		}
 	}
