@@ -49,7 +49,8 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		try {
 
 			if (fileId == null) {
-				throw new DAOException(DAOError.FILE_NOT_FOUND);
+				// retrieve metadata from the root folder
+				responseObject = this.itemDao.findByUserId(user.getId(), false);
 			} else {
 
 				// check if user has permission on this file
