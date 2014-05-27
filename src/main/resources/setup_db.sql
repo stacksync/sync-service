@@ -44,7 +44,7 @@ CREATE TABLE public.user1 (
     email character varying(100) NOT NULL,
     quota_limit integer NOT NULL,
     quota_used integer DEFAULT 0 NOT NULL,
-    created_at timestamp DEFAULT now(),
+    created_at timestamp DEFAULT now()
 );
 
 ALTER TABLE public.user1 ADD CONSTRAINT pk_user PRIMARY KEY (id);
@@ -69,7 +69,7 @@ ALTER TABLE public.device ADD CONSTRAINT pk_device PRIMARY KEY (id);
 
 ALTER TABLE public.device ADD CONSTRAINT fk1_device FOREIGN KEY (user_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
 
-INSERT INTO public.device ('id','name',) VALUES ('00000000-0000-0001-0000-000000000001','API')
+INSERT INTO public.device ("id","name") VALUES ('00000000-0000-0001-0000-000000000001','API');
  
 
 --
