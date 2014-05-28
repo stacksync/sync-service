@@ -374,7 +374,7 @@ public class XmlRpcSyncHandler {
 
 	public String getWorkspaceInfo(String strUserId, String strFileId) {
 
-		logger.debug("XMLRPC -> get workspace info -->[ User:" + strUserId + ", File ID: " + strFileId + "]");
+		logger.debug("XMLRPC -> get workspace info -->[User:" + strUserId + ", File ID: " + strFileId + "]");
 
 		Long fileId = null;
 		try {
