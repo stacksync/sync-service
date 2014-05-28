@@ -22,6 +22,7 @@ import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
+import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.rpc.messages.APIResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 import com.stacksync.syncservice.rpc.parser.IParser;
@@ -210,7 +211,6 @@ public class XmlRpcSyncHandler {
 
 		APICommitResponse response = this.apiHandler.createFile(user, item, parentItem);
 
-
 		if (response.getSuccess()) {
 			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
 		}
@@ -221,19 +221,18 @@ public class XmlRpcSyncHandler {
 		return strResponse;
 	}
 
-	public String updateData(String strUserId, String strFileId, String strChecksum,
-			String strFileSize, String strMimetype, List<String> strChunks) {
+	public String updateData(String strUserId, String strFileId, String strChecksum, String strFileSize,
+			String strMimetype, List<String> strChunks) {
 
-		logger.debug("XMLRPC -> update data -->[User:" + strUserId + ", Checksum: "
-				+ strChecksum + ", Filesize: " + strFileSize + ", Mimetype: " + strMimetype + ", Chunks: " + strChunks
-				+ "]");
+		logger.debug("XMLRPC -> update data -->[User:" + strUserId + ", Checksum: " + strChecksum + ", Filesize: "
+				+ strFileSize + ", Mimetype: " + strMimetype + ", Chunks: " + strChunks + "]");
 
 		Long fileId = null;
 		try {
 			fileId = Long.parseLong(strFileId);
 		} catch (NumberFormatException ex) {
 		}
-		
+
 		Long checksum = null;
 		try {
 			checksum = Long.parseLong(strChecksum);
@@ -371,6 +370,32 @@ public class XmlRpcSyncHandler {
 
 		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
 		return strResponse;
+	}
+
+	public String getWorkspaceInfo(String strUserId, String strFileId) {
+
+		logger.debug("XMLRPC -> get workspace info -->[ User:" + strUserId + ", File ID: " + strFileId + "]");
+
+		Long fileId = null;
+		try {
+			fileId = Long.parseLong(strFileId);
+		} catch (NumberFormatException ex) {
+		}
+
+		UUID userId = UUID.fromString(strUserId);
+
+		ItemMetadata item = new ItemMetadata();
+
+		item.setId(fileId);
+
+		User user = new User();
+		user.setId(userId);
+
+		APIGetWorkspaceInfoResponse response = this.apiHandler.getWorkspaceInfo(user, item);
+
+		logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
+		return response.toString();
+
 	}
 
 	private APIGetMetadata getParentMetadata(UUID userId, Long parentId) {
