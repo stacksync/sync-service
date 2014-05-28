@@ -121,28 +121,88 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APICommitResponse createFile(User user, ItemMetadata fileToSave, ItemMetadata parentMetadata) {
+	public APICommitResponse createFile(User user, ItemMetadata fileToSave) {
 
-		List<ItemMetadata> files = parentMetadata.getChildren();
+		// Check the owner
+		try {
+			user = userDao.findById(user.getId());
+		} catch (DAOException e) {
+			logger.error(e);
+			return new APICommitResponse(fileToSave, false, 404, "User not found.");
+		}
 
-		ItemMetadata fileToModify = null;
-		for (ItemMetadata file : files) {
-			if (file.getFilename().equals(fileToSave.getFilename())) {
-				fileToModify = file;
-				break;
+		// Get user workspaces
+		try {
+			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
+			user.setWorkspaces(workspaces);
+		} catch (DAOException e) {
+			logger.error(e);
+			return new APICommitResponse(fileToSave, false, 404, "No workspaces found for the user.");
+		}
+
+		boolean includeList = true;
+		Long version = null;
+		boolean includeDeleted = false;
+		boolean includeChunks = false;
+
+
+		// check that the given parent ID exists
+		ItemMetadata parent;
+		if (fileToSave.getParentId() != null) {
+			try {
+				parent = itemDao
+						.findById(fileToSave.getParentId(), includeList, version, includeDeleted, includeChunks);
+			} catch (DAOException e) {
+				return new APICommitResponse(fileToSave, false, 404, "Parent folder not found");
+			}
+		} else {
+			try {
+				parent = this.itemDao.findByUserId(user.getId(), includeDeleted);
+				Workspace parentWorkspace = workspaceDAO.getDefaultWorkspaceByUserId(user.getId());
+				parent.setWorkspaceId(parentWorkspace.getId());
+			} catch (DAOException e) {
+				return new APICommitResponse(fileToSave, false, e.getError().getCode(), e.getMessage());
 			}
 		}
 
-		ItemMetadata object = null;
-		if (fileToModify == null) {
-			object = saveNewItemAPI(user, fileToSave, parentMetadata);
-		} else {
-			/*
-			 * TODO Create conflict copy
-			 */
+		// check if the user has permission on the file and parent
+		boolean permissionParent = false;
+		for (Workspace w : user.getWorkspaces()) {
+			if (parent.isRoot() || w.getId().equals(parent.getWorkspaceId())) {
+				permissionParent = true;
+				break;
+			}
+		}
+		if (!permissionParent) {
+			return new APICommitResponse(fileToSave, false, 403, "You are not allowed to modify this file");
 		}
 
-		APICommitResponse responseAPI = new APICommitResponse(object, true, 0, "");
+		// check if there is already a file with the same name
+		boolean repeated = false;
+		for (ItemMetadata child : parent.getChildren()) {
+			if (child.getFilename().equals(fileToSave.getFilename())) {
+				repeated = true;
+				break;
+			}
+		}
+		if (repeated) {
+			return new APICommitResponse(fileToSave, false, 400,
+					"This name is already used in the same folder. Please use a different one. ");
+		}
+
+		APICommitResponse responseAPI;
+		
+		
+
+		try {
+			saveNewItemAPI(user, fileToSave, parent);
+			responseAPI = new APICommitResponse(fileToSave, true, 0, "");
+
+		} catch (Exception e) {
+			logger.error(e);
+			responseAPI = new APICommitResponse(fileToSave, false, 500, e.toString());
+		}
+
 		return responseAPI;
 	}
 
@@ -567,7 +627,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		if (!permission) {
 			return new APIGetWorkspaceInfoResponse(null, false, 403, "You are not allowed to access this file");
 		}
-		
+
 		// get workspace info
 		Workspace workspace;
 		try {
@@ -575,7 +635,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		} catch (DAOException e) {
 			return new APIGetWorkspaceInfoResponse(null, false, 404, "Workspace not found");
 		}
-		
+
 		APIGetWorkspaceInfoResponse response = new APIGetWorkspaceInfoResponse(workspace, true, 0, "");
 		return response;
 	}
@@ -591,62 +651,16 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		return hasPermission;
 	}
 
-	private ItemMetadata saveNewItemAPI(User user, ItemMetadata itemToSave, ItemMetadata parent) {
+	private void saveNewItemAPI(User user, ItemMetadata itemToSave, ItemMetadata parent) throws DAOException {
 
-		Long version = 1L;
-		String fileName = itemToSave.getFilename();
-		String mimetype = itemToSave.getMimetype();
-
-		Long parentFileId = null;
-		Long parentFileVersion = null;
-		if (!parent.isRoot()) {
-			parentFileId = parent.getId();
-			parentFileVersion = parent.getVersion();
-		}
-
-		Long fileSize = itemToSave.getSize();
-		Long checksum = itemToSave.getChecksum();
-		String status = "NEW";
-		Boolean folder = false;
-		List<String> chunks = itemToSave.getChunks();
-
-		Date date = new Date();
-
-		// FIXME: return real path ?
-
-		// TODO: The follow object will return without chunks parameter. After
-		// this line I set the chunks using setter.
-		ItemMetadata object = new ItemMetadata(null, version, Constants.API_DEVICE_ID, parentFileId, parentFileVersion,
-				status, date, checksum, fileSize, folder, fileName, mimetype, chunks);
-		object.setTempId(itemToSave.getTempId());
-		/**********/
-		object.setChunks(chunks);
-		/**********/
+		itemToSave.setWorkspaceId(parent.getWorkspaceId());
+		Workspace workspace = new Workspace(parent.getWorkspaceId());
+		
 		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
+		objects.add(itemToSave);
+		
+		this.doCommit(user, workspace, apiDevice, objects);
 
-		objects.add(object);
-
-		try {
-			Workspace workspace;
-			if (itemToSave.getId() != null) {
-				// If file already exists, get its workspace
-				workspace = workspaceDAO.getByItemId(itemToSave.getId());
-			} else if (parent.isRoot()) {
-				// If the file is new and it will be in the root workspace
-				// we have to get the default user workspace
-				workspace = workspaceDAO.getDefaultWorkspaceByUserId(user.getId());
-			} else {
-				// Otherwise, get the workspace of the parent
-				workspace = workspaceDAO.getByItemId(parent.getId());
-			}
-
-			this.doCommit(user, workspace, apiDevice, objects);
-		} catch (DAOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return object;
 	}
 
 	private boolean createNewFolder(User user, ItemMetadata item, ItemMetadata parent) {

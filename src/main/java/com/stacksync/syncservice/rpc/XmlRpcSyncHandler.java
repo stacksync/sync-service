@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.rpc;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -17,6 +18,7 @@ import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.commons.omq.RemoteWorkspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.handler.SQLAPIHandler;
+import com.stacksync.syncservice.handler.Handler.Status;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
@@ -26,6 +28,7 @@ import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.rpc.messages.APIResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 import com.stacksync.syncservice.rpc.parser.IParser;
+import com.stacksync.syncservice.util.Constants;
 
 public class XmlRpcSyncHandler {
 
@@ -162,7 +165,7 @@ public class XmlRpcSyncHandler {
 	}
 
 	public String newFile(String strUserId, String strFileName, String strParentId, String strChecksum,
-			String strFileSize, String strMimetype, List<String> strChunks) {
+			String strFileSize, String strMimetype, List<String> chunks) {
 
 		Long parentId = null;
 		try {
@@ -195,21 +198,26 @@ public class XmlRpcSyncHandler {
 			return parentResponse.toString();
 		}
 
-		ItemMetadata parentItem = metadataResponse.getItemMetadata();
 		ItemMetadata item = new ItemMetadata();
 
 		item.setId(null);
+		item.setParentId(parentId);
 		item.setTempId(new Random().nextLong());
+		item.setVersion(1L);
+		item.setDeviceId(Constants.API_DEVICE_ID);
+		item.setIsFolder(false);
+		item.setStatus(Status.NEW.toString());
 		item.setFilename(strFileName);
 		item.setSize(fileSize);
 		item.setChecksum(checksum);
 		item.setMimetype(strMimetype);
-		item.setChunks(strChunks);
+		item.setModifiedAt(new Date());
+		item.setChunks(chunks);
 
 		User user = new User();
 		user.setId(userId);
 
-		APICommitResponse response = this.apiHandler.createFile(user, item, parentItem);
+		APICommitResponse response = this.apiHandler.createFile(user, item);
 
 		if (response.getSuccess()) {
 			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
@@ -222,10 +230,10 @@ public class XmlRpcSyncHandler {
 	}
 
 	public String updateData(String strUserId, String strFileId, String strChecksum, String strFileSize,
-			String strMimetype, List<String> strChunks) {
+			String strMimetype, List<String> chunks) {
 
 		logger.debug("XMLRPC -> update data -->[User:" + strUserId + ", Checksum: " + strChecksum + ", Filesize: "
-				+ strFileSize + ", Mimetype: " + strMimetype + ", Chunks: " + strChunks + "]");
+				+ strFileSize + ", Mimetype: " + strMimetype + ", Chunks: " + chunks + "]");
 
 		Long fileId = null;
 		try {
@@ -253,8 +261,8 @@ public class XmlRpcSyncHandler {
 		item.setSize(fileSize);
 		item.setChecksum(checksum);
 		item.setMimetype(strMimetype);
-		item.setChunks(strChunks);
-
+		item.setChunks(chunks);
+		item.setStatus(Status.CHANGED.toString());
 		User user = new User();
 		user.setId(userId);
 
