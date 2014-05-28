@@ -7,6 +7,7 @@ import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
+import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 import com.stacksync.syncservice.rpc.messages.APIUserMetadata;
 
@@ -29,4 +30,6 @@ public interface APIHandler {
 	public APIGetVersions getVersions(User user, ItemMetadata item);
 	
 	public APIUserMetadata ApiGetUserMetadata(User user);
+	
+	public APIGetWorkspaceInfoResponse getWorkspaceInfo(User user, ItemMetadata item);
 }
