@@ -66,7 +66,7 @@ public class GetWorkspaceInfoTest {
 	public void registerNewDevice() throws Exception {
 		
 		ItemMetadata file = new ItemMetadata();
-		file.setId(118L);
+		file.setId(null);
 		
 		APIGetWorkspaceInfoResponse response = handler.getWorkspaceInfo(user1, file);
 		System.out.println(response.toString());

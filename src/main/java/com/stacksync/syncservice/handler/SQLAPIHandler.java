@@ -376,6 +376,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 	@Override
 	public APICreateFolderResponse createFolder(User user, ItemMetadata item) {
+		
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
@@ -603,23 +604,27 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			return new APIGetWorkspaceInfoResponse(null, false, 404, "No workspaces found for the user.");
 		}
 
-		boolean includeList = true;
-		Long version = null;
-		boolean includeDeleted = false;
-		boolean includeChunks = false;
-
-		// check that the given file ID exists
-		ItemMetadata file;
-		try {
-			file = itemDao.findById(item.getId(), includeList, version, includeDeleted, includeChunks);
-		} catch (DAOException e) {
-			return new APIGetWorkspaceInfoResponse(null, false, 404, "File not found");
+		// get the workspace 
+		
+		Workspace workspace;
+		if (item.getId() == null){
+			try {
+				workspace = workspaceDAO.getDefaultWorkspaceByUserId(user.getId());
+			} catch (DAOException e) {
+				return new APIGetWorkspaceInfoResponse(null, false, 404, "Workspace not found" );
+			}
+		}else{
+			try {
+				workspace = workspaceDAO.getByItemId(item.getId());
+			} catch (DAOException e) {
+				return new APIGetWorkspaceInfoResponse(null, false, 404, "Workspace not found" );
+			}
 		}
-
+		
 		// check if the user has permission on the file and parent
 		boolean permission = false;
 		for (Workspace w : user.getWorkspaces()) {
-			if (w.getId().equals(file.getWorkspaceId())) {
+			if (item.getId()== null || w.getId().equals(workspace.getId())) {
 				permission = true;
 				break;
 			}
@@ -628,13 +633,6 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			return new APIGetWorkspaceInfoResponse(null, false, 403, "You are not allowed to access this file");
 		}
 
-		// get workspace info
-		Workspace workspace;
-		try {
-			workspace = workspaceDAO.getById(file.getWorkspaceId());
-		} catch (DAOException e) {
-			return new APIGetWorkspaceInfoResponse(null, false, 404, "Workspace not found");
-		}
 
 		APIGetWorkspaceInfoResponse response = new APIGetWorkspaceInfoResponse(workspace, true, 0, "");
 		return response;
