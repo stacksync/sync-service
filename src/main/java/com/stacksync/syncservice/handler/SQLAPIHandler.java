@@ -145,13 +145,14 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		boolean includeDeleted = false;
 		boolean includeChunks = false;
 
-
 		// check that the given parent ID exists
 		ItemMetadata parent;
 		if (fileToSave.getParentId() != null) {
 			try {
 				parent = itemDao
 						.findById(fileToSave.getParentId(), includeList, version, includeDeleted, includeChunks);
+				fileToSave.setParentVersion(parent.getVersion());
+				
 			} catch (DAOException e) {
 				return new APICommitResponse(fileToSave, false, 404, "Parent folder not found");
 			}
@@ -191,8 +192,6 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 
 		APICommitResponse responseAPI;
-		
-		
 
 		try {
 			saveNewItemAPI(user, fileToSave, parent);
@@ -376,7 +375,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 	@Override
 	public APICreateFolderResponse createFolder(User user, ItemMetadata item) {
-		
+
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
@@ -401,6 +400,8 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 				APICreateFolderResponse response = new APICreateFolderResponse(item, false, 404, "Workspace not found.");
 				return response;
 			}
+		} else {
+			item.setParentVersion(parentMetadata.getVersion());
 		}
 
 		String folderName = item.getFilename();
@@ -604,27 +605,27 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			return new APIGetWorkspaceInfoResponse(null, false, 404, "No workspaces found for the user.");
 		}
 
-		// get the workspace 
-		
+		// get the workspace
+
 		Workspace workspace;
-		if (item.getId() == null){
+		if (item.getId() == null) {
 			try {
 				workspace = workspaceDAO.getDefaultWorkspaceByUserId(user.getId());
 			} catch (DAOException e) {
-				return new APIGetWorkspaceInfoResponse(null, false, 404, "Workspace not found" );
+				return new APIGetWorkspaceInfoResponse(null, false, 404, "Workspace not found");
 			}
-		}else{
+		} else {
 			try {
 				workspace = workspaceDAO.getByItemId(item.getId());
 			} catch (DAOException e) {
-				return new APIGetWorkspaceInfoResponse(null, false, 404, "Workspace not found" );
+				return new APIGetWorkspaceInfoResponse(null, false, 404, "Workspace not found");
 			}
 		}
-		
+
 		// check if the user has permission on the file and parent
 		boolean permission = false;
 		for (Workspace w : user.getWorkspaces()) {
-			if (item.getId()== null || w.getId().equals(workspace.getId())) {
+			if (item.getId() == null || w.getId().equals(workspace.getId())) {
 				permission = true;
 				break;
 			}
@@ -632,7 +633,6 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		if (!permission) {
 			return new APIGetWorkspaceInfoResponse(null, false, 403, "You are not allowed to access this file");
 		}
-
 
 		APIGetWorkspaceInfoResponse response = new APIGetWorkspaceInfoResponse(workspace, true, 0, "");
 		return response;
@@ -653,10 +653,10 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		itemToSave.setWorkspaceId(parent.getWorkspaceId());
 		Workspace workspace = new Workspace(parent.getWorkspaceId());
-		
+
 		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
 		objects.add(itemToSave);
-		
+
 		this.doCommit(user, workspace, apiDevice, objects);
 
 	}
