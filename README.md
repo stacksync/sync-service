@@ -10,13 +10,10 @@ StackSync Synchronization service
 - [Requirements](#requirements)
 - [Setup](#setup)
     - [Database initialization](database-initialization)
+    - [Create admin user](#create-admin-user)
     - [Create new users](#create-new-users)
-        - [Common part](#common-part)
-        - [OpenStack Swift](#openstack-swift)
-        - [Other storage back-end](#other-storage-back-end)
 - [Compilation](#compilation)
-- [Configuration](#configuration)
-- [Execution](#execution)
+- [Installation](#installation)
 - [Issue Tracking](#issue-tracking)
 - [Licensing](#licensing)
 - [Contact](#contact)
@@ -164,27 +161,40 @@ This will generate a "target" folder containing a JAR file called "syncservice-X
 
     $ rm -rf ~/.m2/repository/*
 
+# Create deb package
 
-# Configuration
+Under the folder [packaging/debian](packaging/debian) there is the Makefile to create the deb file.
 
-To generate the properties file you can just run the JAR with the argument <code>--dump-config</code> and redirect the output to a new file:
+    $ cd packaging/debian
+    $ make compile
+    $ make package
 
-    $ java -jar syncservice-X.X-jar-with-dependencies.jar --dump-config > config.properties
+# Installation
+First, install the deb package:
+    
+    $ sudo dpkg -i stacksync-server_X.X.X_all.deb
+    
+The StackSync Server has a dependency with the JSVC library, if you experience any problem while installing run the following command:
 
+    $ sudo apt-get -f install
+    
+Once the server is installed, you must modify the configuration file to connect with the database, the messaging middleware, and OpenStack Swift.
 
-# Execution
+You need to specify a Keystone user capable of creating users and set up ACL on containers on the specific container configured in the file.
 
-Run the following command specifying the location of your configuration file.
+    /etc/stacksync-server/stacksync-server.conf
+    
+The init script assumes that you have a "JAVA\_HOME" environment variable set up, if not, it will execute the java located in “/usr/lib/jvm/default-java”. You can change the Java VM by setting up the “JAVA\_HOME” environment or by modifying the script in:
 
-    $ java -jar syncservice-X.X-jar-with-dependencies.jar --config config.properties
+    /etc/init.d/stacksync-server
+    
+Once configured, just run the server.
 
-Other parameters:
+    $ sudo service stacksync-server start
+    
+If something went wrong, you can check the standard and error log files located in:
 
-- **Help (-h, --help)**: Shows the different execution options.
-- **Config (-c, --config)**: To provide a configuration file.
-- **Version (-v, --version)**: Prints the application version.
-- **Dump config (--dump-config)**: Dumps an example of configuration file, you can redirect the output to a new file to edit the configuration.
-
+    /var/log/stacksync-server/
 
 # Issue Tracking
 We use the GitHub issue tracking.
