@@ -107,6 +107,21 @@ Now run execute the script.
     postgres=# \i ./setup_db.sql
     postgres=# \q
 
+## Create admin user
+
+In order to manage StackSync users in Swift (create containers, set ACLs...) it is necessary to create an admin user in Swift.
+
+First of all, create a tenant for StackSync:
+
+    $ keystone tenant-create stacksync
+    
+After that, create the admin user under this tenant:
+
+    $ keystone user-create --name stacksync_admin --tenant stacksync --pass "secr3te"
+    
+Finally, assign the admin role to the stacksync_admin user:
+
+    $ keystone user-role-add --user stacksync_admin --role admin --tenant stacksync
 
 ## Create new users
 
