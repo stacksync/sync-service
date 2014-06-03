@@ -93,12 +93,14 @@ Execute the commands below to create a user and the database. The database must 
 
     postgres=# create database stacksync;
     postgres=# create user stacksync_user with password 'mysecretpwd';
-    postgres=# grant all privileges on database stacksync to stacksync_user;
+    postgres=# grant all privileges on database db_name to db_user;
+    postgres=# \connect db_name
+    postgres=# CREATE EXTENSION "uuid-ossp";
     postgres=# \q
 
 Enter to the database with the user role created. Note that the first parameter is the host, the second is the database name and the last one is the username:
 
-    $ psql -h localhost stacksync stacksync_user
+    $ psql -h localhost db_name db_user
 
 Now run execute the script.
 
@@ -108,43 +110,32 @@ Now run execute the script.
 
 ## Create new users
 
-Creating users depends on the storage back-end. There is a common part which is independent of the storage back-end and a part that differs a little.
+In the [script folder](script) there are the necessary scripts to create users.
 
-### Common part
+[**install_deps.sh**](script/install_deps.sh) will install requiered dependencies (ruby and python-keystoneclient).
 
-Go to the [script](script) folder and run the following command to install the necessary tools to create users. It will install Ruby and some dependencies.
+[**adduser.sh**](script/adduser.sh) is the script that creates users in both Swift and SyncService. The script contains some variables that have to be set:
 
-    $ sudo ./install.sh
+- Keystone parameters: These parameters are necessary to create the user in Keystone.
+    - **IP**: keystone server IP.
+    - **OS_USERNAME**: Swift admin user.
+    - **OS_PASSWORD**: Swift admin user pass.
+    - **OS_TENANT_NAME**: Swift admin tenant.
+- StackSync Swift admin parameters: These parameters are related to the Stacksync admin user in Swift and are necessary to create the container of the new user and set ACL on it.
+    - **STACKSYNC_TENANT**: Tenant from the StackSync admin and clients.
+    - **STACKSYNC_ADMIN_USER**: Name of the StackSync admin.
+    - **STACKSYNC_ADMIN_USER_PASS**: Passowrd of the StackSync admin.
+- StackSync database: These parameters are to connect with the StackSync database (postgres) in order to create the new user metadata:
+    - **STACKSYNC_DB_HOST**: Database host (normally localhost)
+    - **STACKSYNC_DB**: Database name.
+    - **STACKSYNC_USER**: Database user.
+    - **PGPASSWORD**: User password.
+
+Once all the parameters are set, execute the script with the parameters:
+
+    $ ./adduser.sh <user_name> <password> <email>
     
-Modify the values from the [settings.conf](script/settings.conf) file:
-
-- **backend**: The database used. In this case postgres.
-- **ip-db**: Database IP.
-- **postgres-db**: Database name.
-- **postgres-db-user**: Database user.
-- **postgres-db-password**: User passord.
-
-### OpenStack Swift
-If you use Swift as storage back-end, you just need to execute the script [adduser-swift.sh](script/adduser-swift.sh) with the parameters:
-
-- User role.
-- User tenant.
-- User name.
-- User password.
-- User quota (not used yet)
-
-Example: ./adduser.sh users peter peter secr3t 2048
-
-**WARNING:** In the current version, tenant and user name must be the same.
-
-This script will do all the necessary to initialize the client in the database and in Swift.
-
-### Other storage back-end
-
-Run the following scripts to add a new user and a new workspace associated to the user. The username must be the same as the one in the storage backend.
-
-    $ ./postgres/adduser.rb -i <USER> -n <USER> -q 1
-    $ ./postgres/addworkspace.rb -i <USER> -p /
+**NOTE**: The email is important and necessary since the user will use it in order to login in the system from the desktop client.
 
 # Compilation
 
