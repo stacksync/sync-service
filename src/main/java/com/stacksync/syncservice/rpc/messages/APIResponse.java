@@ -46,15 +46,15 @@ public abstract class APIResponse {
 	
 	@Override
 	public String toString() {
-		JsonObject jResponse = new JsonObject();
-		jResponse.addProperty("description", getDescription());
+		JsonObject jResponse;
 
 		if (!getSuccess()) {
+			jResponse = new JsonObject();
 			jResponse.addProperty("error", getErrorCode());
+			jResponse.addProperty("description", getDescription());
 		} else {
 			ItemMetadata file = getItem().getMetadata();
-			JsonObject metadata = this.parseItemMetadata(file);
-			jResponse.add("metadata", metadata);
+			jResponse = this.parseItemMetadata(file);
 		}
 
 		return jResponse.toString();
