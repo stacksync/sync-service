@@ -13,7 +13,7 @@ import com.stacksync.syncservice.rpc.messages.APIUserMetadata;
 
 public interface APIHandler {
 	
-	public APIGetMetadata getMetadata(User user, Long fileId, Boolean includeChunks, Long version);
+	public APIGetMetadata getMetadata(User user, Long fileId, Boolean includeChunks, Long version, Boolean isFolder);
 	
 	public APICommitResponse createFile(User user, ItemMetadata fileToSave);
 	
@@ -23,13 +23,11 @@ public interface APIHandler {
 
 	public APICreateFolderResponse createFolder(User user, ItemMetadata item);
 
-	public APIRestoreMetadata ApiRestoreMetadata(User user, ItemMetadata item);
+	public APIRestoreMetadata restoreMetadata(User user, ItemMetadata item);
 
 	public APIDeleteResponse deleteItem(User user, ItemMetadata item);
 
 	public APIGetVersions getVersions(User user, ItemMetadata item);
-	
-	public APIUserMetadata ApiGetUserMetadata(User user);
 	
 	public APIGetWorkspaceInfoResponse getWorkspaceInfo(User user, ItemMetadata item);
 }

@@ -49,7 +49,7 @@ public class XmlRpcSyncHandler {
 		}
 	}
 
-	public String getMetadata(String strUserId, String strItemId, String strIncludeChunks, String strVersion) {
+	public String getMetadata(String strUserId, String strItemId, String strIncludeChunks, String strVersion, String strIsFolder) {
 
 		logger.debug(String.format("XMLRPC Request. getMetadata [userId: %s, fileId: %s, chunks: %s, version: %s]",
 				strUserId, strItemId, strIncludeChunks, strVersion));
@@ -59,6 +59,8 @@ public class XmlRpcSyncHandler {
 			fileId = Long.parseLong(strItemId);
 		} catch (NumberFormatException ex) {
 		}
+		
+		Boolean isFolder = Boolean.parseBoolean(strIsFolder);
 
 		Boolean includeChunks = Boolean.parseBoolean(strIncludeChunks);
 
@@ -71,7 +73,7 @@ public class XmlRpcSyncHandler {
 		User user = new User();
 		user.setId(UUID.fromString(strUserId));
 
-		APIGetMetadata response = this.apiHandler.getMetadata(user, fileId, includeChunks, version);
+		APIGetMetadata response = this.apiHandler.getMetadata(user, fileId, includeChunks, version, isFolder);
 
 		logger.debug(String.format("XMLRPC Response. %s", response.toString()));
 
@@ -369,7 +371,7 @@ public class XmlRpcSyncHandler {
 		User user = new User();
 		user.setId(userId);
 
-		APIRestoreMetadata response = this.apiHandler.ApiRestoreMetadata(user, object);
+		APIRestoreMetadata response = this.apiHandler.restoreMetadata(user, object);
 		String strResponse = this.parser.createResponse(response);
 
 		if (response.getSuccess()) {

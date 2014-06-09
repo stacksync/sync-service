@@ -26,7 +26,6 @@ import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
-import com.stacksync.syncservice.rpc.messages.APIUserMetadata;
 import com.stacksync.syncservice.util.Constants;
 
 public class SQLAPIHandler extends Handler implements APIHandler {
@@ -40,7 +39,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIGetMetadata getMetadata(User user, Long fileId, Boolean includeChunks, Long version) {
+	public APIGetMetadata getMetadata(User user, Long fileId, Boolean includeChunks, Long version, Boolean isFolder) {
 
 		ItemMetadata responseObject = null;
 		Integer errorCode = 0;
@@ -66,6 +65,10 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 				}
 
 				responseObject = this.itemDao.findById(fileId, false, version, false, includeChunks);
+			}
+
+			if (responseObject.isFolder() != isFolder) {
+				throw new DAOException(DAOError.FILE_NOT_FOUND);
 			}
 
 			success = true;
@@ -152,7 +155,12 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 				parent = itemDao
 						.findById(fileToSave.getParentId(), includeList, version, includeDeleted, includeChunks);
 				fileToSave.setParentVersion(parent.getVersion());
-				
+
+				// check if parent is a folder
+				if (!parent.isFolder()) {
+					return new APICommitResponse(fileToSave, false, 400, "Parent must be a folder, not a file.");
+				}
+
 			} catch (DAOException e) {
 				return new APICommitResponse(fileToSave, false, 404, "Parent folder not found");
 			}
@@ -313,6 +321,12 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			try {
 				parent = itemDao.findById(fileToUpdate.getParentId(), includeList, version, includeDeleted,
 						includeChunks);
+
+				// check if parent is a folder
+				if (!parent.isFolder()) {
+					return new APICommitResponse(fileToUpdate, false, 400, "Parent must be a folder, not a file.");
+				}
+
 			} catch (DAOException e) {
 				return new APICommitResponse(fileToUpdate, false, 404, "Parent folder not found");
 			}
@@ -401,6 +415,11 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 				return response;
 			}
 		} else {
+
+			if (!parentMetadata.isFolder()) {
+				return new APICreateFolderResponse(item, false, 400, "Parent must be a folder, not a file.");
+			}
+
 			item.setParentVersion(parentMetadata.getVersion());
 		}
 
@@ -434,7 +453,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIRestoreMetadata ApiRestoreMetadata(User user, ItemMetadata item) {
+	public APIRestoreMetadata restoreMetadata(User user, ItemMetadata item) {
 		try {
 
 			Item serverItem = itemDao.findById(item.getId());
@@ -498,20 +517,58 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	@Override
 	public APIDeleteResponse deleteItem(User user, ItemMetadata item) {
 		List<ItemMetadata> filesToDelete;
-		APIDeleteResponse response = null;
 
+		// Check the owner
 		try {
-
-			filesToDelete = itemDao.getItemsById(item.getId());
-			Workspace workspace = workspaceDAO.getByItemId(item.getId());
-			if (filesToDelete.isEmpty()) {
-				response = new APIDeleteResponse(null, false, 400, "File or folder does not exist.");
-			} else {
-				response = deleteItemsAPI(user, workspace, filesToDelete);
-			}
-
+			user = userDao.findById(user.getId());
 		} catch (DAOException e) {
-			response = new APIDeleteResponse(null, false, 400, "File or folder does not exist.");
+			logger.error(e);
+			return new APIDeleteResponse(null, false, 404, "User not found.");
+		}
+
+		// Get user workspaces
+		try {
+			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
+			user.setWorkspaces(workspaces);
+		} catch (DAOException e) {
+			logger.error(e);
+			return new APIDeleteResponse(null, false, 404, "No workspaces found for the user.");
+		}
+
+		// check that the given file ID exists
+		try {
+			filesToDelete = itemDao.getItemsById(item.getId());
+		} catch (DAOException e) {
+			return new APIDeleteResponse(null, false, 404, "File or folder not found");
+		}
+		if (filesToDelete.isEmpty()) {
+			return new APIDeleteResponse(null, false, 404, "File or folder not found.");
+		}
+
+		// check if it's a file or a folder
+		if (filesToDelete.get(0).isFolder() != item.isFolder()) {
+			return new APIDeleteResponse(null, false, 400, "Item type not matching (file and folder)");
+		}
+
+		// check if the user has permission on the file and parent
+		boolean permission = false;
+		for (Workspace w : user.getWorkspaces()) {
+			if (w.getId().equals(filesToDelete.get(0).getWorkspaceId())) {
+				permission = true;
+			}
+		}
+		if (!permission) {
+			return new APIDeleteResponse(null, false, 403, "You are not allowed to deleted this file");
+		}
+
+		Workspace workspace = new Workspace(filesToDelete.get(0).getWorkspaceId());
+
+		APIDeleteResponse response;
+		try {
+			response = deleteItemsAPI(user, workspace, filesToDelete);
+		} catch (DAOException e) {
+			logger.error(e.toString(), e);
+			response = new APIDeleteResponse(null, false, e.getError().getCode(), e.getMessage());
 		}
 
 		return response;
@@ -519,69 +576,38 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 	@Override
 	public APIGetVersions getVersions(User user, ItemMetadata item) {
-		ItemMetadata responseObject = null;
-		Integer errorCode = 0;
-		Boolean success = false;
-		String description = "";
+		ItemMetadata serverItem = null;
 
+		// Check the owner
 		try {
-
-			if (item.getId() == null) {
-				// retrieve metadata from the root folder
-				throw new DAOException(DAOError.FILE_NOT_FOUND);
-
-			} else {
-
-				// check if user has permission over this file
-				List<User> users = userDao.findByItemId(item.getId());
-
-				if (users.isEmpty()) {
-					throw new DAOException(DAOError.FILE_NOT_FOUND);
-				}
-
-				if (!userHasPermission(user, users)) {
-					throw new DAOException(DAOError.USER_NOT_AUTHORIZED);
-				}
-
-				responseObject = itemDao.findItemVersionsById(item.getId());
-			}
-
-			success = true;
-
+			user = userDao.findById(user.getId());
 		} catch (DAOException e) {
-			description = e.getError().getMessage();
-			errorCode = e.getError().getCode();
-			logger.error(e.toString(), e);
+			logger.error(e);
+			return new APIGetVersions(null, false, 404, "User not found.");
 		}
 
-		APIGetVersions response = new APIGetVersions(responseObject, success, errorCode, description);
-		return response;
-	}
-
-	@Override
-	public APIUserMetadata ApiGetUserMetadata(User user) {
-		User userMetadata = null;
-		Integer errorCode = 0;
-		Boolean success = false;
-		String description = "";
-
+		// Get user workspaces
 		try {
-
-			// check if user has permission over this file
-			userMetadata = userDao.findById(user.getId());
-
-			if (userMetadata == null) {
-				throw new DAOException(DAOError.USER_NOT_FOUND);
-			}
-
-			success = true;
+			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
+			user.setWorkspaces(workspaces);
 		} catch (DAOException e) {
-			description = e.getError().getMessage();
-			errorCode = e.getError().getCode();
-			logger.error(e.toString(), e);
+			logger.error(e);
+			return new APIGetVersions(null, false, 404, "No workspaces found for the user.");
 		}
 
-		APIUserMetadata response = new APIUserMetadata(userMetadata, success, errorCode, description);
+		// check that the given file ID exists
+		try {
+			serverItem = itemDao.findItemVersionsById(item.getId());
+		} catch (DAOException e) {
+			return new APIGetVersions(null, false, 404, "File or folder not found");
+		}
+
+		// check if it's a file or a folder
+		if (serverItem.isFolder()) {
+			return new APIGetVersions(null, false, 400, "Incorrect file type. Must be a file, not a folder.");
+		}
+
+		APIGetVersions response = new APIGetVersions(serverItem, true, 0, "");
 		return response;
 	}
 
@@ -710,7 +736,8 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 	}
 
-	private APIDeleteResponse deleteItemsAPI(User user, Workspace workspace, List<ItemMetadata> filesToDelete) {
+	private APIDeleteResponse deleteItemsAPI(User user, Workspace workspace, List<ItemMetadata> filesToDelete)
+			throws DAOException {
 
 		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 
@@ -735,16 +762,11 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		Boolean success = false;
 		ItemMetadata fileToDelete = null;
 
-		try {
-			List<CommitInfo> response = this.doCommit(user, workspace, apiDevice, items);
+		List<CommitInfo> commitResponse = this.doCommit(user, workspace, apiDevice, items);
 
-			if (!response.isEmpty()) {
-				fileToDelete = response.get(0).getMetadata();
-				success = true;
-			}
-
-		} catch (DAOException e) {
-			logger.error(e);
+		if (!commitResponse.isEmpty()) {
+			fileToDelete = commitResponse.get(0).getMetadata();
+			success = true;
 		}
 
 		APIDeleteResponse response = new APIDeleteResponse(fileToDelete, success, 0, "");
