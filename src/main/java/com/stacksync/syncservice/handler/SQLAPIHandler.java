@@ -305,7 +305,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		boolean includeList = true;
 		Long version = null;
 		boolean includeDeleted = false;
-		boolean includeChunks = false;
+		boolean includeChunks = true;
 
 		// check that the given file ID exists
 		ItemMetadata file;
