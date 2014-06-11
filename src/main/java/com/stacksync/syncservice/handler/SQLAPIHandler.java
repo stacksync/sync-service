@@ -547,7 +547,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		// check if it's a file or a folder
 		if (filesToDelete.get(0).isFolder() != item.isFolder()) {
-			return new APIDeleteResponse(null, false, 400, "Item type not matching (file and folder)");
+			return new APIDeleteResponse(null, false, 400, "Type missmatch (file and folder)");
 		}
 
 		// check if the user has permission on the file and parent

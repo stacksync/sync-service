@@ -320,17 +320,20 @@ public class XmlRpcSyncHandler {
 		return strResponse;
 	}
 
-	public String deleteItem(String strUserId, String strFileId) {
+	public String deleteItem(String strUserId, String strFileId, String strIsFolder) {
 		Long fileId = null;
 		try {
 			fileId = Long.parseLong(strFileId);
 		} catch (NumberFormatException ex) {
 		}
-
+		
+		Boolean isFolder = Boolean.parseBoolean(strIsFolder);
+		
 		logger.debug("XMLRPC -> delete_metadata_file -->[User:" + strUserId + ", fileId:" + fileId + "]");
 
 		ItemMetadata object = new ItemMetadata();
 		object.setId(fileId);
+		object.setIsFolder(isFolder);
 
 		User user = new User();
 		user.setId(UUID.fromString(strUserId));
