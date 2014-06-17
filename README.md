@@ -74,7 +74,7 @@ to the client to fix the error.
 * Java 1.6 or newer
 * Maven 2
 * PostgreSQL 9
-* RabbitMQ
+* RabbitMQ 3.2.X (Version 3.3.X is not compatible)
 
 # Setup
 
