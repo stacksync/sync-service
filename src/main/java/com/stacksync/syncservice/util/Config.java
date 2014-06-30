@@ -3,6 +3,7 @@ package com.stacksync.syncservice.util;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -13,6 +14,8 @@ public class Config {
 
 	private static Properties properties;
 	private static final Logger logger = Logger.getLogger(Config.class.getName());
+	private static final String[] PASSWORD_KEYS = new String[]{Constants.PROP_OMQ_PASSWORD, 
+		Constants.PROP_POSTGRESQL_PASSWORD, Constants.PROP_SWIFT_PASSWORD}; 
 
 	public static void loadProperties() throws IOException {
 		logger.warn(String.format("Config argument not passed, will use default config file: '%s'",
@@ -76,7 +79,9 @@ public class Config {
 		Enumeration<?> e = properties.propertyNames();
 		while (e.hasMoreElements()) {
 			String key = (String) e.nextElement();
-			logger.info(String.format("%s : %s", key, properties.getProperty(key)));
+			if (!Arrays.asList(PASSWORD_KEYS).contains(key)){
+				logger.info(String.format("%s : %s", key, properties.getProperty(key)));
+			}
 		}
 	}
 
