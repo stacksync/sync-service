@@ -10,13 +10,10 @@ StackSync Synchronization service
 - [Requirements](#requirements)
 - [Setup](#setup)
     - [Database initialization](database-initialization)
+    - [Create admin user](#create-admin-user)
     - [Create new users](#create-new-users)
-        - [Common part](#common-part)
-        - [OpenStack Swift](#openstack-swift)
-        - [Other storage back-end](#other-storage-back-end)
 - [Compilation](#compilation)
-- [Configuration](#configuration)
-- [Execution](#execution)
+- [Installation](#installation)
 - [Issue Tracking](#issue-tracking)
 - [Licensing](#licensing)
 - [Contact](#contact)
@@ -77,7 +74,7 @@ to the client to fix the error.
 * Java 1.6 or newer
 * Maven 2
 * PostgreSQL 9
-* RabbitMQ
+* RabbitMQ 3.2.X (Version 3.3.X is not compatible)
 
 # Setup
 
@@ -93,58 +90,64 @@ Execute the commands below to create a user and the database. The database must 
 
     postgres=# create database stacksync;
     postgres=# create user stacksync_user with password 'mysecretpwd';
-    postgres=# grant all privileges on database stacksync to stacksync_user;
+    postgres=# grant all privileges on database db_name to db_user;
+    postgres=# \connect db_name
+    postgres=# CREATE EXTENSION "uuid-ossp";
     postgres=# \q
 
 Enter to the database with the user role created. Note that the first parameter is the host, the second is the database name and the last one is the username:
 
-    $ psql -h localhost stacksync stacksync_user
+    $ psql -h localhost db_name db_user
 
 Now run execute the script.
 
     postgres=# \i ./setup_db.sql
     postgres=# \q
 
+## Create admin user
+
+In order to manage StackSync users in Swift (create containers, set ACLs...) it is necessary to create an admin user in Swift.
+
+First of all, create a tenant for StackSync:
+
+    $ keystone tenant-create stacksync
+    
+After that, create the admin user under this tenant:
+
+    $ keystone user-create --name stacksync_admin --tenant stacksync --pass "secr3te"
+    
+Finally, assign the admin role to the stacksync_admin user:
+
+    $ keystone user-role-add --user stacksync_admin --role admin --tenant stacksync
 
 ## Create new users
 
-Creating users depends on the storage back-end. There is a common part which is independent of the storage back-end and a part that differs a little.
+In the [script folder](script) there are the necessary scripts to create users.
 
-### Common part
+[**install_deps.sh**](script/install_deps.sh) will install requiered dependencies (ruby and python-keystoneclient).
 
-Go to the [script](script) folder and run the following command to install the necessary tools to create users. It will install Ruby and some dependencies.
+[**adduser.sh**](script/adduser.sh) is the script that creates users in both Swift and SyncService. The script contains some variables that have to be set:
 
-    $ sudo ./install.sh
+- Keystone parameters: These parameters are necessary to create the user in Keystone.
+    - **IP**: keystone server IP.
+    - **OS_USERNAME**: Swift admin user.
+    - **OS_PASSWORD**: Swift admin user pass.
+    - **OS_TENANT_NAME**: Swift admin tenant.
+- StackSync Swift admin parameters: These parameters are related to the Stacksync admin user in Swift and are necessary to create the container of the new user and set ACL on it.
+    - **STACKSYNC_TENANT**: Tenant from the StackSync admin and clients.
+    - **STACKSYNC_ADMIN_USER**: Name of the StackSync admin.
+    - **STACKSYNC_ADMIN_USER_PASS**: Passowrd of the StackSync admin.
+- StackSync database: These parameters are to connect with the StackSync database (postgres) in order to create the new user metadata:
+    - **STACKSYNC_DB_HOST**: Database host (normally localhost)
+    - **STACKSYNC_DB**: Database name.
+    - **STACKSYNC_USER**: Database user.
+    - **PGPASSWORD**: User password.
+
+Once all the parameters are set, execute the script with the parameters:
+
+    $ ./adduser.sh <user_name> <password> <email>
     
-Modify the values from the [settings.conf](script/settings.conf) file:
-
-- **backend**: The database used. In this case postgres.
-- **ip-db**: Database IP.
-- **postgres-db**: Database name.
-- **postgres-db-user**: Database user.
-- **postgres-db-password**: User passord.
-
-### OpenStack Swift
-If you use Swift as storage back-end, you just need to execute the script [adduser-swift.sh](script/adduser-swift.sh) with the parameters:
-
-- User role.
-- User tenant.
-- User name.
-- User password.
-- User quota (not used yet)
-
-Example: ./adduser.sh users peter peter secr3t 2048
-
-**WARNING:** In the current version, tenant and user name must be the same.
-
-This script will do all the necessary to initialize the client in the database and in Swift.
-
-### Other storage back-end
-
-Run the following scripts to add a new user and a new workspace associated to the user. The username must be the same as the one in the storage backend.
-
-    $ ./postgres/adduser.rb -i <USER> -n <USER> -q 1
-    $ ./postgres/addworkspace.rb -i <USER> -p /
+**NOTE**: The email is important and necessary since the user will use it in order to login in the system from the desktop client.
 
 # Compilation
 
@@ -158,27 +161,40 @@ This will generate a "target" folder containing a JAR file called "syncservice-X
 
     $ rm -rf ~/.m2/repository/*
 
+# Create deb package
 
-# Configuration
+Under the folder [packaging/debian](packaging/debian) there is the Makefile to create the deb file.
 
-To generate the properties file you can just run the JAR with the argument <code>--dump-config</code> and redirect the output to a new file:
+    $ cd packaging/debian
+    $ make compile
+    $ make package
 
-    $ java -jar syncservice-X.X-jar-with-dependencies.jar --dump-config > config.properties
+# Installation
+First, install the deb package:
+    
+    $ sudo dpkg -i stacksync-server_X.X.X_all.deb
+    
+The StackSync Server has a dependency with the JSVC library, if you experience any problem while installing run the following command:
 
+    $ sudo apt-get -f install
+    
+Once the server is installed, you must modify the configuration file to connect with the database, the messaging middleware, and OpenStack Swift.
 
-# Execution
+You need to specify a Keystone user capable of creating users and set up ACL on containers on the specific container configured in the file.
 
-Run the following command specifying the location of your configuration file.
+    /etc/stacksync-server/stacksync-server.conf
+    
+The init script assumes that you have a "JAVA\_HOME" environment variable set up, if not, it will execute the java located in “/usr/lib/jvm/default-java”. You can change the Java VM by setting up the “JAVA\_HOME” environment or by modifying the script in:
 
-    $ java -jar syncservice-X.X-jar-with-dependencies.jar --config config.properties
+    /etc/init.d/stacksync-server
+    
+Once configured, just run the server.
 
-Other parameters:
+    $ sudo service stacksync-server start
+    
+If something went wrong, you can check the standard and error log files located in:
 
-- **Help (-h, --help)**: Shows the different execution options.
-- **Config (-c, --config)**: To provide a configuration file.
-- **Version (-v, --version)**: Prints the application version.
-- **Dump config (--dump-config)**: Dumps an example of configuration file, you can redirect the output to a new file to edit the configuration.
-
+    /var/log/stacksync-server/
 
 # Issue Tracking
 We use the GitHub issue tracking.
