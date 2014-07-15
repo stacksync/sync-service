@@ -235,3 +235,36 @@ END;
 $BODY$
   LANGUAGE plpgsql VOLATILE;
 
+
+-- Returns an array of chunks corresponding to the given item_id and its childen
+CREATE OR REPLACE FUNCTION get_unique_chunks_to_migrate(bigint, OUT result text[])
+  RETURNS text[] AS
+$BODY$
+BEGIN
+	
+WITH    RECURSIVE 
+q AS  
+(  
+    SELECT i.id, ivc.client_chunk_name
+    FROM    item i 
+    INNER JOIN item_version iv ON i.id = iv.item_id AND i.latest_version = iv.version
+    LEFT JOIN item_version_chunk ivc ON iv.id = ivc.item_version_id
+    WHERE   i.id = $1 
+    UNION ALL 
+    SELECT i2.id, ivc2.client_chunk_name
+    FROM    q 
+    JOIN    item i2 ON i2.parent_id = q.id 
+    INNER JOIN item_version iv2 ON i2.id = iv2.item_id AND i2.latest_version = iv2.version
+    LEFT JOIN item_version_chunk ivc2 ON iv2.id = ivc2.item_version_id
+)
+SELECT INTO result array_agg(client_chunk_name) AS chunks
+FROM
+(
+    SELECT DISTINCT client_chunk_name
+    FROM q
+    where q.client_chunk_name != ''
+) as a1;
+
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE;

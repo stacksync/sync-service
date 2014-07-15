@@ -5,9 +5,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
+import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.models.Chunk;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Device;
@@ -15,6 +18,7 @@ import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOFactory;
@@ -26,8 +30,14 @@ import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.CommitExistantVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
+import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
+import com.stacksync.syncservice.exceptions.storage.ObjectNotFoundException;
+import com.stacksync.syncservice.storage.StorageFactory;
+import com.stacksync.syncservice.storage.StorageManager;
+import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
 
 public class Handler {
@@ -41,6 +51,8 @@ public class Handler {
 	protected DeviceDAO deviceDao;
 	protected ItemDAO itemDao;
 	protected ItemVersionDAO itemVersionDao;
+	
+	protected StorageManager storageManager;
 
 	public enum Status {
 		NEW, DELETED, CHANGED, RENAMED, MOVED
@@ -59,6 +71,7 @@ public class Handler {
 		userDao = factory.getUserDao(connection);
 		itemDao = factory.getItemDAO(connection);
 		itemVersionDao = factory.getItemVersionDAO(connection);
+		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
 	}
 
 	public List<CommitInfo> doCommit(User user, Workspace workspace,
@@ -124,6 +137,187 @@ public class Handler {
 
 		return responseObjects;
 	}
+	
+	
+	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
+			throws ShareProposalNotCreatedException, UserNotFoundException {
+
+		// Check the owner
+		try {
+			user = userDao.findById(user.getId());
+		} catch (NoResultReturnedDAOException e) {
+			logger.warn(e);
+			throw new UserNotFoundException(e);
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+
+		// Get folder metadata
+		try {
+			item = itemDao.findById(item.getId());
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		if (item == null || !item.isFolder()){
+			throw new ShareProposalNotCreatedException("No folder found with the given ID.");
+		}
+		
+		
+		// Get the source workspace
+		Workspace sourceWorkspace;
+		try {
+			sourceWorkspace = workspaceDAO.getById(item.getWorkspace().getId());
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+		if (sourceWorkspace == null){
+			throw new ShareProposalNotCreatedException("Workspace not found.");
+		}
+		if (sourceWorkspace.isShared()){
+			throw new ShareProposalNotCreatedException("Cannot share an already shared folder.");
+		}
+		
+		// Check the addressees
+		List<User> addressees = new ArrayList<User>();
+		for (String email : emails) {
+			User addressee;
+			try {
+				addressee = userDao.getByEmail(email);
+				if (!addressee.getId().equals(user.getId())) {
+					addressees.add(addressee);
+				}
+
+			} catch (IllegalArgumentException e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			} catch (DAOException e) {
+				logger.warn(String.format("Email '%s' does not correspond with any user. ", email), e);
+			}
+		}
+
+		if (addressees.isEmpty()) {
+			throw new ShareProposalNotCreatedException("No addressees found");
+		}
+
+		Workspace workspace;
+		
+		if (sourceWorkspace.isShared()){
+			workspace = sourceWorkspace;
+			
+		}else{
+			// Create the new workspace
+			String container = UUID.randomUUID().toString();
+
+			workspace = new Workspace();
+			workspace.setShared(true);
+			workspace.setEncrypted(isEncrypted);
+			workspace.setName(item.getFilename());
+			workspace.setOwner(user);
+			workspace.setUsers(addressees);
+			workspace.setSwiftContainer(container);
+			workspace.setSwiftUrl(Config.getSwiftUrl() + "/" + user.getSwiftAccount());
+			
+			// Create container in Swift
+			try {
+				storageManager.createNewWorkspace(workspace);
+			} catch (Exception e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+
+			// Save the workspace to the DB
+			try {
+				workspaceDAO.add(workspace);
+				// add the owner to the workspace
+				workspaceDAO.addUser(user, workspace);
+
+			} catch (DAOException e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+			
+			// Grant user to container in Swift
+			try {
+				storageManager.grantUserToWorkspace(user, user, workspace);
+			} catch (Exception e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+			
+			// Migrate files to new workspace
+			List<String> chunks;
+			try {
+				chunks = itemDao.migrateItem(item.getId(), workspace.getId());
+			} catch (Exception e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+			
+			// Move chunks to new container
+			for (String chunkName : chunks){
+				try {
+					storageManager.copyChunk(sourceWorkspace, workspace, chunkName);
+				} catch (ObjectNotFoundException e) {
+					logger.error(String.format("Chunk %s not found in container %s. Could not migrate to container %s.", chunkName, sourceWorkspace.getSwiftContainer(), workspace.getSwiftContainer()), e);
+				} catch (Exception e) {
+					logger.error(e);
+					throw new ShareProposalNotCreatedException(e);
+				}
+			}
+		}
+
+		
+		// Add the addressees to the workspace
+		for (User addressee : addressees) {
+			try {
+				workspaceDAO.addUser(addressee, workspace);
+
+			} catch (DAOException e) {
+				workspace.getUsers().remove(addressee);
+				logger.error(String.format("An error ocurred when adding the user '%s' to workspace '%s'",
+						addressee.getId(), workspace.getId()), e);
+			}
+
+			// Grant the user to container in Swift
+			try {
+				storageManager.grantUserToWorkspace(user, addressee, workspace);
+			} catch (Exception e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+		}
+		
+		return workspace;
+	}
+	
+	
+	public List<UserWorkspace> doGetWorkspaceMembers(User user, Workspace workspace) throws InternalServerError {
+
+		//TODO: check user permissions.
+		
+		List<UserWorkspace> members;
+		try {
+			members = workspaceDAO.getMembersById(workspace.getId());
+			
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new InternalServerError(e);
+		}
+
+		if (members == null || members.isEmpty()){
+			throw new InternalServerError("No members found in workspace.");
+		}
+		
+		return members;
+	}
+	
+
+	
 
 	public Connection getConnection() {
 		return this.connection;

@@ -1,15 +1,19 @@
 package com.stacksync.syncservice.handler;
 
+import java.util.List;
+
+import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
+import com.stacksync.syncservice.rpc.messages.APIGetFolderMembersResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
-import com.stacksync.syncservice.rpc.messages.APIUserMetadata;
+import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
 
 public interface APIHandler {
 	
@@ -29,5 +33,9 @@ public interface APIHandler {
 
 	public APIGetVersions getVersions(User user, ItemMetadata item);
 	
+	public APIShareFolderResponse shareFolder(User user, Item item, List<String> emails);
+	
 	public APIGetWorkspaceInfoResponse getWorkspaceInfo(User user, ItemMetadata item);
+	
+	public APIGetFolderMembersResponse getFolderMembers(User user, Item item);
 }

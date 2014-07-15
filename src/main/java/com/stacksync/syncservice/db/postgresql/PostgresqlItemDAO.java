@@ -416,6 +416,60 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		}
 		return hasRows;
 	}
-
+	
+	@Override
+	public List<String> migrateItem(Long itemId, UUID workspaceId) throws DAOException{
+		
+		Object[] values = { itemId, workspaceId.toString() };
+		
+		String query = "WITH    RECURSIVE "
+			+ " q AS "  
+			+ " ( "
+			+ " SELECT i.* "
+			+ " FROM    item i "
+			+ " WHERE   i.id = ? " 
+			+ " UNION ALL "
+			+ " SELECT i2.* "
+			+ " FROM    q "
+			+ " JOIN    item i2 ON i2.parent_id = q.id " 
+			+ " ) "
+			+ " UPDATE item i3 SET workspace_id = ?::uuid "
+			+ " FROM q "
+			+ " WHERE q.id = i3.id";
+		
+		executeUpdate(query, values);
+		
+		List<String> chunksToMigrate;
+		
+		try{
+			chunksToMigrate = getChunksToMigrate(itemId);
+		}catch (SQLException e){
+			throw new DAOException(e);
+		}
+		
+		return chunksToMigrate;
+		
+	}
+	
+	private List<String> getChunksToMigrate(Long itemId) throws DAOException, SQLException {
+		
+		Object[] values = { itemId };
+		
+		String query = "SELECT get_unique_chunks_to_migrate(?) AS chunks";
+		
+		ResultSet result = executeQuery(query, values);
+		List<String> chunksList;
+		
+		if (result.next()){
+			chunksList = DAOUtil.getArrayFromResultSet(result, "chunks");
+		}
+		else{
+			chunksList = new ArrayList<String>();
+		}
+	
+		
+		return chunksList;
+		
+	}
 
 }

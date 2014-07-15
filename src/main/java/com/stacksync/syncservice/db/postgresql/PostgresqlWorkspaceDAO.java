@@ -11,8 +11,10 @@ import org.apache.log4j.Logger;
 
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.DAOError;
+import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
@@ -224,4 +226,32 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 		return workspace;
 	}
+	
+	@Override
+	public List<UserWorkspace> getMembersById(UUID workspaceId) throws DAOException {
+		ResultSet resultSet = null;
+		List<UserWorkspace> users = new ArrayList<UserWorkspace>();
+
+		String query = " SELECT u.*, CASE WHEN u.id=w.owner_id THEN True ELSE False END AS is_owner " +
+			" , wu.created_at AS joined_at, wu.workspace_id " + 
+			" FROM workspace w " + 
+			" INNER JOIN workspace_user wu ON wu.workspace_id = w.id " +
+			" INNER JOIN user1 u ON wu.user_id = u.id " +
+			" WHERE w.id = ?::uuid";
+
+		try {
+			resultSet = executeQuery(query, new Object[] { workspaceId });
+
+			while (resultSet.next()) {
+				UserWorkspace userWorkspace = DAOUtil.getUserWorkspaceFromResultSet(resultSet);
+				users.add(userWorkspace);
+			}
+		} catch (SQLException e) {
+			logger.error(e);
+			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
+		}
+
+		return users;
+	}
+	
 }

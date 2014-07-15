@@ -6,6 +6,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.UserWorkspace;
 
 public abstract class APIResponse {
 
@@ -131,6 +133,34 @@ public abstract class APIResponse {
 		jMetadata.addProperty("mimetype", metadata.getMimetype());
 
 		return jMetadata;
+	}
+	
+	protected JsonObject parseUser(User user){
+		JsonObject jUser = new JsonObject();
+
+		if (user == null) {
+			return jUser;
+		}
+		
+		jUser.addProperty("name", user.getName());
+		jUser.addProperty("email", user.getEmail());
+		
+		return jUser;
+		
+	}
+	
+	protected JsonObject parseUserWorkspace(UserWorkspace userWorkspace){
+
+		if (userWorkspace == null) {
+			return new JsonObject();
+		}
+		
+		JsonObject jUser = parseUser(userWorkspace.getUser());
+		jUser.addProperty("is_owner", userWorkspace.isOwner());
+		jUser.addProperty("joined_at", userWorkspace.getJoinedAt().toString());
+		
+		return jUser;
+		
 	}
 	
 

@@ -11,7 +11,9 @@ public abstract class StorageManager {
 	
 	public abstract void login() throws Exception; 
 	
-	public abstract void createNewWorkspace(User user, Workspace workspace) throws Exception;
+	public abstract void createNewWorkspace(Workspace workspace) throws Exception;
 	
 	public abstract void grantUserToWorkspace(User owner, User user, Workspace workspace) throws Exception;
+	
+	public abstract void copyChunk(Workspace sourceWorkspace, Workspace destinationWorkspace, String chunkName) throws Exception;
 }

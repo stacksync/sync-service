@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
+import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.models.Chunk;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Device;
@@ -14,18 +16,23 @@ import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOError;
+import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
+import com.stacksync.syncservice.rpc.messages.APIGetFolderMembersResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
+import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
 import com.stacksync.syncservice.util.Constants;
 
 public class SQLAPIHandler extends Handler implements APIHandler {
@@ -264,6 +271,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		file.setSize(fileToUpdate.getSize());
 		file.setChunks(fileToUpdate.getChunks());
 		file.setVersion(file.getVersion() + 1L);
+		file.setModifiedAt(new Date());
 		file.setStatus(Status.CHANGED.toString());
 
 		// Commit the file
@@ -369,6 +377,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		file.setFilename(fileToUpdate.getFilename());
 		file.setParentId(fileToUpdate.getParentId());
 		file.setVersion(file.getVersion() + 1L);
+		file.setModifiedAt(new Date());
 		file.setStatus(Status.RENAMED.toString());
 
 		// Commit the file
@@ -608,6 +617,64 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 
 		APIGetVersions response = new APIGetVersions(serverItem, true, 0, "");
+		return response;
+	}
+
+	@Override
+	public APIShareFolderResponse shareFolder(User user, Item item, List<String> emails) {
+
+		APIShareFolderResponse response;
+
+		Workspace workspace;
+		try {
+			workspace = this.doShareFolder(user, emails, item, false);
+			response = new APIShareFolderResponse(workspace, true, 0, "");
+		} catch (ShareProposalNotCreatedException e) {
+			response = new APIShareFolderResponse(null, false, 400, e.getMessage());
+		} catch (UserNotFoundException e) {
+			response = new APIShareFolderResponse(null, false, 404, e.getMessage());
+		}
+
+		return response;
+	}
+
+	@Override
+	public APIGetFolderMembersResponse getFolderMembers(User user, Item item) {
+
+		APIGetFolderMembersResponse response;
+
+		// Check the owner
+		try {
+			user = userDao.findById(user.getId());
+		} catch (NoResultReturnedDAOException e) {
+			logger.warn(e);
+			return new APIGetFolderMembersResponse(null, false, 404, e.toString());
+		} catch (DAOException e) {
+			logger.error(e);
+			return new APIGetFolderMembersResponse(null, false, 500, e.toString());
+		}
+
+		// Get folder metadata
+		try {
+			item = itemDao.findById(item.getId());
+		} catch (DAOException e) {
+			logger.error(e);
+			return new APIGetFolderMembersResponse(null, false, 500, e.toString());
+		}
+
+		if (item == null || !item.isFolder()) {
+			return new APIGetFolderMembersResponse(null, false, 404, "No folder found with the given ID.");
+		}
+		
+		List<UserWorkspace> members;
+		try {
+			members = this.doGetWorkspaceMembers(user, item.getWorkspace());
+		} catch (InternalServerError e) {
+			return new APIGetFolderMembersResponse(null, false, 500, e.toString());
+		}
+		
+		response = new APIGetFolderMembersResponse(members, true, 0, "");
+
 		return response;
 	}
 

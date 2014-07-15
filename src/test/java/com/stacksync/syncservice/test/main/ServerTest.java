@@ -16,13 +16,12 @@ public class ServerTest {
 				
 				@Override
 				public DaemonController getController() {
-					// TODO Auto-generated method stub
 					return null;
 				}
 				
 				@Override
 				public String[] getArguments() {
-					return new String[]{"/home/edgar/workspace/sync-service/config.properties"};
+					return new String[]{"/home/amoreno/projects/stacksync/sync-service/config.properties"};
 				}
 			};
 			

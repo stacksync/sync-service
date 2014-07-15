@@ -15,6 +15,8 @@ import java.util.UUID;
 import com.stacksync.commons.models.Chunk;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
 
 /**
@@ -226,7 +228,7 @@ public final class DAOUtil {
 		List<String> result;
 		
 		try {
-			Array arrayChunks = rs.getArray("chunks");
+			Array arrayChunks = rs.getArray(field);
 			String[] chunks = (String[]) arrayChunks.getArray();
 			result = Arrays.asList(chunks);
 			
@@ -281,6 +283,24 @@ public final class DAOUtil {
 		}
 
 		return metadata;
+	}
+	
+	public static UserWorkspace getUserWorkspaceFromResultSet(ResultSet result)
+			throws SQLException {
+
+		User user = new User();
+		user.setId(UUID.fromString(result.getString("id")));
+		user.setName(result.getString("name"));
+		user.setEmail(result.getString("email"));
+		
+		Workspace workspace = new Workspace();
+		workspace.setId(UUID.fromString(result.getString("workspace_id")));
+		
+		UserWorkspace userWorkspace = new UserWorkspace(user, workspace);
+		userWorkspace.setOwner(result.getBoolean("is_owner"));
+		userWorkspace.setJoinedAt(result.getDate("joined_at"));
+		
+		return userWorkspace;
 	}
 	
 	public static Chunk getChunkFromResultSet(ResultSet result) throws SQLException {

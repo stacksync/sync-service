@@ -12,6 +12,7 @@ import omq.exception.RemoteException;
 import org.apache.log4j.Logger;
 
 import com.stacksync.commons.models.CommitInfo;
+import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.notifications.CommitNotification;
@@ -22,11 +23,13 @@ import com.stacksync.syncservice.handler.Handler.Status;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
+import com.stacksync.syncservice.rpc.messages.APIGetFolderMembersResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.rpc.messages.APIResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
+import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
 import com.stacksync.syncservice.rpc.parser.IParser;
 import com.stacksync.syncservice.util.Constants;
 
@@ -384,6 +387,68 @@ public class XmlRpcSyncHandler {
 		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
 		return strResponse;
 	}
+	
+	
+	public String shareFolder(String strUserId, String strFolderId, List<String> emails){
+		
+		logger.debug("XMLRPC -> share_folder -->[User:" + strUserId + ", Folder ID:" + strFolderId
+				+ ", Emails: " + emails.toString() + "]");
+
+		Long folderId = null;
+		try {
+			folderId = Long.parseLong(strFolderId);
+		} catch (NumberFormatException ex) {
+		}
+
+		UUID userId = UUID.fromString(strUserId);
+
+		User user = new User();
+		user.setId(userId);
+
+		Item item = new Item();
+		item.setId(folderId);
+
+		APIShareFolderResponse response = this.apiHandler.shareFolder(user, item, emails);
+
+		if (response.getSuccess()) {
+			//FIXME: Do the user-workspace bindings before
+			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
+		}
+
+		String strResponse = response.toString();
+
+		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		return strResponse;
+		
+	}
+	
+public String getFolderMembers(String strUserId, String strFolderId){
+		
+		logger.debug("XMLRPC -> get_folder_members -->[User:" + strUserId + ", Folder ID:" + strFolderId + "]");
+
+		Long folderId = null;
+		try {
+			folderId = Long.parseLong(strFolderId);
+		} catch (NumberFormatException ex) {
+		}
+
+		UUID userId = UUID.fromString(strUserId);
+
+		User user = new User();
+		user.setId(userId);
+
+		Item item = new Item();
+		item.setId(folderId);
+
+		APIGetFolderMembersResponse response = this.apiHandler.getFolderMembers(user, item);
+
+		String strResponse = response.toString();
+
+		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		return strResponse;
+		
+	}
+	
 
 	public String getWorkspaceInfo(String strUserId, String strFileId) {
 
@@ -406,7 +471,7 @@ public class XmlRpcSyncHandler {
 
 		APIGetWorkspaceInfoResponse response = this.apiHandler.getWorkspaceInfo(user, item);
 
-		logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
+		logger.debug("XMLRPC -> resp --> [" + response.toString() + "]");
 		return response.toString();
 
 	}

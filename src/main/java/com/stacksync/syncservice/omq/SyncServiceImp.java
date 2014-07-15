@@ -154,13 +154,15 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		User user = new User();
 		user.setId(request.getUserId());
+		
+		Item item = new Item(request.getItemId());
 
 		// Create share proposal
-		Workspace workspace = getHandler().doCreateShareProposal(user, request.getEmails(), request.getFolderName(), request.isEncrypted());
+		Workspace workspace = getHandler().doShareFolder(user, request.getEmails(), item, request.isEncrypted());
 
 		// Create notification
 		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
-				request.getFolderName(), 0L, workspace.getOwner().getId(), workspace.getOwner().getName(),
+				workspace.getName(), 0L, workspace.getOwner().getId(), workspace.getOwner().getName(),
 				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
 
 		notification.setRequestId(request.getRequestId());

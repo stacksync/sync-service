@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
@@ -29,7 +30,7 @@ public interface SyncHandler {
 
 	public List<Workspace> doGetWorkspaces(User user) throws NoWorkspacesFoundException;
 
-	public Workspace doCreateShareProposal(User user, List<String> emails, String folderName, boolean isEncrypted)
+	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException;
 
 	public void doUpdateWorkspace(User user, Workspace workspace) throws UserNotFoundException,

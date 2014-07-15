@@ -28,5 +28,7 @@ public interface ItemDAO {
 	public ItemMetadata findByUserId(UUID serverUserId, Boolean includeDeleted) throws DAOException;
 
 	public ItemMetadata findItemVersionsById(Long id) throws DAOException;
+	
+	public List<String> migrateItem(Long itemId, UUID workspaceId) throws DAOException;
 
 }
