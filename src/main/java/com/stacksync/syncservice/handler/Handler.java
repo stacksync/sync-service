@@ -178,9 +178,6 @@ public class Handler {
 		if (sourceWorkspace == null){
 			throw new ShareProposalNotCreatedException("Workspace not found.");
 		}
-		if (sourceWorkspace.isShared()){
-			throw new ShareProposalNotCreatedException("Cannot share an already shared folder.");
-		}
 		
 		// Check the addressees
 		List<User> addressees = new ArrayList<User>();
