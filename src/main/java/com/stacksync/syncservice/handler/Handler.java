@@ -42,8 +42,7 @@ import com.stacksync.syncservice.util.Config;
 
 public class Handler {
 
-	private static final Logger logger = Logger.getLogger(Handler.class
-			.getName());
+	private static final Logger logger = Logger.getLogger(Handler.class.getName());
 
 	protected Connection connection;
 	protected WorkspaceDAO workspaceDAO;
@@ -51,15 +50,14 @@ public class Handler {
 	protected DeviceDAO deviceDao;
 	protected ItemDAO itemDao;
 	protected ItemVersionDAO itemVersionDao;
-	
+
 	protected StorageManager storageManager;
 
 	public enum Status {
 		NEW, DELETED, CHANGED, RENAMED, MOVED
 	};
 
-	public Handler(ConnectionPool pool) throws SQLException,
-			NoStorageManagerAvailable {
+	public Handler(ConnectionPool pool) throws SQLException, NoStorageManagerAvailable {
 		connection = pool.getConnection();
 
 		String dataSource = Config.getDatasource();
@@ -74,8 +72,8 @@ public class Handler {
 		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
 	}
 
-	public List<CommitInfo> doCommit(User user, Workspace workspace,
-			Device device, List<ItemMetadata> items) throws DAOException {
+	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items)
+			throws DAOException {
 
 		HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
 
@@ -131,14 +129,12 @@ public class Handler {
 				committed = true;
 			}
 
-			responseObjects.add(new CommitInfo(item.getVersion(), committed,
-					objectResponse));
+			responseObjects.add(new CommitInfo(item.getVersion(), committed, objectResponse));
 		}
 
 		return responseObjects;
 	}
-	
-	
+
 	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
 
@@ -153,7 +149,6 @@ public class Handler {
 			throw new ShareProposalNotCreatedException(e);
 		}
 
-
 		// Get folder metadata
 		try {
 			item = itemDao.findById(item.getId());
@@ -162,11 +157,10 @@ public class Handler {
 			throw new ShareProposalNotCreatedException(e);
 		}
 
-		if (item == null || !item.isFolder()){
+		if (item == null || !item.isFolder()) {
 			throw new ShareProposalNotCreatedException("No folder found with the given ID.");
 		}
-		
-		
+
 		// Get the source workspace
 		Workspace sourceWorkspace;
 		try {
@@ -175,10 +169,10 @@ public class Handler {
 			logger.error(e);
 			throw new ShareProposalNotCreatedException(e);
 		}
-		if (sourceWorkspace == null){
+		if (sourceWorkspace == null) {
 			throw new ShareProposalNotCreatedException("Workspace not found.");
 		}
-		
+
 		// Check the addressees
 		List<User> addressees = new ArrayList<User>();
 		for (String email : emails) {
@@ -202,11 +196,11 @@ public class Handler {
 		}
 
 		Workspace workspace;
-		
-		if (sourceWorkspace.isShared()){
+
+		if (sourceWorkspace.isShared()) {
 			workspace = sourceWorkspace;
-			
-		}else{
+
+		} else {
 			// Create the new workspace
 			String container = UUID.randomUUID().toString();
 
@@ -218,7 +212,7 @@ public class Handler {
 			workspace.setUsers(addressees);
 			workspace.setSwiftContainer(container);
 			workspace.setSwiftUrl(Config.getSwiftUrl() + "/" + user.getSwiftAccount());
-			
+
 			// Create container in Swift
 			try {
 				storageManager.createNewWorkspace(workspace);
@@ -237,7 +231,7 @@ public class Handler {
 				logger.error(e);
 				throw new ShareProposalNotCreatedException(e);
 			}
-			
+
 			// Grant user to container in Swift
 			try {
 				storageManager.grantUserToWorkspace(user, user, workspace);
@@ -245,7 +239,7 @@ public class Handler {
 				logger.error(e);
 				throw new ShareProposalNotCreatedException(e);
 			}
-			
+
 			// Migrate files to new workspace
 			List<String> chunks;
 			try {
@@ -254,13 +248,15 @@ public class Handler {
 				logger.error(e);
 				throw new ShareProposalNotCreatedException(e);
 			}
-			
+
 			// Move chunks to new container
-			for (String chunkName : chunks){
+			for (String chunkName : chunks) {
 				try {
 					storageManager.copyChunk(sourceWorkspace, workspace, chunkName);
 				} catch (ObjectNotFoundException e) {
-					logger.error(String.format("Chunk %s not found in container %s. Could not migrate to container %s.", chunkName, sourceWorkspace.getSwiftContainer(), workspace.getSwiftContainer()), e);
+					logger.error(String.format(
+							"Chunk %s not found in container %s. Could not migrate to container %s.", chunkName,
+							sourceWorkspace.getSwiftContainer(), workspace.getSwiftContainer()), e);
 				} catch (Exception e) {
 					logger.error(e);
 					throw new ShareProposalNotCreatedException(e);
@@ -268,7 +264,6 @@ public class Handler {
 			}
 		}
 
-		
 		// Add the addressees to the workspace
 		for (User addressee : addressees) {
 			try {
@@ -288,33 +283,184 @@ public class Handler {
 				throw new ShareProposalNotCreatedException(e);
 			}
 		}
-		
+
 		return workspace;
 	}
-	
-	
+
+	public void doUnshareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
+			throws ShareProposalNotCreatedException, UserNotFoundException {
+
+		// Check the owner
+		try {
+			user = userDao.findById(user.getId());
+		} catch (NoResultReturnedDAOException e) {
+			logger.warn(e);
+			throw new UserNotFoundException(e);
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		// Get folder metadata
+		try {
+			item = itemDao.findById(item.getId());
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		if (item == null || !item.isFolder()) {
+			throw new ShareProposalNotCreatedException("No folder found with the given ID.");
+		}
+
+		// Get the workspace
+		Workspace sourceWorkspace;
+		try {
+			sourceWorkspace = workspaceDAO.getById(item.getWorkspace().getId());
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+		if (sourceWorkspace == null) {
+			throw new ShareProposalNotCreatedException("Workspace not found.");
+		}
+		if (!sourceWorkspace.isShared()) {
+			throw new ShareProposalNotCreatedException("This workspace is not shared.");
+		}
+
+		// Check the addressees
+		List<User> addressees = new ArrayList<User>();
+		for (String email : emails) {
+			User addressee;
+			try {
+				addressee = userDao.getByEmail(email);
+				if (!addressee.getId().equals(user.getId())) {
+					addressees.add(addressee);
+				}
+
+			} catch (IllegalArgumentException e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			} catch (DAOException e) {
+				logger.warn(String.format("Email '%s' does not correspond with any user. ", email), e);
+			}
+		}
+
+		if (addressees.isEmpty()) {
+			throw new ShareProposalNotCreatedException("No addressees found");
+		}
+
+		// get workspace members
+		List<UserWorkspace> workspaceMembers;
+		try {
+			workspaceMembers = doGetWorkspaceMembers(user, sourceWorkspace);
+		} catch (InternalServerError e1) {
+			throw new ShareProposalNotCreatedException(e1.toString());
+		}
+
+		// remove users from workspace
+		List<User> usersToRemove = new ArrayList<User>();
+		
+		for (User userToRemove : addressees) {
+			for (UserWorkspace member : workspaceMembers) {
+				if (member.getUser().getEmail().equals(userToRemove.getEmail())) {
+					workspaceMembers.remove(member);
+					usersToRemove.add(userToRemove);
+					break;
+				}
+			}
+		}
+
+		if (workspaceMembers.size() <= 1) {
+			// All members have been removed from the workspace
+
+			Workspace defaultWorkspace;
+			try {
+				defaultWorkspace = workspaceDAO.getDefaultWorkspaceByUserId(user.getId());
+			} catch (DAOException e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException("Could not get default workspace");
+			}
+
+			// Migrate files to new workspace
+			List<String> chunks;
+			try {
+				chunks = itemDao.migrateItem(item.getId(), defaultWorkspace.getId());
+			} catch (Exception e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+
+			// Move chunks to new container
+			for (String chunkName : chunks) {
+				try {
+					storageManager.copyChunk(sourceWorkspace, defaultWorkspace, chunkName);
+				} catch (ObjectNotFoundException e) {
+					logger.error(String.format(
+							"Chunk %s not found in container %s. Could not migrate to container %s.", chunkName,
+							sourceWorkspace.getSwiftContainer(), defaultWorkspace.getSwiftContainer()), e);
+				} catch (Exception e) {
+					logger.error(e);
+					throw new ShareProposalNotCreatedException(e);
+				}
+			}
+			
+			// delete workspace
+			try {
+				workspaceDAO.delete(sourceWorkspace.getId());
+			} catch (DAOException e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+			
+			// delete container from swift
+			try {
+				storageManager.deleteWorkspace(defaultWorkspace);
+			} catch (Exception e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+
+		} else {
+			
+			for(User userToRemove : usersToRemove){
+				
+				try {
+					workspaceDAO.deleteUser(userToRemove, sourceWorkspace);
+				} catch (DAOException e) {
+					logger.error(e);
+					throw new ShareProposalNotCreatedException(e);
+				}
+				
+				try {
+					storageManager.removeUserToWorkspace(user, userToRemove, sourceWorkspace);
+				} catch (Exception e) {
+					logger.error(e);
+					throw new ShareProposalNotCreatedException(e);
+				}
+			}
+		}
+	}
+
 	public List<UserWorkspace> doGetWorkspaceMembers(User user, Workspace workspace) throws InternalServerError {
 
-		//TODO: check user permissions.
-		
+		// TODO: check user permissions.
+
 		List<UserWorkspace> members;
 		try {
 			members = workspaceDAO.getMembersById(workspace.getId());
-			
+
 		} catch (DAOException e) {
 			logger.error(e);
 			throw new InternalServerError(e);
 		}
 
-		if (members == null || members.isEmpty()){
+		if (members == null || members.isEmpty()) {
 			throw new InternalServerError("No members found in workspace.");
 		}
-		
+
 		return members;
 	}
-	
-
-	
 
 	public Connection getConnection() {
 		return this.connection;
@@ -324,8 +470,7 @@ public class Handler {
 	 * Private functions
 	 */
 
-	private void commitObject(ItemMetadata item, Workspace workspace,
-			Device device) throws CommitWrongVersionNoParent,
+	private void commitObject(ItemMetadata item, Workspace workspace, Device device) throws CommitWrongVersionNoParent,
 			CommitWrongVersion, CommitExistantVersion, DAOException {
 
 		Item serverItem = itemDao.findById(item.getId());
@@ -357,8 +502,7 @@ public class Handler {
 		}
 	}
 
-	private void saveNewObject(ItemMetadata metadata, Workspace workspace,
-			Device device) throws DAOException {
+	private void saveNewObject(ItemMetadata metadata, Workspace workspace, Device device) throws DAOException {
 		// Create workspace and parent instances
 		Long parentId = metadata.getParentId();
 		Item parent = null;
@@ -412,8 +556,8 @@ public class Handler {
 		}
 	}
 
-	private void saveNewVersion(ItemMetadata metadata, Item serverItem,
-			Workspace workspace, Device device) throws DAOException {
+	private void saveNewVersion(ItemMetadata metadata, Item serverItem, Workspace workspace, Device device)
+			throws DAOException {
 
 		beginTransaction();
 
@@ -439,8 +583,7 @@ public class Handler {
 
 			// TODO To Test!!
 			String status = metadata.getStatus();
-			if (status.equals(Status.RENAMED.toString())
-					|| status.equals(Status.MOVED.toString())
+			if (status.equals(Status.RENAMED.toString()) || status.equals(Status.MOVED.toString())
 					|| status.equals(Status.DELETED.toString())) {
 
 				serverItem.setFilename(metadata.getFilename());
@@ -450,8 +593,7 @@ public class Handler {
 					serverItem.setClientParentFileVersion(null);
 					serverItem.setParent(null);
 				} else {
-					serverItem.setClientParentFileVersion(metadata
-							.getParentVersion());
+					serverItem.setClientParentFileVersion(metadata.getParentVersion());
 					Item parent = itemDao.findById(parentFileId);
 					serverItem.setParent(parent);
 				}
@@ -468,8 +610,7 @@ public class Handler {
 		}
 	}
 
-	private void createChunks(List<String> chunksString,
-			ItemVersion objectVersion) throws IllegalArgumentException,
+	private void createChunks(List<String> chunksString, ItemVersion objectVersion) throws IllegalArgumentException,
 			DAOException {
 		if (chunksString != null) {
 			if (chunksString.size() > 0) {
@@ -486,37 +627,29 @@ public class Handler {
 		}
 	}
 
-	private void saveExistentVersion(Item serverObject,
-			ItemMetadata clientMetadata) throws CommitWrongVersion,
+	private void saveExistentVersion(Item serverObject, ItemMetadata clientMetadata) throws CommitWrongVersion,
 			CommitExistantVersion, DAOException {
 
-		ItemMetadata serverMetadata = this.getServerObjectVersion(serverObject,
-				clientMetadata.getVersion());
+		ItemMetadata serverMetadata = this.getServerObjectVersion(serverObject, clientMetadata.getVersion());
 
 		if (!clientMetadata.equals(serverMetadata)) {
 			throw new CommitWrongVersion("Invalid version.", serverObject);
 		}
 
-		boolean lastVersion = (serverObject.getLatestVersion()
-				.equals(clientMetadata.getVersion()));
+		boolean lastVersion = (serverObject.getLatestVersion().equals(clientMetadata.getVersion()));
 
 		if (!lastVersion) {
-			throw new CommitExistantVersion("This version already exists.",
-					serverObject, clientMetadata.getVersion());
+			throw new CommitExistantVersion("This version already exists.", serverObject, clientMetadata.getVersion());
 		}
 	}
 
-	private ItemMetadata getCurrentServerVersion(Item serverObject)
-			throws DAOException {
-		return getServerObjectVersion(serverObject,
-				serverObject.getLatestVersion());
+	private ItemMetadata getCurrentServerVersion(Item serverObject) throws DAOException {
+		return getServerObjectVersion(serverObject, serverObject.getLatestVersion());
 	}
 
-	private ItemMetadata getServerObjectVersion(Item serverObject,
-			long requestedVersion) throws DAOException {
+	private ItemMetadata getServerObjectVersion(Item serverObject, long requestedVersion) throws DAOException {
 
-		ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(
-				serverObject.getId(), requestedVersion);
+		ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(serverObject.getId(), requestedVersion);
 
 		return metadata;
 	}

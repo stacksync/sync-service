@@ -30,6 +30,7 @@ import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.rpc.messages.APIResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
+import com.stacksync.syncservice.rpc.messages.APIUnshareFolderResponse;
 import com.stacksync.syncservice.rpc.parser.IParser;
 import com.stacksync.syncservice.util.Constants;
 
@@ -52,7 +53,8 @@ public class XmlRpcSyncHandler {
 		}
 	}
 
-	public String getMetadata(String strUserId, String strItemId, String strIncludeChunks, String strVersion, String strIsFolder) {
+	public String getMetadata(String strUserId, String strItemId, String strIncludeChunks, String strVersion,
+			String strIsFolder) {
 
 		logger.debug(String.format("XMLRPC Request. getMetadata [userId: %s, fileId: %s, chunks: %s, version: %s]",
 				strUserId, strItemId, strIncludeChunks, strVersion));
@@ -62,7 +64,7 @@ public class XmlRpcSyncHandler {
 			fileId = Long.parseLong(strItemId);
 		} catch (NumberFormatException ex) {
 		}
-		
+
 		Boolean isFolder = Boolean.parseBoolean(strIsFolder);
 
 		Boolean includeChunks = Boolean.parseBoolean(strIncludeChunks);
@@ -329,9 +331,9 @@ public class XmlRpcSyncHandler {
 			fileId = Long.parseLong(strFileId);
 		} catch (NumberFormatException ex) {
 		}
-		
+
 		Boolean isFolder = Boolean.parseBoolean(strIsFolder);
-		
+
 		logger.debug("XMLRPC -> delete_metadata_file -->[User:" + strUserId + ", fileId:" + fileId + "]");
 
 		ItemMetadata object = new ItemMetadata();
@@ -387,12 +389,11 @@ public class XmlRpcSyncHandler {
 		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
 		return strResponse;
 	}
-	
-	
-	public String shareFolder(String strUserId, String strFolderId, List<String> emails){
-		
-		logger.debug("XMLRPC -> share_folder -->[User:" + strUserId + ", Folder ID:" + strFolderId
-				+ ", Emails: " + emails.toString() + "]");
+
+	public String shareFolder(String strUserId, String strFolderId, List<String> emails) {
+
+		logger.debug("XMLRPC -> share_folder -->[User:" + strUserId + ", Folder ID:" + strFolderId + ", Emails: "
+				+ emails.toString() + "]");
 
 		Long folderId = null;
 		try {
@@ -411,7 +412,40 @@ public class XmlRpcSyncHandler {
 		APIShareFolderResponse response = this.apiHandler.shareFolder(user, item, emails);
 
 		if (response.getSuccess()) {
-			//FIXME: Do the user-workspace bindings before
+			// FIXME: Do the user-workspace bindings before
+			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
+		}
+
+		String strResponse = response.toString();
+
+		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		return strResponse;
+
+	}
+	
+public String unshareFolder(String strUserId, String strFolderId, List<String> emails){
+		
+		logger.debug("XMLRPC -> unshare_folder --> [User:" + strUserId + ", Folder ID:" + strFolderId
+				+ ", Emails: " + emails.toString() + "]");
+
+		Long folderId = null;
+		try {
+			folderId = Long.parseLong(strFolderId);
+		} catch (NumberFormatException ex) {
+		}
+
+		UUID userId = UUID.fromString(strUserId);
+
+		User user = new User();
+		user.setId(userId);
+
+		Item item = new Item();
+		item.setId(folderId);
+
+		APIUnshareFolderResponse response = this.apiHandler.unshareFolder(user, item, emails);
+
+		if (response.getSuccess()) {
+			//FIXME: Do the user-workspace unbindings before
 			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
 		}
 
@@ -421,9 +455,9 @@ public class XmlRpcSyncHandler {
 		return strResponse;
 		
 	}
-	
-public String getFolderMembers(String strUserId, String strFolderId){
-		
+
+	public String getFolderMembers(String strUserId, String strFolderId) {
+
 		logger.debug("XMLRPC -> get_folder_members -->[User:" + strUserId + ", Folder ID:" + strFolderId + "]");
 
 		Long folderId = null;
@@ -446,9 +480,8 @@ public String getFolderMembers(String strUserId, String strFolderId){
 
 		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
 		return strResponse;
-		
+
 	}
-	
 
 	public String getWorkspaceInfo(String strUserId, String strFileId) {
 

@@ -33,6 +33,7 @@ import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
+import com.stacksync.syncservice.rpc.messages.APIUnshareFolderResponse;
 import com.stacksync.syncservice.util.Constants;
 
 public class SQLAPIHandler extends Handler implements APIHandler {
@@ -633,6 +634,23 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			response = new APIShareFolderResponse(null, false, 400, e.getMessage());
 		} catch (UserNotFoundException e) {
 			response = new APIShareFolderResponse(null, false, 404, e.getMessage());
+		}
+
+		return response;
+	}
+	
+	@Override
+	public APIUnshareFolderResponse unshareFolder(User user, Item item, List<String> emails) {
+
+		APIUnshareFolderResponse response;
+
+		try {
+			this.doUnshareFolder(user, emails, item, false);
+			response = new APIUnshareFolderResponse(null, true, 0, "");
+		} catch (ShareProposalNotCreatedException e) {
+			response = new APIUnshareFolderResponse(null, false, 400, e.getMessage());
+		} catch (UserNotFoundException e) {
+			response = new APIUnshareFolderResponse(null, false, 404, e.getMessage());
 		}
 
 		return response;

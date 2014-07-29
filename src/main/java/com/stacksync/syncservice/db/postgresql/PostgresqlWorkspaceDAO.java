@@ -202,6 +202,22 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 		executeUpdate(query, values);
 	}
+	
+	@Override
+	public void deleteUser(User user, Workspace workspace) throws DAOException {
+		
+		if (user == null || !user.isValid()) {
+			throw new IllegalArgumentException("User not valid");
+		} else if (workspace == null || !workspace.isValid()) {
+			throw new IllegalArgumentException("Workspace not valid");
+		}
+
+		Object[] values = { workspace.getId(), user.getId() };
+
+		String query = "DELETE FROM workspace_user WHERE workspace_id=?::uuid, user_id=?::uuid";
+
+		executeUpdate(query, values);
+	}
 
 	@Override
 	public Workspace getByItemId(Long itemId) throws DAOException {

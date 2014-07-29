@@ -23,6 +23,8 @@ public interface WorkspaceDAO {
 	public void update(User user, Workspace workspace) throws DAOException;
 
 	public void addUser(User user, Workspace workspace) throws DAOException;
+	
+	public void deleteUser(User user, Workspace workspace) throws DAOException;
 
 	public void delete(UUID id) throws DAOException;
 	

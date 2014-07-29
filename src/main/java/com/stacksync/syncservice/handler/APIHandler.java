@@ -14,6 +14,7 @@ import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
+import com.stacksync.syncservice.rpc.messages.APIUnshareFolderResponse;
 
 public interface APIHandler {
 	
@@ -34,6 +35,8 @@ public interface APIHandler {
 	public APIGetVersions getVersions(User user, ItemMetadata item);
 	
 	public APIShareFolderResponse shareFolder(User user, Item item, List<String> emails);
+	
+	public APIUnshareFolderResponse unshareFolder(User user, Item item, List<String> emails);
 	
 	public APIGetWorkspaceInfoResponse getWorkspaceInfo(User user, ItemMetadata item);
 	
