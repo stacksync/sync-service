@@ -416,7 +416,7 @@ public class XmlRpcSyncHandler {
 
 		if (response.getSuccess()) {
 			// FIXME: Do the user-workspace bindings before
-			this.bindUsersToWorkspace(response.getWorkspace());
+			this.bindUsersToWorkspace(response.getWorkspace(), folderId);
 		}
 
 		String strResponse = response.toString();
@@ -540,11 +540,11 @@ public class XmlRpcSyncHandler {
 		return response;
 	}
 	
-	private void bindUsersToWorkspace(Workspace workspace) {
+	private void bindUsersToWorkspace(Workspace workspace, Long folderId) {
 		
 		// Create notification
 		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
-				workspace.getName(), 0L, workspace.getOwner().getId(), workspace.getOwner().getName(),
+				workspace.getName(), folderId, workspace.getOwner().getId(), workspace.getOwner().getName(),
 				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
 
 		notification.setRequestId("");
