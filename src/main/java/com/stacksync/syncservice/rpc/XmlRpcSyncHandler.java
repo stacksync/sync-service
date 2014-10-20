@@ -15,7 +15,10 @@ import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
 import com.stacksync.commons.notifications.CommitNotification;
+import com.stacksync.commons.notifications.ShareProposalNotification;
+import com.stacksync.commons.omq.RemoteClient;
 import com.stacksync.commons.omq.RemoteWorkspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.handler.SQLAPIHandler;
@@ -413,7 +416,7 @@ public class XmlRpcSyncHandler {
 
 		if (response.getSuccess()) {
 			// FIXME: Do the user-workspace bindings before
-			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
+			this.bindUsersToWorkspace(response.getWorkspace());
 		}
 
 		String strResponse = response.toString();
@@ -423,7 +426,7 @@ public class XmlRpcSyncHandler {
 
 	}
 	
-public String unshareFolder(String strUserId, String strFolderId, List<String> emails){
+	public String unshareFolder(String strUserId, String strFolderId, List<String> emails){
 		
 		logger.debug("XMLRPC -> unshare_folder --> [User:" + strUserId + ", Folder ID:" + strFolderId
 				+ ", Emails: " + emails.toString() + "]");
@@ -431,8 +434,7 @@ public String unshareFolder(String strUserId, String strFolderId, List<String> e
 		Long folderId = null;
 		try {
 			folderId = Long.parseLong(strFolderId);
-		} catch (NumberFormatException ex) {
-		}
+		} catch (NumberFormatException ex) { }
 
 		UUID userId = UUID.fromString(strUserId);
 
@@ -537,7 +539,37 @@ public String unshareFolder(String strUserId, String strFolderId, List<String> e
 
 		return response;
 	}
+	
+	private void bindUsersToWorkspace(Workspace workspace) {
+		
+		// Create notification
+		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
+				workspace.getName(), 0L, workspace.getOwner().getId(), workspace.getOwner().getName(),
+				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
 
+		notification.setRequestId("");
+
+		// Send notification to owner
+		RemoteClient client;
+		try {
+			client = broker.lookupMulti(workspace.getOwner().getId().toString(), RemoteClient.class);
+			client.notifyShareProposal(notification);
+		} catch (RemoteException e1) {
+			logger.error(String.format("Could not notify user: '%s'", workspace.getOwner().getId()), e1);
+		}
+
+		// Send notifications to users
+		for (User addressee : workspace.getUsers()) {
+			try {
+				client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
+				client.notifyShareProposal(notification);
+			} catch (RemoteException e) {
+				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
+			}
+		}
+
+	}
+	
 	private void sendMessageToClients(String workspaceName, APIResponse generalResponse) {
 
 		CommitInfo info = generalResponse.getItem();
