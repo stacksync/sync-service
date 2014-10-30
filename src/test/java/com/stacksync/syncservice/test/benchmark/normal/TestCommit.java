@@ -14,7 +14,7 @@ import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.handler.Handler;
-import com.stacksync.syncservice.handler.SQLHandler;
+import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.test.benchmark.Constants;
 import com.stacksync.syncservice.util.Config;
 
@@ -75,7 +75,7 @@ public class TestCommit {
 
 		String datasource = Config.getDatasource();
 		ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
-		Handler handler = new SQLHandler(pool);
+		Handler handler = new SQLSyncHandler(pool);
 
 		String metadata = CommonFunctions.generateObjects(1, Constants.DEVICE_ID);
 		long startTotal = System.currentTimeMillis();

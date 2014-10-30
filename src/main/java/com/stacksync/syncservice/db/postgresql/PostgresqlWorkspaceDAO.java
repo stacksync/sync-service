@@ -11,8 +11,10 @@ import org.apache.log4j.Logger;
 
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.DAOError;
+import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
@@ -200,13 +202,32 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 		executeUpdate(query, values);
 	}
+	
+	@Override
+	public void deleteUser(User user, Workspace workspace) throws DAOException {
+		
+		if (user == null || !user.isValid()) {
+			throw new IllegalArgumentException("User not valid");
+		} else if (workspace == null || !workspace.isValid()) {
+			throw new IllegalArgumentException("Workspace not valid");
+		}
+
+		Object[] values = { workspace.getId(), user.getId() };
+
+		String query = "DELETE FROM workspace_user WHERE workspace_id=?::uuid, user_id=?::uuid";
+
+		executeUpdate(query, values);
+	}
 
 	@Override
 	public Workspace getByItemId(Long itemId) throws DAOException {
 		ResultSet resultSet = null;
 		Workspace workspace = null;
 
-		String query = "SELECT * FROM workspace w INNER JOIN item i ON w.id = i.workspace_id WHERE i.id = ?::uuid";
+		String query = "SELECT * FROM workspace w " +
+				" INNER JOIN workspace_user wu ON wu.workspace_id = w.id " +
+				" INNER JOIN item i ON w.id = i.workspace_id " +
+				" WHERE i.id = ?";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { itemId });
@@ -221,4 +242,32 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 		return workspace;
 	}
+	
+	@Override
+	public List<UserWorkspace> getMembersById(UUID workspaceId) throws DAOException {
+		ResultSet resultSet = null;
+		List<UserWorkspace> users = new ArrayList<UserWorkspace>();
+
+		String query = " SELECT u.*, CASE WHEN u.id=w.owner_id THEN True ELSE False END AS is_owner " +
+			" , wu.created_at AS joined_at, wu.workspace_id " + 
+			" FROM workspace w " + 
+			" INNER JOIN workspace_user wu ON wu.workspace_id = w.id " +
+			" INNER JOIN user1 u ON wu.user_id = u.id " +
+			" WHERE w.id = ?::uuid";
+
+		try {
+			resultSet = executeQuery(query, new Object[] { workspaceId });
+
+			while (resultSet.next()) {
+				UserWorkspace userWorkspace = DAOUtil.getUserWorkspaceFromResultSet(resultSet);
+				users.add(userWorkspace);
+			}
+		} catch (SQLException e) {
+			logger.error(e);
+			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
+		}
+
+		return users;
+	}
+	
 }

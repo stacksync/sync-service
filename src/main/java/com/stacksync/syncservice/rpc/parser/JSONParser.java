@@ -74,15 +74,15 @@ public class JSONParser implements IParser {
 	}
 
 	private JsonObject createGenericAPIResponse(APIResponse response) {
-		JsonObject jResponse = new JsonObject();
-		jResponse.addProperty("description", response.getDescription());
+		JsonObject jResponse;
 
 		if (!response.getSuccess()) {
+			jResponse = new JsonObject();
+			jResponse.addProperty("description", response.getDescription());
 			jResponse.addProperty("error", response.getErrorCode());
 		} else {
 			ItemMetadata file = response.getItem().getMetadata();
-			JsonObject metadata = this.parseItemMetadata(file);
-			jResponse.add("metadata", metadata);
+			jResponse = this.parseItemMetadata(file);
 		}
 
 		return jResponse;

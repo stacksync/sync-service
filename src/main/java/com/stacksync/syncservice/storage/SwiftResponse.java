@@ -24,6 +24,8 @@ public class SwiftResponse
     
     public static final String X_CONTAINER_WRITE = "X-Container-Write";
     
+    public static final String X_COPY_FROM = "X-Copy-From";
+    
     /** HTTP header token that is returned on a HEAD request against a Container.  The value of this header is the number of Objects in the Container **/
     public static final String X_CONTAINER_OBJECT_COUNT = "X-Container-Object-Count";
     

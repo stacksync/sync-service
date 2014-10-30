@@ -7,7 +7,7 @@ public class APIUserMetadata extends APIResponse {
 	private User user;
 
 	public APIUserMetadata(User user, Boolean success, int error, String description) {
-		super(null);
+		super();
 		this.success = success;
 		this.description = description;
 		this.errorCode = error;

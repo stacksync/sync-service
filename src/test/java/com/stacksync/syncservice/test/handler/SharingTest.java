@@ -23,7 +23,7 @@ import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
-import com.stacksync.syncservice.handler.SQLHandler;
+import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.util.Config;
 
 public class SharingTest {
@@ -43,7 +43,7 @@ public class SharingTest {
 		String datasource = Config.getDatasource();
 		ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
 
-		handler = new SQLHandler(pool);
+		handler = new SQLSyncHandler(pool);
 		DAOFactory factory = new DAOFactory(datasource);
 
 		Connection connection = pool.getConnection();
@@ -64,7 +64,7 @@ public class SharingTest {
 		// userDao.delete("aa");
 	}
 
-	@Test
+	/*@Test
 	public void createShareProposal() throws DAOException, ShareProposalNotCreatedException, UserNotFoundException {
 
 		user2 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
@@ -105,6 +105,6 @@ public class SharingTest {
 		workspace1.setParentItem(null);
 
 		handler.doUpdateWorkspace(user1, workspace1);
-	}
+	}*/
 
 }

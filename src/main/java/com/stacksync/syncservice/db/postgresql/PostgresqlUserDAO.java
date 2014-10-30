@@ -39,6 +39,10 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			logger.error(e);
 			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
 		}
+		
+		if (user == null){
+			throw new DAOException(DAOError.USER_NOT_FOUND);
+		}
 
 		return user;
 	}

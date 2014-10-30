@@ -6,7 +6,7 @@ import com.stacksync.commons.models.ItemMetadata;
 public class APICreateFolderResponse extends APIResponse {
 
 	public APICreateFolderResponse(ItemMetadata item, Boolean success, int error, String description) {
-		super(null);
+		super();
 		this.success = success;
 		this.errorCode = error;
 		this.description = description;
