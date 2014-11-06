@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.security.SecureRandom;
 import java.sql.Connection;
@@ -18,16 +19,11 @@ import org.apache.log4j.xml.DOMConfigurator;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.stacksync.commons.models.Chunk;
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.ItemVersion;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.rmiserveri.*;
 import com.stacksync.syncservice.rmiserver.*;
+import com.stacksync.syncservice.rmiclient.*;
 import com.stacksync.syncservice.util.Config;
 
 public class RMITest {
@@ -47,7 +43,8 @@ public class RMITest {
 
 		String dataSource = "postgresql";
 		DAOFactoryRMISer factory = new DAOFactoryRMISer(dataSource);
-		connection = ConnectionPoolFactoryRMISer.getConnectionPool(dataSource).getConnection();
+		connection = ConnectionPoolFactoryRMISer.getConnectionPool(dataSource)
+				.getConnection();
 		workspaceDAO = factory.getWorkspaceDao();
 		if (factory.getUserDao() != null) {
 			userDao = factory.getUserDao();
@@ -72,8 +69,8 @@ public class RMITest {
 
 	@Test
 	public void testCreateNewValidUser() throws IllegalArgumentException,
-			DAOException {
-		User user = new User();
+			DAOException, RemoteException {
+		UserRMI user = new UserRMI();
 		user.setName(nextString());
 		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
@@ -94,11 +91,11 @@ public class RMITest {
 
 	@Test
 	public void testCreateNewUserSameId() throws IllegalArgumentException,
-			DAOException {
+			DAOException, RemoteException {
 
 		UUID userId = UUID.randomUUID();
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setName(nextString());
 		user.setId(userId);
 		user.setEmail(nextString());
@@ -110,27 +107,23 @@ public class RMITest {
 		if (user.getId() == null) {
 			assertTrue("Could not retrieve the User ID", false);
 		} else {
-			User user2 = new User();
+			UserRMI user2 = new UserRMI();
 			user2.setName(nextString());
 			user2.setId(userId);
 			user2.setEmail(nextString());
 			user2.setQuotaLimit(2048);
 			user2.setQuotaUsed(1403);
 
-			try {
-				userDao.add(user2);
-				assertTrue("User should not have been created", false);
-			} catch (DAOException e) {
-				assertTrue(e.toString(), true);
-			}
+			userDao.add(user2);
+			assertTrue("User should not have been created", false);
 		}
 	}
 
 	@Test
 	public void testUpdateExistingUserOk() throws IllegalArgumentException,
-			DAOException {
+			DAOException, RemoteException {
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setName(nextString());
 		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
@@ -156,39 +149,29 @@ public class RMITest {
 			user.setQuotaLimit(newQuotaLimit);
 			user.setQuotaUsed(newQuotaUsed);
 
-			try {
-				userDao.add(user);
+			userDao.add(user);
 
-				User user2 = userDao.findById(id);
-				assertEquals(user, user2);
-
-			} catch (DAOException e) {
-				assertTrue(e.toString(), false);
-			}
+			UserRMI user2 = userDao.findById(id);
+			assertEquals(user, user2);
 		}
 	}
 
 	@Test
-	public void testGetNonExistingUserById() {
-		try {
-			User user = userDao.findById(UUID.randomUUID());
+	public void testGetNonExistingUserById() throws RemoteException {
+		UserRMI user = userDao.findById(UUID.randomUUID());
 
-			if (user == null) {
-				assertTrue(true);
-			} else {
-				assertTrue("User should not exist", false);
-			}
-
-		} catch (DAOException e) {
-			assertTrue(e.toString(), false);
+		if (user == null) {
+			assertTrue(true);
+		} else {
+			assertTrue("User should not exist", false);
 		}
 	}
 
 	@Test
 	public void testGetExistingUserById() throws IllegalArgumentException,
-			DAOException {
+			DAOException, RemoteException {
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setName(nextString());
 		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
@@ -201,21 +184,16 @@ public class RMITest {
 			assertTrue("Could not retrieve the User ID", false);
 		} else {
 
-			try {
-				User user2 = userDao.findById(user.getId());
+			UserRMI user2 = userDao.findById(user.getId());
 
-				if (user2 == null) {
-					assertTrue("User should exist", false);
+			if (user2 == null) {
+				assertTrue("User should exist", false);
+			} else {
+				if (user2.getId() != null && user2.isValid()) {
+					assertTrue(true);
 				} else {
-					if (user2.getId() != null && user2.isValid()) {
-						assertTrue(true);
-					} else {
-						assertTrue("User is not valid", false);
-					}
+					assertTrue("User is not valid", false);
 				}
-
-			} catch (DAOException e) {
-				assertTrue(e.toString(), false);
 			}
 		}
 	}
