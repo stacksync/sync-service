@@ -6,16 +6,16 @@ import java.util.UUID;
 import com.stacksync.commons.models.User;
 import com.stacksync.syncservice.rmiserveri.*;
 
-public class RmiClientMain {
+public class MainRMICli {
 	public static void main(String args[]) {
 		
 		try {
 			//String addServerURL = "rmi://" + args[0] + "/AddServer";
-			DeviceDAO addDeviceServer = (DeviceDAO) Naming.lookup("rmi://DeviceServer");
-			ItemDAO addItemServer = (ItemDAO) Naming.lookup("rmi://ItemServer");
-			ItemVersionDAO addItemVersionServer = (ItemVersionDAO) Naming.lookup("rmi://ItemVersionServer");
-			UserDAO addUserServer = (UserDAO) Naming.lookup("rmi://UserServer");
-			WorkspaceDAO addWorkspaceServer = (WorkspaceDAO) Naming.lookup("rmi://WorkspaceServer");
+			DeviceDAORMISer addDeviceServer = (DeviceDAORMISer) Naming.lookup("rmi://DeviceServer");
+			ItemDAORMISer addItemServer = (ItemDAORMISer) Naming.lookup("rmi://ItemServer");
+			ItemVersionDAORMISer addItemVersionServer = (ItemVersionDAORMISer) Naming.lookup("rmi://ItemVersionServer");
+			UserDAORMISer addUserServer = (UserDAORMISer) Naming.lookup("rmi://UserServer");
+			WorkspaceDAORMISer addWorkspaceServer = (WorkspaceDAORMISer) Naming.lookup("rmi://WorkspaceServer");
 			
 			User user = new User();
 			user.setName("Laura");

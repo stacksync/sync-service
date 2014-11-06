@@ -15,16 +15,16 @@ import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
 //import com.stacksync.syncservice.db.DAOError;
 //import com.stacksync.syncservice.db.DAOUtil;
-import com.stacksync.syncservice.db.ItemVersionDAO;
+import com.stacksync.syncservice.rmiserveri.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public class PostgresqlItemVersionDao extends UnicastRemoteObject implements
-		ItemVersionDAO {
+public class PostgresqlItemVersionDaoRMISer extends UnicastRemoteObject implements
+		ItemVersionDAORMISer {
 
 	// private static final Logger logger =
 	// Logger.getLogger(PostgresqlItemVersionDao.class.getName());
 
-	public PostgresqlItemVersionDao() throws RemoteException {
+	public PostgresqlItemVersionDaoRMISer() throws RemoteException {
 		super();
 	}
 

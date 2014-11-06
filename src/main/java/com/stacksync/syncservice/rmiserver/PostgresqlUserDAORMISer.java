@@ -16,15 +16,15 @@ import java.util.UUID;
 
 import com.stacksync.commons.models.User;
 //import com.stacksync.syncservice.db.DAOError;
-import com.stacksync.syncservice.db.UserDAO;
+import com.stacksync.syncservice.rmiserveri.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 //import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 
-public class PostgresqlUserDAO extends UnicastRemoteObject implements UserDAO {
+public class PostgresqlUserDAORMISer extends UnicastRemoteObject implements UserDAORMISer {
 //	private static final Logger logger = Logger
 //			.getLogger(PostgresqlUserDAO.class.getName());
 
-	public PostgresqlUserDAO() throws RemoteException {
+	public PostgresqlUserDAORMISer() throws RemoteException {
 	}
 
 	@Override

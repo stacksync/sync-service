@@ -7,7 +7,7 @@ import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public interface ItemVersionDAO {
+public interface ItemVersionDAORMISer {
 
 	public ItemMetadata findByItemIdAndVersion(Long id, Long version) throws DAOException;;
 

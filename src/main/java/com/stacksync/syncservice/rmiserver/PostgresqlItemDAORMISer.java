@@ -15,16 +15,16 @@ import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 //import com.stacksync.syncservice.db.DAOError;
 //import com.stacksync.syncservice.db.DAOUtil;
-import com.stacksync.syncservice.db.ItemDAO;
+import com.stacksync.syncservice.rmiserveri.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 //import com.stacksync.syncservice.handler.Handler.Status;
 
-public class PostgresqlItemDAO extends UnicastRemoteObject implements ItemDAO {
+public class PostgresqlItemDAORMISer extends UnicastRemoteObject implements ItemDAORMISer {
 	// private static final Logger logger = Logger
 	// .getLogger(PostgresqlItemDAO.class.getName());
 
-	public PostgresqlItemDAO() throws RemoteException {
+	public PostgresqlItemDAORMISer() throws RemoteException {
 		super();
 	}
 

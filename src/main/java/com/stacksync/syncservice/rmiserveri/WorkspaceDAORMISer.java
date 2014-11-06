@@ -8,7 +8,7 @@ import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public interface WorkspaceDAO {
+public interface WorkspaceDAORMISer {
 
 	public Workspace getById(UUID id) throws DAOException;
 

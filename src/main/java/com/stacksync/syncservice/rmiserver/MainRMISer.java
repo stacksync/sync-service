@@ -3,15 +3,15 @@ package com.stacksync.syncservice.rmiserver;
 import java.rmi.Naming;
 import java.rmi.registry.LocateRegistry;
 
-public class PostgresqlDAOmain {
+public class MainRMISer {
 	public static void main(String args[]) {
 		try {
 			LocateRegistry.createRegistry(1099);
-			PostgresqlDeviceDAO postgresqlDeviceDAO = new PostgresqlDeviceDAO();
-			PostgresqlItemDAO postgresqlItemDAO = new PostgresqlItemDAO();
-			PostgresqlItemVersionDao postgresqlItemVersionDao = new PostgresqlItemVersionDao();
-			PostgresqlUserDAO postgresqlUserDAO = new PostgresqlUserDAO();
-			PostgresqlWorkspaceDAO postgresqlWorkspaceDAO = new PostgresqlWorkspaceDAO();
+			PostgresqlDeviceDAORMISer postgresqlDeviceDAO = new PostgresqlDeviceDAORMISer();
+			PostgresqlItemDAORMISer postgresqlItemDAO = new PostgresqlItemDAORMISer();
+			PostgresqlItemVersionDaoRMISer postgresqlItemVersionDao = new PostgresqlItemVersionDaoRMISer();
+			PostgresqlUserDAORMISer postgresqlUserDAO = new PostgresqlUserDAORMISer();
+			PostgresqlWorkspaceDAORMISer postgresqlWorkspaceDAO = new PostgresqlWorkspaceDAORMISer();
 			System.out.println("sdfsdfsdf-1");
 			Naming.rebind("DeviceServer", postgresqlDeviceDAO);
 			Naming.rebind("ItemServer", postgresqlItemDAO);

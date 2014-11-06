@@ -13,12 +13,12 @@ import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoRowsAffectedDAOException;
 
-public class PostgresqlDAO {
-	private static final Logger logger = Logger.getLogger(PostgresqlDAO.class
+public class PostgresqlDAORMISer {
+	private static final Logger logger = Logger.getLogger(PostgresqlDAORMISer.class
 			.getName());
 	protected Connection connection;
 
-	public PostgresqlDAO() {
+	public PostgresqlDAORMISer() {
 	}
 
 	protected ResultSet executeQuery(String query, Object[] values)

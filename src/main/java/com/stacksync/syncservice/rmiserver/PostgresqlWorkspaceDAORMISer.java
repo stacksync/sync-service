@@ -17,17 +17,17 @@ import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
 //import com.stacksync.syncservice.db.DAOError;
 //import com.stacksync.syncservice.db.DAOUtil;
-import com.stacksync.syncservice.db.WorkspaceDAO;
+import com.stacksync.syncservice.rmiserveri.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 //import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 
-public class PostgresqlWorkspaceDAO extends UnicastRemoteObject implements
-		WorkspaceDAO {
+public class PostgresqlWorkspaceDAORMISer extends UnicastRemoteObject implements
+		WorkspaceDAORMISer {
 
 	// private static final Logger logger =
 	// Logger.getLogger(PostgresqlWorkspaceDAO.class.getName());
 
-	public PostgresqlWorkspaceDAO() throws RemoteException {
+	public PostgresqlWorkspaceDAORMISer() throws RemoteException {
 		super();
 	}
 

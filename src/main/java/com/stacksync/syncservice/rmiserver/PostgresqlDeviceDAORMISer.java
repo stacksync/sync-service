@@ -11,17 +11,17 @@ import java.util.UUID;
 
 import com.stacksync.commons.models.Device;
 //import com.stacksync.commons.models.User;
-import com.stacksync.syncservice.db.DeviceDAO;
+import com.stacksync.syncservice.rmiserveri.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 //import com.stacksync.syncservice.util.Constants;
 
-public class PostgresqlDeviceDAO extends UnicastRemoteObject implements
-		DeviceDAO {
+public class PostgresqlDeviceDAORMISer extends UnicastRemoteObject implements
+		DeviceDAORMISer {
 
 //	private static final Logger logger = Logger
 //			.getLogger(PostgresqlDeviceDAO.class.getName());
 
-	public PostgresqlDeviceDAO() throws RemoteException {
+	public PostgresqlDeviceDAORMISer() throws RemoteException {
 		super();
 	}
 
