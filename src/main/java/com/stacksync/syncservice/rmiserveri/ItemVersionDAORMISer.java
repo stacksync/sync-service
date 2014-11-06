@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.rmiserveri;
 
+import java.rmi.Remote;
 import java.util.List;
 
 import com.stacksync.commons.models.Chunk;
@@ -7,7 +8,7 @@ import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public interface ItemVersionDAORMISer {
+public interface ItemVersionDAORMISer extends Remote {
 
 	public ItemMetadata findByItemIdAndVersion(Long id, Long version) throws DAOException;;
 

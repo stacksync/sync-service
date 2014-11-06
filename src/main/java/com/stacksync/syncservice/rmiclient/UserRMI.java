@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.rmiclient;
 
 import java.io.Serializable;
+import java.rmi.Remote;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -8,7 +9,7 @@ import java.util.UUID;
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.Workspace;
 
-public class UserRMI implements Serializable{
+public class UserRMI implements Serializable, Remote {
 
 	private static final long serialVersionUID = -8827608629982195900L;
 

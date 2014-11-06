@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.rmiserveri;
 
+import java.rmi.Remote;
 import java.util.List;
 import java.util.UUID;
 
@@ -7,7 +8,7 @@ import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public interface ItemDAORMISer {
+public interface ItemDAORMISer extends Remote {
 	public Item findById(Long id) throws DAOException;
 
 	public void add(Item item) throws DAOException;

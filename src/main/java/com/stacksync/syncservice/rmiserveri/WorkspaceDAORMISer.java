@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.rmiserveri;
 
+import java.rmi.Remote;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,7 +9,7 @@ import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public interface WorkspaceDAORMISer {
+public interface WorkspaceDAORMISer extends Remote {
 
 	public Workspace getById(UUID id) throws DAOException;
 

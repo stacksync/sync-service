@@ -13,6 +13,10 @@ import java.util.UUID;
 
 //import org.apache.log4j.Logger;
 
+
+
+
+import com.stacksync.commons.models.User;
 //import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.rmiclient.*;
 import com.stacksync.syncservice.rmiserveri.*;
@@ -29,7 +33,7 @@ public class PostgresqlUserDAORMISer extends UnicastRemoteObject implements
 	}
 
 	@Override
-	public UserRMI findById(UUID userID) throws DAOException {
+	public UserRMI findById(UUID userID) {
 		// ResultSet resultSet = null;
 		UserRMI user = new UserRMI();
 		user.setName("Laura");
@@ -50,14 +54,14 @@ public class PostgresqlUserDAORMISer extends UnicastRemoteObject implements
 		 * DAOException(DAOError.INTERNAL_SERVER_ERROR); }
 		 * 
 		 * if (user == null) { throw new DAOException(DAOError.USER_NOT_FOUND);
-		 * }
-		 */
+		 * }*/
+		 
 
 		return user;
 	}
 
 	@Override
-	public UserRMI getByEmail(String email) throws DAOException {
+	public UserRMI getByEmail(String email) {
 
 		// ResultSet resultSet = null;
 		UserRMI user = null;
@@ -78,7 +82,7 @@ public class PostgresqlUserDAORMISer extends UnicastRemoteObject implements
 	}
 
 	@Override
-	public List<UserRMI> findAll() throws DAOException {
+	public List<UserRMI> findAll() {
 
 		// ResultSet resultSet = null;
 		List<UserRMI> list = new ArrayList<UserRMI>();
@@ -95,7 +99,7 @@ public class PostgresqlUserDAORMISer extends UnicastRemoteObject implements
 	}
 
 	@Override
-	public void add(UserRMI user) throws DAOException {
+	public void add(UserRMI user) {
 		/*
 		 * if (!user.isValid()) { throw new
 		 * IllegalArgumentException("User attributes not set"); }
@@ -115,7 +119,7 @@ public class PostgresqlUserDAORMISer extends UnicastRemoteObject implements
 	}
 
 	@Override
-	public void update(UserRMI user) throws DAOException {
+	public void update(UserRMI user) {
 		/*
 		 * if (user.getId() == null || !user.isValid()) { throw new
 		 * IllegalArgumentException("User attributes not set"); }
@@ -134,7 +138,7 @@ public class PostgresqlUserDAORMISer extends UnicastRemoteObject implements
 	}
 
 	@Override
-	public void delete(UUID userID) throws DAOException {
+	public void delete(UUID userID) {
 		/*
 		 * Object[] values = { userID };
 		 * 
@@ -155,7 +159,7 @@ public class PostgresqlUserDAORMISer extends UnicastRemoteObject implements
 	 * user.setQuotaUsed(resultSet.getInt("quota_used")); return user; }
 	 */
 	@Override
-	public List<UserRMI> findByItemId(Long itemId) throws DAOException {
+	public List<UserRMI> findByItemId(Long itemId) {
 		ArrayList<UserRMI> users = new ArrayList<UserRMI>();
 		/*
 		 * Object[] values = { itemId };
