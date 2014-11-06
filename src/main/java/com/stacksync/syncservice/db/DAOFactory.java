@@ -21,34 +21,24 @@ public class DAOFactory {
 		this.type = type;
 	}
 
-	public WorkspaceDAO getWorkspaceDao() {
-		return new PostgresqlWorkspaceDAO();
+	public WorkspaceDAO getWorkspaceDao(Connection connection) {
+		return new PostgresqlWorkspaceDAO(connection);
 	}
 
-	public UserDAO getUserDao() throws RemoteException {
-		try {
-//			LocateRegistry.createRegistry(1099);
-//			PostgresqlUserDAO addServerImpl = new PostgresqlUserDAO();
-//			// System.out.println("sdfsdfsdf");
-//			Naming.rebind("AddServer", addServerImpl);
-			return (UserDAO) Naming.lookup("rmi://AddServer");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
+	public UserDAO getUserDao(Connection connection) {
+		return new PostgresqlUserDAO(connection);
 	}
 
-	public ItemDAO getItemDAO() {
-		return new PostgresqlItemDAO();
+	public ItemDAO getItemDAO(Connection connection) {
+		return new PostgresqlItemDAO(connection);
 	}
 
-	public ItemVersionDAO getItemVersionDAO() {
-		return new PostgresqlItemVersionDao();
+	public ItemVersionDAO getItemVersionDAO(Connection connection) {
+		return new PostgresqlItemVersionDao(connection);
 	}
 
-	public DeviceDAO getDeviceDAO() {
-		return new PostgresqlDeviceDAO();
+	public DeviceDAO getDeviceDAO(Connection connection) {
+		return new PostgresqlDeviceDAO(connection);
 	}
 
 	public String getType() {

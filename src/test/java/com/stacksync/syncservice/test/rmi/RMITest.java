@@ -37,7 +37,7 @@ import com.stacksync.syncservice.util.Config;
 
 public class RMITest {
 
-	// private static Connection connection;
+	private static Connection connection;
 	private static WorkspaceDAO workspaceDAO;
 	private static UserDAO userDao;
 	private static ItemDAO objectDao;

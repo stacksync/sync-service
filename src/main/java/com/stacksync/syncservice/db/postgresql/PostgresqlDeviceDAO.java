@@ -17,8 +17,8 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 
 	private static final Logger logger = Logger.getLogger(PostgresqlDeviceDAO.class.getName());
 
-	public PostgresqlDeviceDAO() {
-		super();
+	public PostgresqlDeviceDAO(Connection connection) {
+		super(connection);
 	}
 
 	@Override
