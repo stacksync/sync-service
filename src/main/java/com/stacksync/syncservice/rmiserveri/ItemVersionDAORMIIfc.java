@@ -1,26 +1,24 @@
 package com.stacksync.syncservice.rmiserveri;
 
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.List;
 
-import com.stacksync.commons.models.Chunk;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.ItemVersion;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.rmiclient.*;
 
 public interface ItemVersionDAORMIIfc extends Remote {
 
-	public ItemMetadata findByItemIdAndVersion(Long id, Long version) throws DAOException;;
+	public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version) throws RemoteException;
 
-	public void add(ItemVersion itemVersion) throws DAOException;
+	public void add(ItemVersionRMI itemVersion) throws RemoteException;
 
-	public void insertChunk(Long itemVersionId, Long chunkId, Integer order) throws DAOException;
+	public void insertChunk(Long itemVersionId, Long chunkId, Integer order) throws RemoteException;
 
-	public void insertChunks(List<Chunk> chunks, long itemVersionId) throws DAOException;
+	public void insertChunks(List<ChunkRMI> chunks, long itemVersionId) throws RemoteException;
 
-	public List<Chunk> findChunks(Long itemVersionId) throws DAOException;
+	public List<ChunkRMI> findChunks(Long itemVersionId) throws RemoteException;
 
-	public void update(ItemVersion itemVersion) throws DAOException;
+	public void update(ItemVersionRMI itemVersion) throws RemoteException;
 
-	public void delete(ItemVersion itemVersion) throws DAOException;
+	public void delete(ItemVersionRMI itemVersion) throws RemoteException;
 }

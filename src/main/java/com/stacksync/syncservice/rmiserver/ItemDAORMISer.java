@@ -2,97 +2,85 @@ package com.stacksync.syncservice.rmiserver;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-//import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-//import org.apache.log4j.Logger;
-
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
-//import com.stacksync.syncservice.db.DAOError;
-//import com.stacksync.syncservice.db.DAOUtil;
+import com.stacksync.syncservice.rmiclient.*;
 import com.stacksync.syncservice.rmiserveri.*;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
-
-//import com.stacksync.syncservice.handler.Handler.Status;
 
 public class ItemDAORMISer extends UnicastRemoteObject implements ItemDAORMIIfc {
-	// private static final Logger logger = Logger
-	// .getLogger(PostgresqlItemDAO.class.getName());
 
 	public ItemDAORMISer() throws RemoteException {
 		super();
 	}
 
 	@Override
-	public Item findById(Long item1ID) throws DAOException {
-		Item item = null;
+	public ItemRMI findById(Long item1ID) throws RemoteException {
+		ItemRMI item = null;
 
 		return item;
 	}
 
 	@Override
-	public void add(Item item) throws DAOException {
+	public void add(ItemRMI item) throws RemoteException {
 
 	}
 
 	@Override
-	public void put(Item item) throws DAOException {
+	public void put(ItemRMI item) throws RemoteException {
 
 	}
 
 	@Override
-	public void update(Item item) throws DAOException {
+	public void update(ItemRMI item) throws RemoteException {
 
 	}
 
 	@Override
-	public void delete(Long id) throws DAOException {
+	public void delete(Long id) throws RemoteException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId)
-			throws DAOException {
+	public List<ItemMetadataRMI> getItemsByWorkspaceId(UUID workspaceId)
+			throws RemoteException {
 
-		List<ItemMetadata> items = null;
+		List<ItemMetadataRMI> items = null;
 
 		return items;
 	}
 
 	@Override
-	public List<ItemMetadata> getItemsById(Long id) throws DAOException {
-		List<ItemMetadata> list = new ArrayList<ItemMetadata>();
+	public List<ItemMetadataRMI> getItemsById(Long id) throws RemoteException {
+		List<ItemMetadataRMI> list = new ArrayList<ItemMetadataRMI>();
 
 		return list;
 	}
 
 	@Override
-	public ItemMetadata findById(Long id, Boolean includeList, Long version,
-			Boolean includeDeleted, Boolean includeChunks) throws DAOException {
-		ItemMetadata item = null;
+	public ItemMetadataRMI findById(Long id, Boolean includeList, Long version,
+			Boolean includeDeleted, Boolean includeChunks) throws RemoteException {
+		ItemMetadataRMI item = null;
 
 		return item;
 	}
 
 	@Override
-	public ItemMetadata findByUserId(UUID userId, Boolean includeDeleted)
-			throws DAOException {
+	public ItemMetadataRMI findByUserId(UUID userId, Boolean includeDeleted)
+			throws RemoteException {
 		// TODO: check include_deleted
-		ItemMetadata rootMetadata = new ItemMetadata();
+		ItemMetadataRMI rootMetadata = new ItemMetadataRMI();
 
 		return rootMetadata;
 	}
 
 	@Override
-	public ItemMetadata findItemVersionsById(Long fileId) throws DAOException {
+	public ItemMetadataRMI findItemVersionsById(Long fileId) throws RemoteException {
 		// TODO: check include_deleted
-		ItemMetadata rootMetadata = new ItemMetadata();
+		ItemMetadataRMI rootMetadata = new ItemMetadataRMI();
 
 		return rootMetadata;
 	}
@@ -105,7 +93,7 @@ public class ItemDAORMISer extends UnicastRemoteObject implements ItemDAORMIIfc 
 
 	@Override
 	public List<String> migrateItem(Long itemId, UUID workspaceId)
-			throws DAOException {
+			throws RemoteException {
 
 		List<String> chunksToMigrate = null;
 
@@ -113,8 +101,7 @@ public class ItemDAORMISer extends UnicastRemoteObject implements ItemDAORMIIfc 
 
 	}
 
-	private List<String> getChunksToMigrate(Long itemId) throws DAOException,
-			SQLException {
+	private List<String> getChunksToMigrate(Long itemId) throws RemoteException {
 
 		List<String> chunksList = null;
 

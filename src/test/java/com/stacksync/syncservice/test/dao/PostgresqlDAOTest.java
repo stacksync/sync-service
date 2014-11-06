@@ -1,4 +1,4 @@
-/*package com.stacksync.syncservice.test.dao;
+package com.stacksync.syncservice.test.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -381,4 +381,3 @@ public class PostgresqlDAOTest {
 	}
 
 }
-*/

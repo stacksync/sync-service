@@ -2,73 +2,60 @@ package com.stacksync.syncservice.rmiserver;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-//import java.sql.Connection;
-//import java.sql.ResultSet;
-//import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-//import org.apache.log4j.Logger;
-
-import com.stacksync.commons.models.Chunk;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.ItemVersion;
-//import com.stacksync.syncservice.db.DAOError;
-//import com.stacksync.syncservice.db.DAOUtil;
+import com.stacksync.syncservice.rmiclient.*;
 import com.stacksync.syncservice.rmiserveri.*;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public class ItemVersionDAORMISer extends UnicastRemoteObject implements
 		ItemVersionDAORMIIfc {
-
-	// private static final Logger logger =
-	// Logger.getLogger(PostgresqlItemVersionDao.class.getName());
 
 	public ItemVersionDAORMISer() throws RemoteException {
 		super();
 	}
 
 	@Override
-	public ItemMetadata findByItemIdAndVersion(Long id, Long version)
-			throws DAOException {
+	public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version)
+			throws RemoteException {
 
-		ItemMetadata metadata = null;
+		ItemMetadataRMI metadata = null;
 
 		return metadata;
 	}
 
 	@Override
-	public void add(ItemVersion itemVersion) throws DAOException {
+	public void add(ItemVersionRMI itemVersion) throws RemoteException {
 
 	}
 
 	@Override
-	public void update(ItemVersion itemVersion) throws DAOException {
+	public void update(ItemVersionRMI itemVersion) throws RemoteException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void delete(ItemVersion itemVersion) throws DAOException {
+	public void delete(ItemVersionRMI itemVersion) throws RemoteException {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void insertChunk(Long itemVersionId, Long chunkId, Integer order)
-			throws DAOException {
+			throws RemoteException {
 
 	}
 
 	@Override
-	public void insertChunks(List<Chunk> chunks, long itemVersionId)
-			throws DAOException {
+	public void insertChunks(List<ChunkRMI> chunks, long itemVersionId)
+			throws RemoteException {
 
 	}
 
 	@Override
-	public List<Chunk> findChunks(Long itemVersionId) throws DAOException {
-		List<Chunk> chunks = new ArrayList<Chunk>();
+	public List<ChunkRMI> findChunks(Long itemVersionId) throws RemoteException {
+		List<ChunkRMI> chunks = new ArrayList<ChunkRMI>();
 
 		return chunks;
 	}

@@ -6,14 +6,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.log4j.Logger;
-
 import com.stacksync.syncservice.rmiclient.*;
 import com.stacksync.syncservice.rmiserveri.*;
 
 public class UserDAORMISer extends UnicastRemoteObject implements
 		UserDAORMIIfc {
-	private static final Logger logger = Logger.getLogger(UserDAORMISer.class.getName());
 	
 	List<UserRMI> llistat;
 

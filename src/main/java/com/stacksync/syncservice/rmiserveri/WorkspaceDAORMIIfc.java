@@ -1,34 +1,32 @@
 package com.stacksync.syncservice.rmiserveri;
 
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.List;
 import java.util.UUID;
 
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.UserWorkspace;
-import com.stacksync.commons.models.Workspace;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.rmiclient.*;
 
 public interface WorkspaceDAORMIIfc extends Remote {
 
-	public Workspace getById(UUID id) throws DAOException;
+	public WorkspaceRMI getById(UUID id) throws RemoteException;
 
-	public List<Workspace> getByUserId(UUID userId) throws DAOException;
+	public List<WorkspaceRMI> getByUserId(UUID userId) throws RemoteException;
 	
-	public Workspace getDefaultWorkspaceByUserId(UUID userId) throws DAOException;
+	public WorkspaceRMI getDefaultWorkspaceByUserId(UUID userId) throws RemoteException;
 	
-	public Workspace getByItemId(Long itemId) throws DAOException;
+	public WorkspaceRMI getByItemId(Long itemId) throws RemoteException;
 
-	public void add(Workspace workspace) throws DAOException;
+	public void add(WorkspaceRMI workspace) throws RemoteException;
 
-	public void update(User user, Workspace workspace) throws DAOException;
+	public void update(UserRMI user, WorkspaceRMI workspace) throws RemoteException;
 
-	public void addUser(User user, Workspace workspace) throws DAOException;
+	public void addUser(UserRMI user, WorkspaceRMI workspace) throws RemoteException;
 	
-	public void deleteUser(User user, Workspace workspace) throws DAOException;
+	public void deleteUser(UserRMI user, WorkspaceRMI workspace) throws RemoteException;
 
-	public void delete(UUID id) throws DAOException;
+	public void delete(UUID id) throws RemoteException;
 	
-	public List<UserWorkspace> getMembersById(UUID workspaceId) throws DAOException;
+	public List<UserWorkspaceRMI> getMembersById(UUID workspaceId) throws RemoteException;
 
 }
