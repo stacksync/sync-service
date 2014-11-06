@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.db;
 
+import com.stacksync.commons.models.ABEItemMetadata;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,6 +21,8 @@ public interface ItemDAO {
 
 	// ItemMetadata information
 	public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId) throws DAOException;
+	
+        public List<ItemMetadata> getABEItemsByWorkspaceId(UUID workspaceId) throws DAOException;
 
 	public List<ItemMetadata> getItemsById(Long id) throws DAOException;
 

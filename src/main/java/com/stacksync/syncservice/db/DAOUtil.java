@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.db;
 
+import com.stacksync.commons.models.ABEItemMetadata;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
@@ -261,6 +262,35 @@ public final class DAOUtil {
 			throws SQLException {
 
 		ItemMetadata metadata = new ItemMetadata();
+		metadata.setId(getLongFromResultSet(result, "item_id"));
+		metadata.setParentId(getLongFromResultSet(result, "parent_id"));
+		metadata.setParentVersion((getLongFromResultSet(result, "client_parent_file_version")));
+		metadata.setDeviceId(UUID.fromString(result.getString("device_id")));
+		metadata.setWorkspaceId(UUID.fromString(result.getString("workspace_id")));
+		metadata.setFilename(result.getString("filename"));
+		metadata.setVersion(result.getLong("version"));
+		metadata.setIsFolder(result.getBoolean("is_folder"));
+		metadata.setStatus(result.getString("status"));
+		metadata.setMimetype(result.getString("mimetype"));
+		metadata.setChecksum(result.getLong("checksum"));
+		metadata.setSize(result.getLong("size"));
+		metadata.setModifiedAt(result.getTimestamp("modified_at"));
+		
+		metadata.setLevel(getIntFromResultSet(result, "level"));
+
+		if (!metadata.isFolder()) {
+			List<String> chunksList = getArrayFromResultSet(result, "chunks");
+			metadata.setChunks(chunksList);
+		}
+
+		return metadata;
+	}
+        
+	public static ABEItemMetadata getABEItemMetadataFromResultSet(ResultSet result)
+			throws SQLException {
+            
+                //TODO: Requires refinement (add specific ABE meta)
+		ABEItemMetadata metadata = new ABEItemMetadata();
 		metadata.setId(getLongFromResultSet(result, "item_id"));
 		metadata.setParentId(getLongFromResultSet(result, "parent_id"));
 		metadata.setParentVersion((getLongFromResultSet(result, "client_parent_file_version")));
