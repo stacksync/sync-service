@@ -8,7 +8,7 @@ import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public interface ItemDAORMISer extends Remote {
+public interface ItemDAORMIIfc extends Remote {
 	public Item findById(Long id) throws DAOException;
 
 	public void add(Item item) throws DAOException;

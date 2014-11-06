@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import com.stacksync.syncservice.rmiclient.*;
 
-public interface UserDAORMISer extends Remote {
+public interface UserDAORMIIfc extends Remote {
 
 	public UserRMI findById(UUID id) throws RemoteException;
 	

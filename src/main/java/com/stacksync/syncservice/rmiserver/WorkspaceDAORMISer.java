@@ -21,13 +21,13 @@ import com.stacksync.syncservice.rmiserveri.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 //import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 
-public class PostgresqlWorkspaceDAORMISer extends UnicastRemoteObject implements
-		WorkspaceDAORMISer {
+public class WorkspaceDAORMISer extends UnicastRemoteObject implements
+		WorkspaceDAORMIIfc {
 
 	// private static final Logger logger =
 	// Logger.getLogger(PostgresqlWorkspaceDAO.class.getName());
 
-	public PostgresqlWorkspaceDAORMISer() throws RemoteException {
+	public WorkspaceDAORMISer() throws RemoteException {
 		super();
 	}
 

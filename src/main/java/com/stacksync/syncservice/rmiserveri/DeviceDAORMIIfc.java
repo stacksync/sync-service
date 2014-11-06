@@ -6,7 +6,7 @@ import java.util.UUID;
 import com.stacksync.commons.models.Device;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public interface DeviceDAORMISer extends Remote {
+public interface DeviceDAORMIIfc extends Remote {
 	
 	public Device get(UUID id) throws DAOException;
 

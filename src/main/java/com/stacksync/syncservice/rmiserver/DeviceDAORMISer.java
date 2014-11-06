@@ -15,13 +15,13 @@ import com.stacksync.syncservice.rmiserveri.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 //import com.stacksync.syncservice.util.Constants;
 
-public class PostgresqlDeviceDAORMISer extends UnicastRemoteObject implements
-		DeviceDAORMISer {
+public class DeviceDAORMISer extends UnicastRemoteObject implements
+		DeviceDAORMIIfc {
 
 //	private static final Logger logger = Logger
 //			.getLogger(PostgresqlDeviceDAO.class.getName());
 
-	public PostgresqlDeviceDAORMISer() throws RemoteException {
+	public DeviceDAORMISer() throws RemoteException {
 		super();
 	}
 

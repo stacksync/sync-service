@@ -11,13 +11,13 @@ import org.apache.log4j.Logger;
 import com.stacksync.syncservice.rmiclient.*;
 import com.stacksync.syncservice.rmiserveri.*;
 
-public class PostgresqlUserDAORMISer extends UnicastRemoteObject implements
-		UserDAORMISer {
-	private static final Logger logger = Logger.getLogger(PostgresqlUserDAORMISer.class.getName());
+public class UserDAORMISer extends UnicastRemoteObject implements
+		UserDAORMIIfc {
+	private static final Logger logger = Logger.getLogger(UserDAORMISer.class.getName());
 	
 	List<UserRMI> llistat;
 
-	public PostgresqlUserDAORMISer() throws RemoteException {
+	public UserDAORMISer() throws RemoteException {
 		llistat = new ArrayList<UserRMI>();
 	}
 

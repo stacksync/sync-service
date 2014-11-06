@@ -6,9 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.Workspace;
-
 public class UserRMI implements Serializable, Remote {
 
 	private static final long serialVersionUID = -8827608629982195900L;
@@ -20,8 +17,8 @@ public class UserRMI implements Serializable, Remote {
 	private String email;
 	private Integer quotaLimit;
 	private Integer quotaUsed;
-	private List<Device> devices;
-	private List<Workspace> workspaces;
+	private List<DeviceRMI> devices;
+	private List<WorkspaceRMI> workspaces;
 
 	public UserRMI() {
 		this(null);
@@ -39,8 +36,8 @@ public class UserRMI implements Serializable, Remote {
 		this.email = email;
 		this.quotaLimit = quotaLimit;
 		this.quotaUsed = quotaUsed;
-		this.devices = new ArrayList<Device>();
-		this.workspaces = new ArrayList<Workspace>();
+		this.devices = new ArrayList<DeviceRMI>();
+		this.workspaces = new ArrayList<WorkspaceRMI>();
 	}
 
 	public UUID getId() {
@@ -99,35 +96,35 @@ public class UserRMI implements Serializable, Remote {
 		this.quotaUsed = quotaUsed;
 	}
 
-	public List<Device> getDevices() {
+	public List<DeviceRMI> getDevices() {
 		return devices;
 	}
 
-	public void setDevices(List<Device> devices) {
+	public void setDevices(List<DeviceRMI> devices) {
 		this.devices = devices;
 	}
 
-	public void addDevice(Device device) {
+	public void addDevice(DeviceRMI device) {
 		this.devices.add(device);
 	}
 
-	public void removeDevice(Device device) {
+	public void removeDevice(DeviceRMI device) {
 		this.devices.remove(device);
 	}
 
-	public List<Workspace> getWorkspaces() {
+	public List<WorkspaceRMI> getWorkspaces() {
 		return workspaces;
 	}
 
-	public void setWorkspaces(List<Workspace> workspaces) {
+	public void setWorkspaces(List<WorkspaceRMI> workspaces) {
 		this.workspaces = workspaces;
 	}
 
-	public void addWorkspace(Workspace workspace) {
+	public void addWorkspace(WorkspaceRMI workspace) {
 		this.workspaces.add(workspace);
 	}
 
-	public void removeWorkspace(Workspace workspace) {
+	public void removeWorkspace(WorkspaceRMI workspace) {
 		this.workspaces.remove(workspace);
 	}
 

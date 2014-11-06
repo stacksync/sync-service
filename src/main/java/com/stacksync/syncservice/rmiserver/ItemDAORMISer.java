@@ -20,11 +20,11 @@ import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 //import com.stacksync.syncservice.handler.Handler.Status;
 
-public class PostgresqlItemDAORMISer extends UnicastRemoteObject implements ItemDAORMISer {
+public class ItemDAORMISer extends UnicastRemoteObject implements ItemDAORMIIfc {
 	// private static final Logger logger = Logger
 	// .getLogger(PostgresqlItemDAO.class.getName());
 
-	public PostgresqlItemDAORMISer() throws RemoteException {
+	public ItemDAORMISer() throws RemoteException {
 		super();
 	}
 

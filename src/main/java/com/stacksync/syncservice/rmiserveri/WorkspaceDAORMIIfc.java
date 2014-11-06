@@ -9,7 +9,7 @@ import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public interface WorkspaceDAORMISer extends Remote {
+public interface WorkspaceDAORMIIfc extends Remote {
 
 	public Workspace getById(UUID id) throws DAOException;
 

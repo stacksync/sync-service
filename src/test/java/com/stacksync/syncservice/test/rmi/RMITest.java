@@ -29,10 +29,10 @@ import com.stacksync.syncservice.util.Config;
 public class RMITest {
 
 	private static Connection connection;
-	private static WorkspaceDAORMISer workspaceDAO;
-	private static UserDAORMISer userDao;
-	private static ItemDAORMISer objectDao;
-	private static ItemVersionDAORMISer oversionDao;
+	private static WorkspaceDAORMIIfc workspaceDAO;
+	private static UserDAORMIIfc userDao;
+	private static ItemDAORMIIfc objectDao;
+	private static ItemVersionDAORMIIfc oversionDao;
 	private static SecureRandom random = new SecureRandom();
 
 	@BeforeClass
@@ -42,7 +42,7 @@ public class RMITest {
 		Config.loadProperties();
 
 		String dataSource = "postgresql";
-		DAOFactoryRMISer factory = new DAOFactoryRMISer(dataSource);
+		DAOFactoryRMIIfc factory = new DAOFactoryRMIIfc(dataSource);
 		connection = ConnectionPoolFactoryRMISer.getConnectionPool(dataSource)
 				.getConnection();
 		workspaceDAO = factory.getWorkspaceDao();
@@ -55,7 +55,7 @@ public class RMITest {
 
 		try {
 			LocateRegistry.createRegistry(1099);
-			PostgresqlUserDAORMISer addPostgresqlUserDAO = new PostgresqlUserDAORMISer();
+			UserDAORMISer addPostgresqlUserDAO = new UserDAORMISer();
 			System.out.println("sdfsdfsdf");
 			Naming.rebind("AddServer", addPostgresqlUserDAO);
 		} catch (Exception e) {

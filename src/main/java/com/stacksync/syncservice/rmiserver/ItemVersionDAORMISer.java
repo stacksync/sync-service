@@ -18,13 +18,13 @@ import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.syncservice.rmiserveri.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public class PostgresqlItemVersionDaoRMISer extends UnicastRemoteObject implements
-		ItemVersionDAORMISer {
+public class ItemVersionDAORMISer extends UnicastRemoteObject implements
+		ItemVersionDAORMIIfc {
 
 	// private static final Logger logger =
 	// Logger.getLogger(PostgresqlItemVersionDao.class.getName());
 
-	public PostgresqlItemVersionDaoRMISer() throws RemoteException {
+	public ItemVersionDAORMISer() throws RemoteException {
 		super();
 	}
 
