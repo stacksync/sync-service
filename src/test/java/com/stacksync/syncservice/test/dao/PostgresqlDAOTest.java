@@ -1,4 +1,4 @@
-package com.stacksync.syncservice.test.dao;
+/*package com.stacksync.syncservice.test.dao;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -43,9 +43,6 @@ public class PostgresqlDAOTest {
 
 	@BeforeClass
 	public static void testSetup() throws IOException, SQLException, DAOConfigurationException {
-
-		URL configFileResource = PostgresqlDAOTest.class.getResource("/com/ast/processserver/resources/log4j.xml");
-		DOMConfigurator.configure(configFileResource);
 
 		Config.loadProperties();
 
@@ -384,3 +381,4 @@ public class PostgresqlDAOTest {
 	}
 
 }
+*/

@@ -1,5 +1,10 @@
 package com.stacksync.syncservice.db;
 
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
 import java.sql.Connection;
 
 import com.stacksync.syncservice.db.postgresql.PostgresqlDeviceDAO;
@@ -16,24 +21,34 @@ public class DAOFactory {
 		this.type = type;
 	}
 
-	public WorkspaceDAO getWorkspaceDao(Connection connection) {
-		return new PostgresqlWorkspaceDAO(connection);
+	public WorkspaceDAO getWorkspaceDao() {
+		return new PostgresqlWorkspaceDAO();
 	}
 
-	public UserDAO getUserDao(Connection connection) {
-		return new PostgresqlUserDAO(connection);
+	public UserDAO getUserDao() throws RemoteException {
+		try {
+//			LocateRegistry.createRegistry(1099);
+//			PostgresqlUserDAO addServerImpl = new PostgresqlUserDAO();
+//			// System.out.println("sdfsdfsdf");
+//			Naming.rebind("AddServer", addServerImpl);
+			return (UserDAO) Naming.lookup("rmi://AddServer");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
 	}
 
-	public ItemDAO getItemDAO(Connection connection) {
-		return new PostgresqlItemDAO(connection);
+	public ItemDAO getItemDAO() {
+		return new PostgresqlItemDAO();
 	}
 
-	public ItemVersionDAO getItemVersionDAO(Connection connection) {
-		return new PostgresqlItemVersionDao(connection);
+	public ItemVersionDAO getItemVersionDAO() {
+		return new PostgresqlItemVersionDao();
 	}
 
-	public DeviceDAO getDeviceDAO(Connection connection) {
-		return new PostgresqlDeviceDAO(connection);
+	public DeviceDAO getDeviceDAO() {
+		return new PostgresqlDeviceDAO();
 	}
 
 	public String getType() {

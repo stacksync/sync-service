@@ -21,8 +21,8 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	private static final Logger logger = Logger
 			.getLogger(PostgresqlItemDAO.class.getName());
 
-	public PostgresqlItemDAO(Connection connection) {
-		super(connection);
+	public PostgresqlItemDAO() {
+		super();
 	}
 
 	@Override

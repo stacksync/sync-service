@@ -19,12 +19,14 @@ import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 
-public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDAO {
+public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements
+		WorkspaceDAO {
 
-	private static final Logger logger = Logger.getLogger(PostgresqlWorkspaceDAO.class.getName());
+	private static final Logger logger = Logger
+			.getLogger(PostgresqlWorkspaceDAO.class.getName());
 
-	public PostgresqlWorkspaceDAO(Connection connection) {
-		super(connection);
+	public PostgresqlWorkspaceDAO() {
+		super();
 	}
 
 	@Override
@@ -69,7 +71,8 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 			}
 
 			if (workspaces.isEmpty()) {
-				throw new NoResultReturnedDAOException(DAOError.WORKSPACES_NOT_FOUND);
+				throw new NoResultReturnedDAOException(
+						DAOError.WORKSPACES_NOT_FOUND);
 			}
 
 		} catch (SQLException e) {
@@ -79,15 +82,16 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 		return workspaces;
 	}
-	
+
 	@Override
-	public Workspace getDefaultWorkspaceByUserId(UUID userId) throws DAOException {
+	public Workspace getDefaultWorkspaceByUserId(UUID userId)
+			throws DAOException {
 
 		Object[] values = { userId };
 
 		String query = "SELECT w.*, wu.* FROM workspace w "
-			 + " INNER JOIN workspace_user wu ON wu.workspace_id = w.id " 
-			 + " WHERE w.owner_id=?::uuid AND w.is_shared = false LIMIT 1";
+				+ " INNER JOIN workspace_user wu ON wu.workspace_id = w.id "
+				+ " WHERE w.owner_id=?::uuid AND w.is_shared = false LIMIT 1";
 
 		ResultSet result = null;
 		Workspace workspace;
@@ -97,8 +101,9 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 			if (result.next()) {
 				workspace = mapWorkspace(result);
-			}else {
-				throw new NoResultReturnedDAOException(DAOError.WORKSPACES_NOT_FOUND);
+			} else {
+				throw new NoResultReturnedDAOException(
+						DAOError.WORKSPACES_NOT_FOUND);
 			}
 
 		} catch (SQLException e) {
@@ -115,12 +120,14 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 			throw new IllegalArgumentException("Workspace attributes not set");
 		}
 
-		Object[] values = { workspace.getLatestRevision(), workspace.getOwner().getId(), workspace.isShared(), workspace.isEncrypted(),
-				workspace.getSwiftContainer(), workspace.getSwiftUrl() };
+		Object[] values = { workspace.getLatestRevision(),
+				workspace.getOwner().getId(), workspace.isShared(),
+				workspace.isEncrypted(), workspace.getSwiftContainer(),
+				workspace.getSwiftUrl() };
 
 		String query = "INSERT INTO workspace (latest_revision, owner_id, is_shared, is_encrypted, swift_container, swift_url) VALUES (?, ?, ?, ?, ?, ?)";
 
-		UUID id = (UUID)executeUpdate(query, values);
+		UUID id = (UUID) executeUpdate(query, values);
 
 		if (id != null) {
 			workspace.setId(id);
@@ -139,9 +146,11 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 			parentItemId = workspace.getParentItem().getId();
 		}
 
-		Object[] values = { workspace.getName(), parentItemId, workspace.getId(), user.getId() };
+		Object[] values = { workspace.getName(), parentItemId,
+				workspace.getId(), user.getId() };
 
-		String query = "UPDATE workspace_user " + " SET workspace_name = ?, parent_item_id = ?, modified_at = now() "
+		String query = "UPDATE workspace_user "
+				+ " SET workspace_name = ?, parent_item_id = ?, modified_at = now() "
 				+ " WHERE workspace_id = ?::uuid AND user_id = ?::uuid";
 
 		executeUpdate(query, values);
@@ -168,13 +177,13 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		workspace.setSwiftUrl(result.getString("swift_url"));
 
 		Long parentItemId = result.getLong("parent_item_id");
-		
-		if (parentItemId == 0L){
+
+		if (parentItemId == 0L) {
 			parentItemId = null;
 		}
-		
+
 		workspace.setParentItem(new Item(parentItemId));
-		
+
 		User owner = new User();
 		owner.setId(UUID.fromString(result.getString("owner_id")));
 
@@ -196,16 +205,17 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 			parentItemId = workspace.getParentItem().getId();
 		}
 
-		Object[] values = { workspace.getId(), user.getId(), workspace.getName(), parentItemId };
+		Object[] values = { workspace.getId(), user.getId(),
+				workspace.getName(), parentItemId };
 
 		String query = "INSERT INTO workspace_user (workspace_id, user_id, workspace_name, parent_item_id) VALUES (?::uuid, ?::uuid, ?, ?)";
 
 		executeUpdate(query, values);
 	}
-	
+
 	@Override
 	public void deleteUser(User user, Workspace workspace) throws DAOException {
-		
+
 		if (user == null || !user.isValid()) {
 			throw new IllegalArgumentException("User not valid");
 		} else if (workspace == null || !workspace.isValid()) {
@@ -224,10 +234,10 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		ResultSet resultSet = null;
 		Workspace workspace = null;
 
-		String query = "SELECT * FROM workspace w " +
-				" INNER JOIN workspace_user wu ON wu.workspace_id = w.id " +
-				" INNER JOIN item i ON w.id = i.workspace_id " +
-				" WHERE i.id = ?";
+		String query = "SELECT * FROM workspace w "
+				+ " INNER JOIN workspace_user wu ON wu.workspace_id = w.id "
+				+ " INNER JOIN item i ON w.id = i.workspace_id "
+				+ " WHERE i.id = ?";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { itemId });
@@ -242,24 +252,26 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 		return workspace;
 	}
-	
+
 	@Override
-	public List<UserWorkspace> getMembersById(UUID workspaceId) throws DAOException {
+	public List<UserWorkspace> getMembersById(UUID workspaceId)
+			throws DAOException {
 		ResultSet resultSet = null;
 		List<UserWorkspace> users = new ArrayList<UserWorkspace>();
 
-		String query = " SELECT u.*, CASE WHEN u.id=w.owner_id THEN True ELSE False END AS is_owner " +
-			" , wu.created_at AS joined_at, wu.workspace_id " + 
-			" FROM workspace w " + 
-			" INNER JOIN workspace_user wu ON wu.workspace_id = w.id " +
-			" INNER JOIN user1 u ON wu.user_id = u.id " +
-			" WHERE w.id = ?::uuid";
+		String query = " SELECT u.*, CASE WHEN u.id=w.owner_id THEN True ELSE False END AS is_owner "
+				+ " , wu.created_at AS joined_at, wu.workspace_id "
+				+ " FROM workspace w "
+				+ " INNER JOIN workspace_user wu ON wu.workspace_id = w.id "
+				+ " INNER JOIN user1 u ON wu.user_id = u.id "
+				+ " WHERE w.id = ?::uuid";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { workspaceId });
 
 			while (resultSet.next()) {
-				UserWorkspace userWorkspace = DAOUtil.getUserWorkspaceFromResultSet(resultSet);
+				UserWorkspace userWorkspace = DAOUtil
+						.getUserWorkspaceFromResultSet(resultSet);
 				users.add(userWorkspace);
 			}
 		} catch (SQLException e) {
@@ -269,5 +281,5 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 		return users;
 	}
-	
+
 }

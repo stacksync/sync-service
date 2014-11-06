@@ -20,8 +20,8 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 
 	private static final Logger logger = Logger.getLogger(PostgresqlItemVersionDao.class.getName());
 
-	public PostgresqlItemVersionDao(Connection connection) {
-		super(connection);
+	public PostgresqlItemVersionDao() {
+		super();
 	}
 
 	@Override
