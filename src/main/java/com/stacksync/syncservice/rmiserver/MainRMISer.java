@@ -14,6 +14,8 @@ public class MainRMISer {
 			UserDAORMISer postgresqlUserDAO = new UserDAORMISer();
 			WorkspaceDAORMISer postgresqlWorkspaceDAO = new WorkspaceDAORMISer();
 			
+			System.out.println(postgresqlWorkspaceDAO.toString());
+			
 			System.out.println("sdfsdfsdf-1");
 			
 			Naming.rebind("DeviceServer", postgresqlDeviceDAO);

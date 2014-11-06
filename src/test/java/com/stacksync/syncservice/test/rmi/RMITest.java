@@ -42,7 +42,7 @@ public class RMITest {
 		Config.loadProperties();
 
 		String dataSource = "postgresql";
-		DAOFactoryRMIIfc factory = new DAOFactoryRMIIfc(dataSource);
+		/*DAOFactoryRMIIfc factory = new DAOFactoryRMIIfc(dataSource);
 		connection = ConnectionPoolFactoryRMISer.getConnectionPool(dataSource)
 				.getConnection();
 		workspaceDAO = factory.getWorkspaceDao();
@@ -51,7 +51,7 @@ public class RMITest {
 		} else
 			System.out.println("UserDAO --> NULL");
 		objectDao = factory.getItemDAO();
-		oversionDao = factory.getItemVersionDAO();
+		oversionDao = factory.getItemVersionDAO();*/
 
 		try {
 			LocateRegistry.createRegistry(1099);
