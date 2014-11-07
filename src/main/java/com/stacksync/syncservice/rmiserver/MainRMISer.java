@@ -3,6 +3,8 @@ package com.stacksync.syncservice.rmiserver;
 import java.rmi.Naming;
 import java.rmi.registry.LocateRegistry;
 
+import com.stacksync.syncservice.rmiserveri.WorkspaceDAORMIIfc;
+
 public class MainRMISer {
 	public static void main(String args[]) {
 		try {
@@ -14,17 +16,13 @@ public class MainRMISer {
 			UserDAORMISer postgresqlUserDAO = new UserDAORMISer();
 			WorkspaceDAORMISer postgresqlWorkspaceDAO = new WorkspaceDAORMISer();
 			
-			System.out.println(postgresqlWorkspaceDAO.toString());
-			
-			System.out.println("sdfsdfsdf-1");
-			
 			Naming.rebind("DeviceServer", postgresqlDeviceDAO);
 			Naming.rebind("ItemServer", postgresqlItemDAO);
 			Naming.rebind("ItemVersionServer", postgresqlItemVersionDao);
 			Naming.rebind("UserServer", postgresqlUserDAO);
-			Naming.rebind("WorkSpaceServer", postgresqlWorkspaceDAO);
+			Naming.rebind("WorkspaceServer", postgresqlWorkspaceDAO);
 			
-			System.out.println("sdfsdfsdf-2");
+			System.out.println("SERVER CONNECTED");
 			
 		} catch (Exception e) {
 			System.out.println("Exception: " + e);

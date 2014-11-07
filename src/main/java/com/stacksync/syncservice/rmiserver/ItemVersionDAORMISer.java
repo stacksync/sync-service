@@ -11,8 +11,10 @@ import com.stacksync.syncservice.rmiserveri.*;
 public class ItemVersionDAORMISer extends UnicastRemoteObject implements
 		ItemVersionDAORMIIfc {
 
+	List<ItemVersionRMI> llistat;
+
 	public ItemVersionDAORMISer() throws RemoteException {
-		super();
+		llistat = new ArrayList<ItemVersionRMI>();
 	}
 
 	@Override
@@ -20,6 +22,13 @@ public class ItemVersionDAORMISer extends UnicastRemoteObject implements
 			throws RemoteException {
 
 		ItemMetadataRMI metadata = null;
+
+		for (ItemVersionRMI iv : llistat) {
+			if (iv.getVersion().equals(version)
+					&& iv.getItem().getId().equals(id)) {
+				metadata = new ItemMetadataRMI();
+			}
+		}
 
 		return metadata;
 	}

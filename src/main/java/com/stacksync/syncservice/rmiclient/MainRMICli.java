@@ -10,10 +10,10 @@ public class MainRMICli {
 	public static void main(String args[]) {
 
 		try {
-//			DeviceDAORMIIfc addDeviceServer = (DeviceDAORMIIfc) Naming.lookup("rmi://0/DeviceServer");
-//			ItemDAORMIIfc addItemServer = (ItemDAORMIIfc) Naming.lookup("rmi://0/ItemServer");
-//			UserDAORMIIfc addUserServer = (UserDAORMIIfc) Naming.lookup("rmi://0/UserServer");
-//			ItemVersionDAORMIIfc addItemVersionServer = (ItemVersionDAORMIIfc) Naming.lookup("rmi://0/ItemVersionServer");
+			DeviceDAORMIIfc addDeviceServer = (DeviceDAORMIIfc) Naming.lookup("rmi://0/DeviceServer");
+			ItemDAORMIIfc addItemServer = (ItemDAORMIIfc) Naming.lookup("rmi://0/ItemServer");
+			UserDAORMIIfc addUserServer = (UserDAORMIIfc) Naming.lookup("rmi://0/UserServer");
+			ItemVersionDAORMIIfc addItemVersionServer = (ItemVersionDAORMIIfc) Naming.lookup("rmi://0/ItemVersionServer");
 			WorkspaceDAORMIIfc addWorkspaceServer = (WorkspaceDAORMIIfc) Naming.lookup("rmi://0/WorkspaceServer");
 
 //			UserRMI user = new UserRMI();
