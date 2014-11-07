@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.db;
 
+import com.stacksync.syncservice.db.postgresql.PostgresqlABEItemDAO;
 import java.sql.Connection;
 
 import com.stacksync.syncservice.db.postgresql.PostgresqlDeviceDAO;
@@ -26,6 +27,10 @@ public class DAOFactory {
 
 	public ItemDAO getItemDAO(Connection connection) {
 		return new PostgresqlItemDAO(connection);
+	}
+        
+	public ABEItemDAO getAbeItemDAO(Connection connection) {
+		return new PostgresqlABEItemDAO(connection);
 	}
 
 	public ItemVersionDAO getItemVersionDAO(Connection connection) {

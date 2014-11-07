@@ -22,8 +22,6 @@ public interface ItemDAO {
 	// ItemMetadata information
 	public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId) throws DAOException;
 	
-        public List<ItemMetadata> getABEItemsByWorkspaceId(UUID workspaceId) throws DAOException;
-
 	public List<ItemMetadata> getItemsById(Long id) throws DAOException;
 
 	public ItemMetadata findById(Long id, Boolean includeList, Long version, Boolean includeDeleted, Boolean includeChunks) throws DAOException;

@@ -20,6 +20,7 @@ import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.ABEItemDAO;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.DeviceDAO;
@@ -49,6 +50,7 @@ public class Handler {
 	protected UserDAO userDao;
 	protected DeviceDAO deviceDao;
 	protected ItemDAO itemDao;
+        protected ABEItemDAO abeItemDao;
 	protected ItemVersionDAO itemVersionDao;
 
 	protected StorageManager storageManager;
@@ -68,6 +70,7 @@ public class Handler {
 		deviceDao = factory.getDeviceDAO(connection);
 		userDao = factory.getUserDao(connection);
 		itemDao = factory.getItemDAO(connection);
+                abeItemDao = factory.getAbeItemDAO(connection);
 		itemVersionDao = factory.getItemVersionDAO(connection);
 		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
 	}

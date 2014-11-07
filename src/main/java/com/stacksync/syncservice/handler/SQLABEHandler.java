@@ -5,7 +5,6 @@
  */
 package com.stacksync.syncservice.handler;
 
-import com.stacksync.commons.models.ABEItemMetadata;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
@@ -34,7 +33,7 @@ public class SQLABEHandler extends SQLSyncHandler {
         List<ItemMetadata> responseObjects = new ArrayList<ItemMetadata>();
         
         try {
-            responseObjects = itemDao.getABEItemsByWorkspaceId(workspace.getId());
+            responseObjects = abeItemDao.getABEItemsByWorkspaceId(workspace.getId());
         } catch (DAOException e) {
             logger.error(e.toString(), e);
         }
