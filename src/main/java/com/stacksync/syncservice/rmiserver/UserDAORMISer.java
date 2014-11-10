@@ -51,6 +51,9 @@ public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc 
 
 	@Override
 	public void add(UserRMI user) {
+		if (!user.isValid()) {
+			throw new IllegalArgumentException("User attributes not set");
+		}
 		if (findById(user.getId()) == null) {
 			llistat.add(user);
 			System.out.println("ADDED");
@@ -60,6 +63,9 @@ public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc 
 
 	@Override
 	public void update(UserRMI user) {
+		if (user.getId() == null || !user.isValid()) {
+			throw new IllegalArgumentException("User attributes not set");
+		}
 		if (findById(user.getId()) != null) {
 			llistat.remove(findById(user.getId()));
 			llistat.add(user);
@@ -78,25 +84,18 @@ public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc 
 	}
 
 	@Override
-	public List<UserRMI> findByItemId(Long itemId) {
+	public List<UserRMI> findByItemId(Long itemID) {
 		ArrayList<UserRMI> users = new ArrayList<UserRMI>();
-		/*
-		 * Object[] values = { itemId };
-		 * 
-		 * String query = "SELECT u.* " + " FROM item i " +
-		 * " INNER JOIN workspace_user wu ON i.workspace_id = wu.workspace_id "
-		 * + " INNER JOIN user1 u ON wu.user_id = u.id " + " WHERE i.id = ?";
-		 * 
-		 * ResultSet result = null;
-		 * 
-		 * try { result = executeQuery(query, values);
-		 * 
-		 * while (result.next()) { User user = mapUser(result); users.add(user);
-		 * }
-		 * 
-		 * } catch (SQLException e) { logger.error(e); throw new
-		 * DAOException(DAOError.INTERNAL_SERVER_ERROR); }
-		 */
+
+		for (UserRMI u : llistat) {
+			for (WorkspaceRMI w : u.getWorkspaces()) {
+				for (ItemRMI i : w.getItems()) {
+					if (i.getId() == itemID) {
+						users.add(u);
+					}
+				}
+			}
+		}
 
 		return users;
 	}
