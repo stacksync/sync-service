@@ -75,18 +75,18 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 	@Override
 	public List<ItemMetadata> getChanges(GetChangesRequest request) {
-
+            
 		logger.debug(request);
-
+                
 		User user = new User();
 		user.setId(request.getUserId());
 		Workspace workspace = new Workspace(request.getWorkspaceId());
                 
                 //TODO: add workspace abe encryption field
                 //TODO: if (workspace.isAbeEncrypted()) List<ItemMetadata> list = getABEHandler().doGetChanges(user, workspace);
-
+                
 		List<ItemMetadata> list = getHandler().doGetChanges(user, workspace);
-
+                
 		return list;
 	}
 

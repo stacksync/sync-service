@@ -2,7 +2,7 @@
 -- PostgreSQL database initialization
 --
 
-DROP TABLE IF EXISTS public.item_version_chunk, public.item_version, public.item, public.workspace_user, public.workspace, public.device, public.user1 CASCADE;
+DROP TABLE IF EXISTS public.item_version_chunk, public.item_version, public.item, public.workspace_user, public.workspace, public.device, public.user1, public.attribute, public.abe_component CASCADE;
 DROP SEQUENCE IF EXISTS public.sequencer_user, public.sequencer_workspace, public.sequencer_device, public.sequencer_item, public.sequencer_item_version, public.sequencer_chunk;
 
 SET statement_timeout = 0;
@@ -112,13 +112,13 @@ ALTER TABLE public.workspace_user ADD CONSTRAINT fk2_workspace_user FOREIGN KEY 
 
 --
 -- TABLE: item
---
-
+-- NOTE that the added ABE field "encrypted_dek" can be null - in cases such as folders / non ABE-encrypted items
 CREATE TABLE public.item (
     id bigint NOT NULL,
     workspace_id uuid NOT NULL,
     latest_version bigint NOT NULL,
     parent_id bigint,
+    encrypted_dek varchar(500),
     filename varchar(100) NOT NULL,
     mimetype varchar(45) NOT NULL,
     is_folder boolean NOT NULL,
@@ -179,7 +179,68 @@ CREATE TABLE public.item_version_chunk (
 ALTER TABLE public.item_version_chunk ADD CONSTRAINT pk_item_version_chunk PRIMARY KEY (item_version_id, client_chunk_name, chunk_order);
 ALTER TABLE public.item_version_chunk ADD CONSTRAINT fk2_item_version_chunk FOREIGN KEY (item_version_id) REFERENCES public.item_version (id) ON DELETE CASCADE;
 
+--
+-- TABLE: curve
+--
 
+-- CREATE TABLE public.curve (
+--     id uuid NOT NULL default uuid_generate_v4(),
+--     type varchar(20) NOT NULL,
+--     q varchar(200) NOT NULL,
+--     r varchar(200) NOT NULL,
+--     h varchar(200) NOT NULL,
+--     exp1 integer NOT NULL,
+--     exp2 integer NOT NULL,
+--     sign0 integer NOT NULL,
+--     sign1 integer NOT NULL
+-- );
+-- 
+-- ALTER TABLE public.curve ADD CONSTRAINT pk_curve PRIMARY KEY (id);
+
+--
+-- TABLE: attribute
+--
+CREATE TABLE public.attribute (
+    id uuid NOT NULL default uuid_generate_v4()
+--     name varchar(100) NOT NULL,
+--     latest_version bigint NOT NULL,
+--     public_key_component varchar(500) NOT NULL,
+--     history_list json
+);
+
+ALTER TABLE public.attribute ADD CONSTRAINT pk_attribute PRIMARY KEY (id);
+
+--
+-- TABLE: access_component
+--
+-- [revocation] set user_id field type to UUID
+-- CREATE TABLE public.access_component (
+--     id uuid NOT NULL default uuid_generate_v4(),
+--     user_id character varying(100) NOT NULL,
+--     attribute uuid NOT NULL,
+--     sk_component varchar(500) NOT NULL,
+--     version integer NOT NULL
+-- );
+-- 
+-- ALTER TABLE public.access_component ADD CONSTRAINT pk_access_component PRIMARY KEY (id);
+-- ALTER TABLE public.access_component ADD CONSTRAINT fk1_access_component FOREIGN KEY (user_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
+-- ALTER TABLE public.access_component ADD CONSTRAINT fk2_access_component FOREIGN KEY (attribute) REFERENCES public.attribute (id) ON DELETE CASCADE;
+
+--
+-- TABLE: abe_component
+--
+-- NOTE: on bring up - set FK to item
+CREATE TABLE public.abe_component (
+    id uuid NOT NULL default uuid_generate_v4(),
+    item_id bigint NOT NULL,
+    attribute uuid NOT NULL,
+    encrypted_pk_component varchar(500) NOT NULL,
+    version integer NOT NULL
+);
+
+ALTER TABLE public.abe_component ADD CONSTRAINT pk_abe_component PRIMARY KEY (id);
+--ALTER TABLE public.abe_component ADD CONSTRAINT fk1_abe_component FOREIGN KEY (item_id) REFERENCES public.item (id) ON DELETE CASCADE;
+ALTER TABLE public.abe_component ADD CONSTRAINT fk2_abe_component FOREIGN KEY (attribute) REFERENCES public.attribute (id) ON DELETE CASCADE;
 
 --
 -- FUNCTIONS
