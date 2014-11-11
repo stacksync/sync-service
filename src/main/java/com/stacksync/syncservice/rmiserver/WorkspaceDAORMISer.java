@@ -89,9 +89,9 @@ public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 	@Override
 	public void update(UserRMI user, WorkspaceRMI workspace)
 			throws RemoteException {
-		if (workspace.getId() == null || user.getId() == null) {
+		/*if (workspace.getId() == null || user.getId() == null) {
 			throw new IllegalArgumentException("Attributes not set");
-		}
+		}*/
 
 		if (getById(user.getId()) != null) {
 			llistat.remove(getById(user.getId()));
@@ -139,11 +139,11 @@ public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 			throws RemoteException {
 		boolean exist = false;
 
-		if (user == null || !user.isValid()) {
+		/*if (user == null || !user.isValid()) {
 			throw new IllegalArgumentException("User not valid");
 		} else if (workspace == null || !workspace.isValid()) {
 			throw new IllegalArgumentException("Workspace not valid");
-		}
+		}*/
 
 		for (UserRMI u : workspace.getUsers()) {
 			if (u.equals(user)) {

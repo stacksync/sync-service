@@ -51,9 +51,9 @@ public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc 
 
 	@Override
 	public void add(UserRMI user) {
-		if (!user.isValid()) {
+		/*if (!user.isValid()) {
 			throw new IllegalArgumentException("User attributes not set");
-		}
+		}*/
 		if (findById(user.getId()) == null) {
 			llistat.add(user);
 			System.out.println("ADDED");
@@ -63,9 +63,9 @@ public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc 
 
 	@Override
 	public void update(UserRMI user) {
-		if (user.getId() == null || !user.isValid()) {
+		/*if (user.getId() == null || !user.isValid()) {
 			throw new IllegalArgumentException("User attributes not set");
-		}
+		}*/
 		if (findById(user.getId()) != null) {
 			llistat.remove(findById(user.getId()));
 			llistat.add(user);
