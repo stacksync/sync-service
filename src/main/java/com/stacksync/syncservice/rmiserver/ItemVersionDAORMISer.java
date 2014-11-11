@@ -11,10 +11,10 @@ import com.stacksync.syncservice.rmiserveri.*;
 public class ItemVersionDAORMISer extends UnicastRemoteObject implements
 		ItemVersionDAORMIIfc {
 
-	List<ItemVersionRMI> llistat;
+	List<ItemVersionRMI> list;
 
 	public ItemVersionDAORMISer() throws RemoteException {
-		llistat = new ArrayList<ItemVersionRMI>();
+		list = new ArrayList<ItemVersionRMI>();
 	}
 
 	@Override
@@ -23,7 +23,7 @@ public class ItemVersionDAORMISer extends UnicastRemoteObject implements
 
 		ItemMetadataRMI metadata = null;
 
-		for (ItemVersionRMI iv : llistat) {
+		for (ItemVersionRMI iv : list) {
 			if (iv.getVersion().equals(version)
 					&& iv.getItem().getId().equals(id)) {
 				metadata = new ItemMetadataRMI();
@@ -41,14 +41,14 @@ public class ItemVersionDAORMISer extends UnicastRemoteObject implements
 		
 		boolean exist = false;
 		
-		for (ItemVersionRMI iv: llistat){
-			if (iv.getId() == itemVersion.getId()){
+		for (ItemVersionRMI iv: list){
+			if (iv.getId().equals(itemVersion.getId())){
 				exist = true;
 			}
 		}
 		
 		if (!exist) {
-			llistat.add(itemVersion);
+			list.add(itemVersion);
 			System.out.println("ADDED");
 		} else
 			System.out.println("EXISTING ITEM VERSION ID");
@@ -63,16 +63,16 @@ public class ItemVersionDAORMISer extends UnicastRemoteObject implements
 		boolean exist = false;
 		ItemVersionRMI iv1 = null;
 		
-		for (ItemVersionRMI iv: llistat){
-			if (iv.getId() == itemVersion.getId()){
+		for (ItemVersionRMI iv: list){
+			if (iv.getId().equals(itemVersion.getId())){
 				exist = true;
 				iv1 = iv;
 			}
 		}
 		
 		if (exist) {
-			llistat.remove(iv1);
-			llistat.add(itemVersion);
+			list.remove(iv1);
+			list.add(itemVersion);
 			System.out.println("UPDATED");
 		} else
 			System.out.println("ITEM VERSION ID DOESN'T EXIST");
@@ -83,15 +83,15 @@ public class ItemVersionDAORMISer extends UnicastRemoteObject implements
 		boolean exist = false;
 		ItemVersionRMI iv1 = null;
 		
-		for (ItemVersionRMI iv: llistat){
-			if (iv.getId() == itemVersion.getId()){
+		for (ItemVersionRMI iv: list){
+			if (iv.getId().equals(itemVersion.getId())){
 				exist = true;
 				iv1 = iv;
 			}
 		}
 		
 		if (exist) {
-			llistat.remove(iv1);
+			list.remove(iv1);
 			System.out.println("DELETED");
 		} else
 			System.out.println("ITEM VERSION ID DOESN'T EXIST");

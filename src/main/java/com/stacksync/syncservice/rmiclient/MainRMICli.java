@@ -3,7 +3,6 @@ package com.stacksync.syncservice.rmiclient;
 import java.rmi.*;
 import java.util.UUID;
 
-import com.stacksync.commons.models.User;
 import com.stacksync.syncservice.rmiserveri.*;
 
 public class MainRMICli {
@@ -46,13 +45,14 @@ public class MainRMICli {
 
 			WorkspaceRMI workspace = new WorkspaceRMI();
 			workspace.setId(UUID.randomUUID());
-			workspace.setName("LauraWS");
 			workspace.setLatestRevision(0);
 			workspace.setOwner(user);
 
 			addWorkspaceServer.add(workspace);
 
-			System.out.println(addWorkspaceServer.getByUserId(user.getId()).toString());
+			System.out.println(addWorkspaceServer.getById(workspace.getId())
+					.toString());
+			System.out.println(workspace.toString());
 
 		} catch (Exception e) {
 			System.out.println("Exception: " + e);

@@ -7,7 +7,7 @@ import java.util.UUID;
 import com.stacksync.syncservice.rmiclient.*;
 
 public interface DeviceDAORMIIfc extends Remote {
-	
+
 	public DeviceRMI get(UUID id) throws RemoteException;
 
 	public void add(DeviceRMI device) throws RemoteException;

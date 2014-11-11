@@ -11,17 +11,17 @@ import com.stacksync.syncservice.rmiserveri.*;
 
 public class ItemDAORMISer extends UnicastRemoteObject implements ItemDAORMIIfc {
 
-	List<ItemRMI> llistat;
+	List<ItemRMI> list;
 
 	public ItemDAORMISer() throws RemoteException {
-		llistat = new ArrayList<ItemRMI>();
+		list = new ArrayList<ItemRMI>();
 	}
 
 	@Override
 	public ItemRMI findById(Long item1ID) throws RemoteException {
 		ItemRMI item = null;
 
-		for (ItemRMI i : llistat) {
+		for (ItemRMI i : list) {
 			if (i.getId().equals(item1ID)) {
 				item = i;
 			}
@@ -36,7 +36,7 @@ public class ItemDAORMISer extends UnicastRemoteObject implements ItemDAORMIIfc 
 			throw new IllegalArgumentException("Item attributes not set");
 		}
 		if (findById(item.getId()) == null) {
-			llistat.add(item);
+			list.add(item);
 			System.out.println("ADDED");
 		} else
 			System.out.println("EXISTING ITEM ID");
@@ -63,8 +63,8 @@ public class ItemDAORMISer extends UnicastRemoteObject implements ItemDAORMIIfc 
 		}
 
 		if (findById(item.getId()) != null) {
-			llistat.remove(findById(item.getId()));
-			llistat.add(item);
+			list.remove(findById(item.getId()));
+			list.add(item);
 			System.out.println("UPDATED");
 		} else
 			System.out.println("ITEM ID DOESN'T EXIST");
@@ -75,7 +75,7 @@ public class ItemDAORMISer extends UnicastRemoteObject implements ItemDAORMIIfc 
 		// TODO Auto-generated method stub
 
 		if (findById(id) == null) {
-			llistat.remove(findById(id));
+			list.remove(findById(id));
 			System.out.println("REMOVED");
 		} else
 			System.out.println("ITEM ID DOESN'T EXIST");

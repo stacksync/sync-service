@@ -11,18 +11,18 @@ import com.stacksync.syncservice.rmiserveri.*;
 
 public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc {
 
-	List<UserRMI> llistat;
+	List<UserRMI> list;
 
 	public UserDAORMISer() throws RemoteException {
-		llistat = new ArrayList<UserRMI>();
+		list = new ArrayList<UserRMI>();
 	}
 
 	@Override
 	public UserRMI findById(UUID userID) {
 		UserRMI user = null;
 
-		for (UserRMI u : llistat) {
-			if (u.getId() == userID) {
+		for (UserRMI u : list) {
+			if (u.getId().equals(userID)) {
 				user = u;
 			}
 		}
@@ -34,7 +34,7 @@ public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc 
 	public UserRMI getByEmail(String email) {
 		UserRMI user = null;
 
-		for (UserRMI u : llistat) {
+		for (UserRMI u : list) {
 			if (u.getEmail().equals(email)) {
 				user = u;
 			}
@@ -46,16 +46,16 @@ public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc 
 	@Override
 	public List<UserRMI> findAll() {
 
-		return llistat;
+		return list;
 	}
 
 	@Override
 	public void add(UserRMI user) {
-		/*if (!user.isValid()) {
+		if (!user.isValid()) {
 			throw new IllegalArgumentException("User attributes not set");
-		}*/
+		}
 		if (findById(user.getId()) == null) {
-			llistat.add(user);
+			list.add(user);
 			System.out.println("ADDED");
 		} else
 			System.out.println("EXISTING USER ID");
@@ -63,12 +63,12 @@ public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc 
 
 	@Override
 	public void update(UserRMI user) {
-		/*if (user.getId() == null || !user.isValid()) {
+		if (user.getId() == null || !user.isValid()) {
 			throw new IllegalArgumentException("User attributes not set");
-		}*/
+		}
 		if (findById(user.getId()) != null) {
-			llistat.remove(findById(user.getId()));
-			llistat.add(user);
+			list.remove(findById(user.getId()));
+			list.add(user);
 			System.out.println("UPDATED");
 		} else
 			System.out.println("USER ID DOESN'T EXIST");
@@ -77,7 +77,7 @@ public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc 
 	@Override
 	public void delete(UUID userID) {
 		if (findById(userID) != null) {
-			llistat.remove(findById(userID));
+			list.remove(findById(userID));
 			System.out.println("DELETED");
 		} else
 			System.out.println("USER ID DOESN'T EXIST");
@@ -87,10 +87,10 @@ public class UserDAORMISer extends UnicastRemoteObject implements UserDAORMIIfc 
 	public List<UserRMI> findByItemId(Long itemID) {
 		ArrayList<UserRMI> users = new ArrayList<UserRMI>();
 
-		for (UserRMI u : llistat) {
+		for (UserRMI u : list) {
 			for (WorkspaceRMI w : u.getWorkspaces()) {
 				for (ItemRMI i : w.getItems()) {
-					if (i.getId() == itemID) {
+					if (i.getId().equals(itemID)) {
 						users.add(u);
 					}
 				}

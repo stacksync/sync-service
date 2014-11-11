@@ -8,13 +8,16 @@ import com.stacksync.syncservice.rmiclient.*;
 
 public interface ItemVersionDAORMIIfc extends Remote {
 
-	public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version) throws RemoteException;
+	public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version)
+			throws RemoteException;
 
 	public void add(ItemVersionRMI itemVersion) throws RemoteException;
 
-	public void insertChunk(Long itemVersionId, Long chunkId, Integer order) throws RemoteException;
+	public void insertChunk(Long itemVersionId, Long chunkId, Integer order)
+			throws RemoteException;
 
-	public void insertChunks(List<ChunkRMI> chunks, long itemVersionId) throws RemoteException;
+	public void insertChunks(List<ChunkRMI> chunks, long itemVersionId)
+			throws RemoteException;
 
 	public List<ChunkRMI> findChunks(Long itemVersionId) throws RemoteException;
 

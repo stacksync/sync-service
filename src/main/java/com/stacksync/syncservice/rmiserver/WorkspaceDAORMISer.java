@@ -12,22 +12,22 @@ import com.stacksync.syncservice.rmiserveri.*;
 public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 		WorkspaceDAORMIIfc {
 
-	List<WorkspaceRMI> llistat;
-	List<UserWorkspaceRMI> llistatuw;
+	List<WorkspaceRMI> list;
+	List<UserWorkspaceRMI> listuw;
 
 	public WorkspaceDAORMISer() throws RemoteException {
-		llistat = new ArrayList<WorkspaceRMI>();
-		llistatuw = new ArrayList<UserWorkspaceRMI>();
+		list = new ArrayList<WorkspaceRMI>();
+		listuw = new ArrayList<UserWorkspaceRMI>();
 	}
 
 	@Override
 	public WorkspaceRMI getById(UUID workspaceID) throws RemoteException {
 		WorkspaceRMI workspace = null;
 
-		for (WorkspaceRMI w : llistat) {
-			if (w.getId() == workspaceID) {
-				for (UserWorkspaceRMI uw : llistatuw) {
-					if (uw.getWorkspace().getId() == workspaceID) {
+		for (WorkspaceRMI w : list) {
+			if (w.getId().equals(workspaceID)) {
+				for (UserWorkspaceRMI uw : listuw) {
+					if (uw.getWorkspace().getId().equals(workspaceID)) {
 						workspace = w;
 					}
 				}
@@ -42,11 +42,11 @@ public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 
 		List<WorkspaceRMI> workspaces = new ArrayList<WorkspaceRMI>();
 
-		for (WorkspaceRMI w : llistat) {
+		for (WorkspaceRMI w : list) {
 			for (UserRMI u : w.getUsers()) {
-				if (u.getId() == userID) {
-					for (UserWorkspaceRMI uw : llistatuw) {
-						if (uw.getWorkspace().getId() == w.getId()) {
+				if (u.getId().equals(userID)) {
+					for (UserWorkspaceRMI uw : listuw) {
+						if (uw.getWorkspace().getId().equals(w.getId())) {
 							workspaces.add(w);
 						}
 					}
@@ -62,10 +62,10 @@ public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 			throws RemoteException {
 		WorkspaceRMI workspace = null;
 
-		for (WorkspaceRMI w : llistat) {
-			if (userID == w.getOwner().getId() && !w.isShared()) {
-				for (UserWorkspaceRMI uw : llistatuw) {
-					if (uw.getWorkspace().getId() == w.getId()) {
+		for (WorkspaceRMI w : list) {
+			if (userID.equals(w.getOwner().getId()) && !w.isShared()) {
+				for (UserWorkspaceRMI uw : listuw) {
+					if (uw.getWorkspace().getId().equals(w.getId())) {
 						workspace = w;
 					}
 				}
@@ -81,7 +81,7 @@ public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 			throw new IllegalArgumentException("Workspace attributes not set");
 		}
 		if (getById(workspace.getId()) == null) {
-			llistat.add(workspace);
+			list.add(workspace);
 		} else
 			System.out.println("EXISTING WORKSPACE ID");
 	}
@@ -89,13 +89,13 @@ public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 	@Override
 	public void update(UserRMI user, WorkspaceRMI workspace)
 			throws RemoteException {
-		/*if (workspace.getId() == null || user.getId() == null) {
+		if (workspace.getId() == null || user.getId() == null) {
 			throw new IllegalArgumentException("Attributes not set");
-		}*/
+		}
 
 		if (getById(user.getId()) != null) {
-			llistat.remove(getById(user.getId()));
-			llistat.add(workspace);
+			list.remove(getById(user.getId()));
+			list.add(workspace);
 			System.out.println("UPDATED");
 		} else
 			System.out.println("WORKSPACE DOESN'T EXIST");
@@ -104,7 +104,7 @@ public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 	@Override
 	public void delete(UUID workspaceID) throws RemoteException {
 		if (getById(workspaceID) != null) {
-			llistat.remove(getById(workspaceID));
+			list.remove(getById(workspaceID));
 			System.out.println("DELETED");
 		} else
 			System.out.println("WORKSPACE DOESN'T EXIST");
@@ -139,11 +139,11 @@ public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 			throws RemoteException {
 		boolean exist = false;
 
-		/*if (user == null || !user.isValid()) {
+		if (user == null || !user.isValid()) {
 			throw new IllegalArgumentException("User not valid");
 		} else if (workspace == null || !workspace.isValid()) {
 			throw new IllegalArgumentException("Workspace not valid");
-		}*/
+		}
 
 		for (UserRMI u : workspace.getUsers()) {
 			if (u.equals(user)) {
@@ -163,11 +163,11 @@ public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 
 		WorkspaceRMI workspace = null;
 
-		for (WorkspaceRMI w : llistat) {
+		for (WorkspaceRMI w : list) {
 			for (ItemRMI i : w.getItems()) {
-				if (i.getId() == itemID) {
-					for (UserWorkspaceRMI uw : llistatuw) {
-						if (uw.getWorkspace().getId() == w.getId()) {
+				if (i.getId().equals(itemID)) {
+					for (UserWorkspaceRMI uw : listuw) {
+						if (uw.getWorkspace().getId().equals(w.getId())) {
 							workspace = w;
 						}
 					}
@@ -182,13 +182,13 @@ public class WorkspaceDAORMISer extends UnicastRemoteObject implements
 	public List<UserWorkspaceRMI> getMembersById(UUID workspaceID)
 			throws RemoteException {
 		List<UserWorkspaceRMI> users = new ArrayList<UserWorkspaceRMI>();
-		
-		for (WorkspaceRMI w : llistat) {
-			if (w.getId() == workspaceID) {
-				for (UserWorkspaceRMI uw : llistatuw) {
-					if (uw.getWorkspace().getId() == w.getId()) {
-						for (UserRMI u : w.getUsers()){
-							if (w.getOwner().equals(u)){
+
+		for (WorkspaceRMI w : list) {
+			if (w.getId().equals(workspaceID)) {
+				for (UserWorkspaceRMI uw : listuw) {
+					if (uw.getWorkspace().getId().equals(w.getId())) {
+						for (UserRMI u : w.getUsers()) {
+							if (w.getOwner().equals(u)) {
 								users.add(uw);
 							}
 						}
