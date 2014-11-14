@@ -5,6 +5,7 @@
  */
 package com.stacksync.syncservice.handler;
 
+import com.stacksync.commons.models.ABEItemMetadata;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
@@ -28,9 +29,8 @@ public class SQLABEHandler extends SQLSyncHandler {
         super(pool);
     }
 
-    @Override
-    public List<ItemMetadata> doGetChanges(User user, Workspace workspace) {
-        List<ItemMetadata> responseObjects = new ArrayList<ItemMetadata>();
+    public List<ABEItemMetadata> doGetABEChanges(User user, Workspace workspace) {
+        List<ABEItemMetadata> responseObjects = new ArrayList<ABEItemMetadata>();
         
         try {
             responseObjects = abeItemDao.getABEItemsByWorkspaceId(workspace.getId());

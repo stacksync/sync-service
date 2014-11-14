@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.db;
 
 import com.stacksync.commons.models.ABEItemMetadata;
+import com.stacksync.commons.models.ABEMetaComponent;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
@@ -242,6 +243,36 @@ public final class DAOUtil {
 		
 		return result;
 	}
+        
+	/**
+	 * Returns a string list corresponding to the given field on the given
+	 * ResultSet. If the value cannot be parsed to an array, or does not exist, it
+	 * returns an empty value.
+	 * 
+	 * @param rs
+	 *            ResultSet
+	 * @param field
+	 *            Field we want to obtain the value from
+	 * @return Long value if the field exists and can be parsed to Long. Null otherwise.
+	 */
+//	public static List<ABEMetaComponent> getABECompsFromResultSet(ResultSet rs, String field) {
+//
+//		List<ABEMetaComponent> result;
+//		
+//		try {
+//			Array arrayComps = rs.getArray(field);
+//			String[] comps = (String[]) arrayComps.getArray();
+//			result = Arrays.asList(comps);
+//			
+//			if (result.contains(null)) {
+//				result = new ArrayList<String>();
+//			}
+//		} catch (Exception e) {
+//			result = new ArrayList<String>();
+//		}
+//		
+//		return result;
+//	}
 	
 	public static Integer getIntFromResultSet(ResultSet rs, String field) {
 
@@ -304,12 +335,17 @@ public final class DAOUtil {
 		metadata.setChecksum(result.getLong("checksum"));
 		metadata.setSize(result.getLong("size"));
 		metadata.setModifiedAt(result.getTimestamp("modified_at"));
+		metadata.setCipherSymKey(result.getString("encrypted_dek"));
+                
 		
 		metadata.setLevel(getIntFromResultSet(result, "level"));
 
 		if (!metadata.isFolder()) {
 			List<String> chunksList = getArrayFromResultSet(result, "chunks");
 			metadata.setChunks(chunksList);
+                        // Get ABE metadata components
+//                        List<ABEMetaComponent> abeCompList = getABECompsFromResultSet(result, "components");
+//                        metadata.setAbeComponents(abeCompList);
 		}
 
 		return metadata;

@@ -5,7 +5,7 @@
  */
 package com.stacksync.syncservice.db.postgresql;
 
-import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.ABEItemMetadata;
 import com.stacksync.syncservice.db.ABEItemDAO;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.DAOUtil;
@@ -14,7 +14,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.apache.log4j.Logger;
 
@@ -27,19 +29,19 @@ public class PostgresqlABEItemDAO extends PostgresqlItemDAO implements ABEItemDA
     	private static final Logger logger = Logger
 			.getLogger(PostgresqlABEItemDAO.class.getName());
     
-    public PostgresqlABEItemDAO(Connection connection) {
-        super(connection);
-    }
+        public PostgresqlABEItemDAO(Connection connection) {
+            super(connection);
+        }
 
         @Override
-        public List<ItemMetadata> getABEItemsByWorkspaceId(UUID workspaceId) throws DAOException {
+        public List<ABEItemMetadata> getABEItemsByWorkspaceId(UUID workspaceId) throws DAOException {
             //TODO: elaborate the SQL query within
             Object[] values = { workspaceId, workspaceId };
 
             String query = "WITH RECURSIVE q AS "
                             + "( "
                             + " SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, "
-                            + " i.filename, iv.id AS version_id, iv.version, i.is_folder, "
+                            + " i.filename, iv.id AS version_id, iv.version, i.is_folder, i.encrypted_dek, "
                             + " i.workspace_id, "
                             + " iv.size, iv.status, i.mimetype, "
                             + " iv.checksum, iv.device_id, iv.modified_at, "
@@ -60,28 +62,40 @@ public class PostgresqlABEItemDAO extends PostgresqlItemDAO implements ABEItemDA
                             + " INNER JOIN item_version iv2 ON i2.id = iv2.item_id AND i2.latest_version = iv2.version "
                             + " WHERE i2.workspace_id=?::uuid "
                             + " )  "
-                            + " SELECT array_upper(level_array, 1) as level, q.*, get_chunks(q.version_id) AS chunks "
-                            + " FROM q  " 
+                            + " SELECT array_upper(level_array, 1) as level, "
+                            + " c.id as abemeta_id, c.item_id, c.attribute, c.encrypted_pk_component, c.version, "
+                            + " q.*, get_chunks(q.version_id) AS chunks, "
+                            + " FROM q  "
+                            + " LEFT OUTER JOIN abe_component c "
+                            + " ON c.item_id = q.item_id "
                             + " ORDER BY level_array ASC";
 
             ResultSet result = null;
-            List<ItemMetadata> items;
+            Map<Long, ABEItemMetadata> itemMap;
+            List<ABEItemMetadata> items;
+            
             try {
                     result = executeQuery(query, values);
-
-                    items = new ArrayList<ItemMetadata>();
+                    
+                    itemMap = new HashMap<Long, ABEItemMetadata>();
 
                     while (result.next()) {
-                            ItemMetadata item = DAOUtil
+                            ABEItemMetadata item = DAOUtil
                                             .getABEItemMetadataFromResultSet(result);
-                            items.add(item);
+                            if (!itemMap.containsKey(item.getId())) {
+                                itemMap.put(item.getId(), item);
+                            } else {
+                                ABEItemMetadata it = itemMap.get(item.getId());
+                                it.getAbeComponents().addAll(item.getAbeComponents());
+                                itemMap.replace(item.getId(), it);
+                            }
                     }
 
             } catch (SQLException e) {
                     logger.error(e);
                     throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
             }
-
+            items = new ArrayList<ABEItemMetadata>(itemMap.values());
             return items;
         }
 }
