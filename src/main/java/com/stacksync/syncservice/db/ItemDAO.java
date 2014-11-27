@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface ItemDAO {
@@ -20,8 +21,8 @@ public interface ItemDAO {
 	public void delete(Long id) throws DAOException;
 
 	// ItemMetadata information
-	public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId) throws DAOException;
-	
+	public List<SyncMetadata> getItemsByWorkspaceId(UUID workspaceId) throws DAOException;
+	        
 	public List<ItemMetadata> getItemsById(Long id) throws DAOException;
 
 	public ItemMetadata findById(Long id, Boolean includeList, Long version, Boolean includeDeleted, Boolean includeChunks) throws DAOException;

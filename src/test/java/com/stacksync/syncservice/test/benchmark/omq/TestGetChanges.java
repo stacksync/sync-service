@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import omq.common.broker.Broker;
 import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.commons.omq.ISyncService;
 import com.stacksync.commons.requests.GetChangesRequest;
 import com.stacksync.syncservice.test.benchmark.Constants;
@@ -24,7 +25,7 @@ public class TestGetChanges {
 		
 		GetChangesRequest request = new GetChangesRequest(Constants.USER, Constants.WORKSPACE_ID);
 		
-		List<ItemMetadata> response = server.getChanges(request);
+		List<SyncMetadata> response = server.getChanges(request);
 
 		System.out.println("Result objects -> " + response.size());
 		long totalTime = System.currentTimeMillis() - startTotal;

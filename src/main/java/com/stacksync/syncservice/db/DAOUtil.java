@@ -243,37 +243,7 @@ public final class DAOUtil {
 		
 		return result;
 	}
-        
-	/**
-	 * Returns a string list corresponding to the given field on the given
-	 * ResultSet. If the value cannot be parsed to an array, or does not exist, it
-	 * returns an empty value.
-	 * 
-	 * @param rs
-	 *            ResultSet
-	 * @param field
-	 *            Field we want to obtain the value from
-	 * @return Long value if the field exists and can be parsed to Long. Null otherwise.
-	 */
-//	public static List<ABEMetaComponent> getABECompsFromResultSet(ResultSet rs, String field) {
-//
-//		List<ABEMetaComponent> result;
-//		
-//		try {
-//			Array arrayComps = rs.getArray(field);
-//			String[] comps = (String[]) arrayComps.getArray();
-//			result = Arrays.asList(comps);
-//			
-//			if (result.contains(null)) {
-//				result = new ArrayList<String>();
-//			}
-//		} catch (Exception e) {
-//			result = new ArrayList<String>();
-//		}
-//		
-//		return result;
-//	}
-	
+        	
 	public static Integer getIntFromResultSet(ResultSet rs, String field) {
 
 		Integer result = null;
@@ -320,7 +290,6 @@ public final class DAOUtil {
 	public static ABEItemMetadata getABEItemMetadataFromResultSet(ResultSet result)
 			throws SQLException {
             
-                //TODO: Requires refinement (add specific ABE meta)
 		ABEItemMetadata metadata = new ABEItemMetadata();
 		metadata.setId(getLongFromResultSet(result, "item_id"));
 		metadata.setParentId(getLongFromResultSet(result, "parent_id"));
@@ -337,16 +306,19 @@ public final class DAOUtil {
 		metadata.setModifiedAt(result.getTimestamp("modified_at"));
 		metadata.setCipherSymKey(result.getString("encrypted_dek"));
                 
-		
 		metadata.setLevel(getIntFromResultSet(result, "level"));
 
 		if (!metadata.isFolder()) {
 			List<String> chunksList = getArrayFromResultSet(result, "chunks");
 			metadata.setChunks(chunksList);
-                        // Get ABE metadata components
-//                        List<ABEMetaComponent> abeCompList = getABECompsFromResultSet(result, "components");
-//                        metadata.setAbeComponents(abeCompList);
 		}
+                
+                // Get ABE metadata component
+                ABEMetaComponent metaComponent = new ABEMetaComponent();
+                metaComponent.setAttributeId(result.getString("attribute_id"));
+                metaComponent.setEncryptedPKComponent(result.getString("encrypted_pk_component"));
+                metaComponent.setVersion(result.getLong("abe_version"));
+                metadata.addAbeComponent(metaComponent);
 
 		return metadata;
 	}

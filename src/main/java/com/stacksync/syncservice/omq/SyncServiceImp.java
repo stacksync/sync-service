@@ -37,7 +37,7 @@ import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
-import com.stacksync.syncservice.handler.SQLABEHandler;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.handler.SyncHandler;
 import com.stacksync.syncservice.util.Config;
@@ -50,7 +50,6 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	private transient int numThreads;
 	private transient ConnectionPool pool;
 	private transient SyncHandler[] handlers;
-        private transient SyncHandler[] abeHandlers;
 	private transient Broker broker;
 
 	public SyncServiceImp(Broker broker, ConnectionPool pool) throws Exception {
@@ -62,30 +61,23 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		// Create handlers
 		numThreads = Integer.parseInt(this.broker.getEnvironment().getProperty(ParameterQueue.NUM_THREADS, "1"));
 		handlers = new SyncHandler[numThreads];
-                abeHandlers = new SyncHandler[numThreads];
                 
 		for (int i = 0; i < numThreads; i++) {
 			handlers[i] = new SQLSyncHandler(this.pool);
 		}
                 
-                for (int i = 0; i < numThreads; i++) {
-			abeHandlers[i] = new SQLABEHandler(this.pool);
-		}
 	}
 
 	@Override
-	public List<ItemMetadata> getChanges(GetChangesRequest request) {
+	public List<SyncMetadata> getChanges(GetChangesRequest request) {
             
 		logger.debug(request);
                 
 		User user = new User();
 		user.setId(request.getUserId());
 		Workspace workspace = new Workspace(request.getWorkspaceId());
-                
-                //TODO: add workspace abe encryption field
-                //TODO: if (workspace.isAbeEncrypted()) List<ItemMetadata> list = getABEHandler().doGetABEChanges(user, workspace);
-                
-		List<ItemMetadata> list = getABEHandler().doGetChanges(user, workspace);
+                                
+		List<SyncMetadata> list = getHandler().doGetChanges(user, workspace);
                 
 		return list;
 	}
@@ -131,12 +123,6 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	private synchronized SyncHandler getHandler() {
 		SyncHandler handler = handlers[index++ % numThreads];
 		logger.debug("Using handler: " + handler + " using connection: " + handler.getConnection());
-		return handler;
-	}
-        
-	private synchronized SyncHandler getABEHandler() {
-		SyncHandler handler = abeHandlers[index++ % numThreads];
-		logger.debug("Using ABE handler: " + handler + " using connection: " + handler.getConnection());
 		return handler;
 	}
 

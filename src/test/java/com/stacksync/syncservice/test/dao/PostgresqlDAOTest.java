@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.test.dao;
 
+import com.stacksync.commons.models.ABEItemMetadata;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -20,8 +21,10 @@ import com.stacksync.commons.models.Chunk;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.ABEItemDAO;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.ItemDAO;
@@ -38,13 +41,15 @@ public class PostgresqlDAOTest {
 	private static WorkspaceDAO workspaceDAO;
 	private static UserDAO userDao;
 	private static ItemDAO objectDao;
+        private static ABEItemDAO abeObjectDao;
 	private static ItemVersionDAO oversionDao;
 	private static SecureRandom random = new SecureRandom();
 
 	@BeforeClass
 	public static void testSetup() throws IOException, SQLException, DAOConfigurationException {
 
-		URL configFileResource = PostgresqlDAOTest.class.getResource("/com/ast/processserver/resources/log4j.xml");
+		URL configFileResource = PostgresqlDAOTest.class.getResource("/log4j.xml");
+                System.out.println("Fetching URL: " + configFileResource.toString());
 		DOMConfigurator.configure(configFileResource);
 
 		Config.loadProperties();
@@ -55,6 +60,7 @@ public class PostgresqlDAOTest {
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		userDao = factory.getUserDao(connection);
 		objectDao = factory.getItemDAO(connection);
+                abeObjectDao = factory.getAbeItemDAO(connection);
 		oversionDao = factory.getItemVersionDAO(connection);
 	}
 
@@ -291,17 +297,17 @@ public class PostgresqlDAOTest {
 
 	@Test
 	public void testGetWorkspaceById() {
-
+                
 	}
 
 	@Test
 	public void testGetObjectMetadataByWorkspaceName() throws DAOException {
 
-		List<ItemMetadata> objects = objectDao.getItemsByWorkspaceId(UUID.randomUUID());
+		List<SyncMetadata> objects = objectDao.getItemsByWorkspaceId(UUID.randomUUID());
 
 		if (objects != null && !objects.isEmpty()) {
 
-			for (ItemMetadata object : objects) {
+			for (SyncMetadata object : objects) {
 				System.out.println(object.toString());
 			}
 
@@ -382,5 +388,14 @@ public class PostgresqlDAOTest {
 			assertTrue(false);
 		}
 	}
+        
+        @Test
+        public void testGetABEItemByWorkspaceId() throws DAOException {    
+                UUID workspaceId = UUID.fromString("a0d404a4-7240-4750-89b2-3c01601b0c1d");
+                List<SyncMetadata> abeMeta = abeObjectDao.getABEItemsByWorkspaceId(workspaceId);
+                for(SyncMetadata meta : abeMeta) {
+                    System.out.println(meta.toString());
+                }
+        }
 
 }

@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.ItemDAO;
@@ -114,7 +115,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId)
+	public List<SyncMetadata> getItemsByWorkspaceId(UUID workspaceId)
 			throws DAOException {
 
 		Object[] values = { workspaceId, workspaceId };
@@ -148,11 +149,11 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 				+ " ORDER BY level_array ASC";
 
 		ResultSet result = null;
-		List<ItemMetadata> items;
+		List<SyncMetadata> items;
 		try {
 			result = executeQuery(query, values);
 
-			items = new ArrayList<ItemMetadata>();
+			items = new ArrayList<SyncMetadata>();
 
 			while (result.next()) {
 				ItemMetadata item = DAOUtil
@@ -167,7 +168,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 
 		return items;
 	}
-
+        
 	@Override
 	public List<ItemMetadata> getItemsById(Long id) throws DAOException {
 		Object[] values = { id };

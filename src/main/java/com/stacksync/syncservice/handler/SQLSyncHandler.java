@@ -17,6 +17,7 @@ import com.stacksync.commons.exceptions.DeviceNotValidException;
 import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 import com.stacksync.syncservice.exceptions.dao.NoRowsAffectedDAOException;
@@ -31,11 +32,15 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 	}
 
 	@Override
-	public List<ItemMetadata> doGetChanges(User user, Workspace workspace) {
-		List<ItemMetadata> responseObjects = new ArrayList<ItemMetadata>();
+	public List<SyncMetadata> doGetChanges(User user, Workspace workspace) {
+		List<SyncMetadata> responseObjects = null;
 
 		try {
-			responseObjects = itemDao.getItemsByWorkspaceId(workspace.getId());
+                        if(workspaceDAO.getById(workspace.getId()).isAbeEncrypted()) {
+                                responseObjects = abeItemDao.getABEItemsByWorkspaceId(workspace.getId());
+                        } else {
+                                responseObjects = itemDao.getItemsByWorkspaceId(workspace.getId());
+                        }
 		} catch (DAOException e) {
 			logger.error(e.toString(), e);
 		}
