@@ -1,5 +1,5 @@
 
-DROP TABLE IF EXISTS public.item_version_chunk, public.item_version, public.item, item, public.workspace_user, public.workspace, public.device, public.user1, public.curve, public.attribute, public.abe_component CASCADE;
+DROP TABLE IF EXISTS public.item_version_chunk, public.item_version, public.item, item, public.workspace_user, public.workspace, public.device, public.user1, public.curve, public.attribute, public.abe_component, public.access_component CASCADE;
 DROP SEQUENCE IF EXISTS public.sequencer_user, public.sequencer_workspace, public.sequencer_device, public.sequencer_item, public.sequencer_item_version, public.sequencer_chunk;
 
 --
@@ -272,7 +272,6 @@ CREATE TABLE public.abe_component (
 );
 
 ALTER TABLE public.abe_component ADD CONSTRAINT pk_abe_component PRIMARY KEY (id);
---ALTER TABLE public.abe_component ADD CONSTRAINT fk1_abe_component FOREIGN KEY (item_id) REFERENCES item (id) ON DELETE CASCADE;
 ALTER TABLE public.abe_component ADD CONSTRAINT fk2_abe_component FOREIGN KEY (attribute) REFERENCES public.attribute (id) ON DELETE CASCADE;
 
 --
@@ -345,6 +344,7 @@ CREATE TABLE workspace (
     owner_id uuid NOT NULL,
     is_shared boolean NOT NULL,
     is_encrypted boolean DEFAULT false NOT NULL,
+    is_abe_encrypted boolean NOT NULL DEFAULT false,
     swift_container character varying(45),
     swift_url character varying(250),
     created_at timestamp without time zone DEFAULT now()
@@ -2924,6 +2924,7 @@ REVOKE ALL ON SCHEMA public FROM postgres;
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO PUBLIC;
 
+ALTER TABLE public.abe_component ADD CONSTRAINT fk1_abe_component FOREIGN KEY (item_id) REFERENCES public.item (id) ON DELETE CASCADE;
 
 --
 -- PostgreSQL database dump complete

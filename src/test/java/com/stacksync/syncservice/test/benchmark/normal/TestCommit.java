@@ -9,6 +9,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
@@ -20,8 +21,8 @@ import com.stacksync.syncservice.util.Config;
 
 public class TestCommit {
 
-	public static List<ItemMetadata> getObjectMetadata(JsonArray allFiles) {
-		List<ItemMetadata> metadataList = new ArrayList<ItemMetadata>();
+	public static List<SyncMetadata> getObjectMetadata(JsonArray allFiles) {
+		List<SyncMetadata> metadataList = new ArrayList<SyncMetadata>();
 
 		for (int i = 0; i < allFiles.size(); i++) {
 			JsonObject file = allFiles.get(i).getAsJsonObject();
@@ -81,7 +82,7 @@ public class TestCommit {
 		long startTotal = System.currentTimeMillis();
 
 		JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
-		List<ItemMetadata> objects = getObjectMetadata(rawObjects);
+		List<SyncMetadata> objects = getObjectMetadata(rawObjects);
 
 		User user = new User();
 		user.setId(Constants.USER);

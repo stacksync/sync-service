@@ -21,7 +21,7 @@ import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface SyncHandler {
 
-	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items)
+	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<SyncMetadata> items)
 			throws DAOException;
 	
 	public List<SyncMetadata> doGetChanges(User user, Workspace workspace);

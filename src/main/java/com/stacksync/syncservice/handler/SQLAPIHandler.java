@@ -15,6 +15,7 @@ import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
@@ -276,7 +277,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		file.setStatus(Status.CHANGED.toString());
 
 		// Commit the file
-		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		List<SyncMetadata> items = new ArrayList<SyncMetadata>();
 		items.add(file);
 
 		Workspace workspace = new Workspace(file.getWorkspaceId());
@@ -382,7 +383,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		file.setStatus(Status.RENAMED.toString());
 
 		// Commit the file
-		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		List<SyncMetadata> items = new ArrayList<SyncMetadata>();
 		items.add(file);
 
 		Workspace workspace = new Workspace(file.getWorkspaceId());
@@ -765,7 +766,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		itemToSave.setWorkspaceId(parent.getWorkspaceId());
 		Workspace workspace = new Workspace(parent.getWorkspaceId());
 
-		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
+		List<SyncMetadata> objects = new ArrayList<SyncMetadata>();
 		objects.add(itemToSave);
 
 		this.doCommit(user, workspace, apiDevice, objects);
@@ -791,7 +792,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		item.setDeviceId(Constants.API_DEVICE_ID);
 		item.setChecksum(0L);
 
-		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		List<SyncMetadata> items = new ArrayList<SyncMetadata>();
 		items.add(item);
 
 		Workspace workspace = new Workspace(item.getWorkspaceId());
@@ -824,7 +825,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	private APIDeleteResponse deleteItemsAPI(User user, Workspace workspace, List<ItemMetadata> filesToDelete)
 			throws DAOException {
 
-		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		List<SyncMetadata> items = new ArrayList<SyncMetadata>();
 
 		for (ItemMetadata fileToDelete : filesToDelete) {
 

@@ -82,6 +82,7 @@ CREATE TABLE public.workspace (
     owner_id uuid NOT NULL,
     is_shared boolean NOT NULL,
     is_encrypted boolean NOT NULL DEFAULT false,
+    is_abe_encrypted boolean NOT NULL DEFAULT false,
     swift_container varchar(45),
     swift_url varchar(250),
     created_at timestamp DEFAULT now()

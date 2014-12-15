@@ -8,7 +8,6 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;

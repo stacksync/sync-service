@@ -11,12 +11,15 @@ import org.apache.log4j.Logger;
 
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
+import com.stacksync.commons.models.ABEItem;
+import com.stacksync.commons.models.ABEItemMetadata;
 import com.stacksync.commons.models.Chunk;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
@@ -75,7 +78,7 @@ public class Handler {
 		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
 	}
 
-	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items)
+	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<SyncMetadata> items)
 			throws DAOException {
 
 		HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
@@ -89,7 +92,7 @@ public class Handler {
 
 		List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
 
-		for (ItemMetadata item : items) {
+		for (SyncMetadata item : items) {
 
 			ItemMetadata objectResponse = null;
 			boolean committed;
@@ -118,7 +121,7 @@ public class Handler {
 					tempIds.put(item.getTempId(), item.getId());
 				}
 
-				objectResponse = item;
+				objectResponse = (ItemMetadata) item;
 				committed = true;
 			} catch (CommitWrongVersion e) {
 				Item serverObject = e.getItem();
@@ -473,7 +476,7 @@ public class Handler {
 	 * Private functions
 	 */
 
-	private void commitObject(ItemMetadata item, Workspace workspace, Device device) throws CommitWrongVersionNoParent,
+	private void commitObject(SyncMetadata item, Workspace workspace, Device device) throws CommitWrongVersionNoParent,
 			CommitWrongVersion, CommitExistantVersion, DAOException {
 
 		Item serverItem = itemDao.findById(item.getId());
@@ -494,62 +497,57 @@ public class Handler {
 		boolean existVersionInServer = (serverVersion >= clientVersion);
 
 		if (existVersionInServer) {
-			this.saveExistentVersion(serverItem, item);
+			this.saveExistentVersion(serverItem, (ItemMetadata) item);
 		} else {
 			// Check if version is correct
 			if (serverVersion + 1 == clientVersion) {
-				this.saveNewVersion(item, serverItem, workspace, device);
+				this.saveNewVersion((ItemMetadata) item, serverItem, workspace, device);
 			} else {
 				throw new CommitWrongVersion("Invalid version.", serverItem);
 			}
 		}
 	}
 
-	private void saveNewObject(ItemMetadata metadata, Workspace workspace, Device device) throws DAOException {
+	private void saveNewObject(SyncMetadata metadata, Workspace workspace, Device device) throws DAOException {
 		// Create workspace and parent instances
 		Long parentId = metadata.getParentId();
 		Item parent = null;
 		if (parentId != null) {
 			parent = itemDao.findById(parentId);
 		}
-
+                
 		beginTransaction();
-
+                
 		try {
-			// Insert object to DB
+                        // Get an item object from the provided metadata
+                        Item item = getItemFromMeta(metadata, parent, workspace);
+                        
+                        // Save the item to DB according to the expected metadata managed by the workspace
+                        if(workspace.isAbeEncrypted()) {
+                                // Get an ABE item object from a plain item and the provided ABE metadata
+                                ABEItem abeItem = getAbeItemFromMeta(metadata, item);
+                                // Insert ABE item to DB
+                                abeItemDao.put(abeItem);
+                                // set the global ID
+                                metadata.setId(abeItem.getId());
+                                item.setId(abeItem.getId());
+                        } else {
+                                // Insert item to DB
+                                itemDao.put(item);                                
+                                // set the global ID
+                                metadata.setId(item.getId());
+                        }
+                        
+                        // Get an item version object from provided metadata
+                        ItemVersion itemVersion = getItemVersionFromMeta(item, metadata, device);
 
-			Item item = new Item();
-			item.setId(metadata.getId());
-			item.setFilename(metadata.getFilename());
-			item.setMimetype(metadata.getMimetype());
-			item.setIsFolder(metadata.isFolder());
-			item.setClientParentFileVersion(metadata.getParentVersion());
-
-			item.setLatestVersion(metadata.getVersion());
-			item.setWorkspace(workspace);
-			item.setParent(parent);
-
-			itemDao.put(item);
-
-			// set the global ID
-			metadata.setId(item.getId());
-
-			// Insert objectVersion
-			ItemVersion objectVersion = new ItemVersion();
-			objectVersion.setVersion(metadata.getVersion());
-			objectVersion.setModifiedAt(metadata.getModifiedAt());
-			objectVersion.setChecksum(metadata.getChecksum());
-			objectVersion.setStatus(metadata.getStatus());
-			objectVersion.setSize(metadata.getSize());
-
-			objectVersion.setItem(item);
-			objectVersion.setDevice(device);
-			itemVersionDao.add(objectVersion);
-
+                        // Insert itemVersion
+			itemVersionDao.add(itemVersion);
+                        
 			// If no folder, create new chunks
 			if (!metadata.isFolder()) {
 				List<String> chunks = metadata.getChunks();
-				this.createChunks(chunks, objectVersion);
+				this.createChunks(chunks, itemVersion);
 			}
 
 			commitTransaction();
@@ -558,6 +556,52 @@ public class Handler {
 			rollbackTransaction();
 		}
 	}
+        
+        private Item getItemFromMeta(SyncMetadata meta, Item parent, Workspace workspace) throws ClassCastException {
+            
+                ItemMetadata metadata = (ItemMetadata) meta;
+            
+                Item item = new Item();
+                item.setId(metadata.getId());
+                item.setFilename(metadata.getFilename());
+                item.setMimetype(metadata.getMimetype());
+                item.setIsFolder(metadata.isFolder());
+                item.setClientParentFileVersion(metadata.getParentVersion());
+
+                item.setLatestVersion(metadata.getVersion());
+                item.setWorkspace(workspace);
+                item.setParent(parent);
+                
+                return item;
+        }
+        
+        private ABEItem getAbeItemFromMeta(SyncMetadata meta, Item item) throws ClassCastException {
+                
+                ABEItem abeItem = new ABEItem(item);
+                ABEItemMetadata metadata = (ABEItemMetadata) meta;
+                
+                abeItem.setAbeComponents(metadata.getAbeComponents());
+                abeItem.setCipherSymKey(metadata.getCipherSymKey());
+                
+                return abeItem;
+        }
+        
+        private ItemVersion getItemVersionFromMeta(Item item, SyncMetadata meta, Device device) {
+            
+                ItemMetadata metadata = (ItemMetadata) meta;
+                
+                ItemVersion objectVersion = new ItemVersion();
+                objectVersion.setVersion(metadata.getVersion());
+                objectVersion.setModifiedAt(metadata.getModifiedAt());
+                objectVersion.setChecksum(metadata.getChecksum());
+                objectVersion.setStatus(metadata.getStatus());
+                objectVersion.setSize(metadata.getSize());
+
+                objectVersion.setItem(item);
+                objectVersion.setDevice(device);
+                
+                return objectVersion;
+        }
 
 	private void saveNewVersion(ItemMetadata metadata, Item serverItem, Workspace workspace, Device device)
 			throws DAOException {

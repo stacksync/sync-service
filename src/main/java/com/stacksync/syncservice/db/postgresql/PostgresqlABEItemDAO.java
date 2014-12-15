@@ -1,6 +1,9 @@
 package com.stacksync.syncservice.db.postgresql;
 
+import com.stacksync.commons.models.ABEItem;
 import com.stacksync.commons.models.ABEItemMetadata;
+import com.stacksync.commons.models.ABEMetaComponent;
+import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.syncservice.db.ABEItemDAO;
 import com.stacksync.syncservice.db.DAOError;
@@ -10,7 +13,6 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import org.apache.log4j.Logger;
@@ -27,6 +29,82 @@ public class PostgresqlABEItemDAO extends PostgresqlItemDAO implements ABEItemDA
         public PostgresqlABEItemDAO(Connection connection) {
             super(connection);
         }
+        
+	@Override
+	public void add(Item item) throws DAOException {
+                ABEItem it = (ABEItem) item;
+                
+		if (!it.isValid()) {
+			throw new IllegalArgumentException("Item attributes not set");
+		}
+
+		Object[] values = { it.getWorkspace().getId(),
+				it.getLatestVersion(), it.getParentId(),
+				it.getFilename(), it.getMimetype(), it.isFolder(),
+				it.getClientParentFileVersion(), it.getCipherSymKey() };
+
+		String query = "INSERT INTO item ( workspace_id, latest_version, parent_id,"
+				+ " filename, mimetype, is_folder,"
+				+ " client_parent_file_version, encrypted_dek ) "
+				+ "VALUES ( ?::uuid, ?, ?, ?, ?, ?, ?, ? )";
+
+		Long id = (Long)executeUpdate(query, values);
+                
+                for (ABEMetaComponent metaComponent : it.getAbeComponents()) {
+                        Object[] abeValues = { id, metaComponent.getAttributeId(),
+                                            metaComponent.getEncryptedPKComponent(),
+                                            metaComponent.getVersion()};
+
+                        String abeQuery = "INSERT INTO abe_component ( item_id, attribute, "
+                                        + "encrypted_pk_component,"
+                                        + " version ) "
+                                        + "VALUES ( ?, ?::uuid, ?, ? )";
+ 
+                        executeUpdate(abeQuery, abeValues);
+                }
+
+		if (id != null) {
+			it.setId(id);
+		}
+                
+	}
+
+	@Override
+	public void put(Item item) throws DAOException {
+		if (item.getId() == null) {
+			add(item);
+		} else {
+			update(item);
+		}
+	}
+
+	@Override
+	public void update(Item item) throws DAOException {
+                ABEItem it = (ABEItem) item;
+		
+                if (it.getId() == null || !it.isValid()) {
+			throw new IllegalArgumentException("Item attributes not set");
+		}
+
+		Long parentId = it.getParentId();
+		// If id == 0 means parent is null!
+		if (parentId != null && parentId == 0) {
+			parentId = null;
+		}
+
+		Object[] values = { it.getWorkspace().getId(),
+				it.getLatestVersion(), parentId, it.getFilename(),
+				it.getMimetype(), item.isFolder(),
+				it.getClientParentFileVersion(),  it.getCipherSymKey(), it.getId() };
+
+		String query = "UPDATE item SET " + "workspace_id = ?::uuid, "
+				+ "latest_version = ?, " + "parent_id = ?, " + "filename = ?, "
+				+ "mimetype = ?, " + "is_folder = ?, "
+				+ "client_parent_file_version = ?, encrypted_dek = ? " + "WHERE id = ?";
+
+		executeUpdate(query, values);
+
+	}
         
         @Override
         public List<SyncMetadata> getABEItemsByWorkspaceId(UUID workspaceId) throws DAOException {

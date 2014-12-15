@@ -116,9 +116,9 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		}
 
 		Object[] values = { workspace.getLatestRevision(), workspace.getOwner().getId(), workspace.isShared(), workspace.isEncrypted(),
-				workspace.getSwiftContainer(), workspace.getSwiftUrl() };
+				workspace.isAbeEncrypted(), workspace.getSwiftContainer(), workspace.getSwiftUrl() };
 
-		String query = "INSERT INTO workspace (latest_revision, owner_id, is_shared, is_encrypted, swift_container, swift_url) VALUES (?, ?, ?, ?, ?, ?)";
+		String query = "INSERT INTO workspace (latest_revision, owner_id, is_shared, is_encrypted, is_abe_encrypted, swift_container, swift_url) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
 		UUID id = (UUID)executeUpdate(query, values);
 
@@ -162,6 +162,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		workspace.setLatestRevision(result.getInt("latest_revision"));
 		workspace.setShared(result.getBoolean("is_shared"));
 		workspace.setEncrypted(result.getBoolean("is_encrypted"));
+                workspace.setAbeEncrypted(result.getBoolean("is_abe_encrypted"));
 		workspace.setName(result.getString("workspace_name"));
 
 		workspace.setSwiftContainer(result.getString("swift_container"));

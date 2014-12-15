@@ -1,6 +1,4 @@
 package com.stacksync.syncservice.db;
-
-import com.stacksync.commons.models.ABEItemMetadata;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,6 +8,7 @@ import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface ItemDAO {
+    
 	public Item findById(Long id) throws DAOException;
 
 	public void add(Item item) throws DAOException;
