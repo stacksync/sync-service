@@ -28,7 +28,7 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 	public ItemMetadata findByItemIdAndVersion(Long id, Long version) throws DAOException {
 		Object[] values = { id, version };
 
-		String query = "SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, i.filename, i.is_folder, i.mimetype, "
+		String query = "SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, i.filename, i.is_folder, i.mimetype, i.workspace_id, "
 				+ " iv.version, iv.device_id, iv.checksum, iv.status, iv.size, iv.modified_at, "
 				+ " get_chunks(iv.id) AS chunks "
 				+ " FROM item_version iv "

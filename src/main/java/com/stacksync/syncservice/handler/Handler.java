@@ -118,12 +118,15 @@ public class Handler {
 				objectResponse = item;
 				committed = true;
 			} catch (CommitWrongVersion e) {
+                            logger.info("Commit wrong version item:" + e.getItem().getId());
 				Item serverObject = e.getItem();
 				objectResponse = this.getCurrentServerVersion(serverObject);
 				committed = false;
 			} catch (CommitWrongVersionNoParent e) {
+                            logger.info("Commit wrong version no parent");
 				committed = false;
 			} catch (CommitExistantVersion e) {
+                                logger.info("Commit existant version item:" + e.getItem().getId());
 				Item serverObject = e.getItem();
 				objectResponse = this.getCurrentServerVersion(serverObject);
 				committed = true;
