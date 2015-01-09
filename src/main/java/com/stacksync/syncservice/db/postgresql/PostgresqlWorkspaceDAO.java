@@ -214,7 +214,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 		Object[] values = { workspace.getId(), user.getId() };
 
-		String query = "DELETE FROM workspace_user WHERE workspace_id=?::uuid, user_id=?::uuid";
+		String query = "DELETE FROM workspace_user WHERE workspace_id=?::uuid AND user_id=?::uuid";
 
 		executeUpdate(query, values);
 	}

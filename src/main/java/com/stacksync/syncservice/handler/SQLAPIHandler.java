@@ -643,10 +643,11 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	public APIUnshareFolderResponse unshareFolder(User user, Item item, List<String> emails) {
 
 		APIUnshareFolderResponse response;
+		Workspace workspace;
 
 		try {
-			this.doUnshareFolder(user, emails, item, false);
-			response = new APIUnshareFolderResponse(null, true, 0, "");
+			workspace = this.doUnshareFolder(user, emails, item, false);
+			response = new APIUnshareFolderResponse(workspace, true, 0, "");
 		} catch (ShareProposalNotCreatedException e) {
 			response = new APIUnshareFolderResponse(null, false, 400, e.getMessage());
 		} catch (UserNotFoundException e) {

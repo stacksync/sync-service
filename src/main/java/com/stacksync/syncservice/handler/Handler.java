@@ -302,7 +302,7 @@ public class Handler {
 		return workspace;
 	}
 
-	public void doUnshareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
+	public Workspace doUnshareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
 
 		// Check the owner
@@ -353,13 +353,12 @@ public class Handler {
 					logger.warn(String.format("Email '%s' corresponds with owner of the folder. ", email));
 					throw new ShareProposalNotCreatedException("Email "+email+" corresponds with owner of the folder.");
 				
-				}else{
-					if (!addressee.getId().equals(user.getId())) {
-						if (!addressee.getId().equals(sourceWorkspace.getOwner().getId())){
-							addressees.add(addressee);
-						}
-					}
 				}
+				
+				if (!addressee.getId().equals(user.getId())) {
+					addressees.add(addressee);
+				}
+				
 
 			} catch (IllegalArgumentException e) {
 				logger.error(e);
@@ -463,6 +462,8 @@ public class Handler {
 				}
 			}
 		}
+		return sourceWorkspace;
+
 	}
 
 	public List<UserWorkspace> doGetWorkspaceMembers(User user,

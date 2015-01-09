@@ -445,9 +445,10 @@ public class XmlRpcSyncHandler {
 		item.setId(folderId);
 
 		APIUnshareFolderResponse response = this.apiHandler.unshareFolder(user, item, emails);
-
+			
 		if (response.getSuccess()) {
 			//FIXME: Do the user-workspace unbindings before
+//			this.unBindUsersToWorkspace(response.getWorkspace(), folderId);
 			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
 		}
 
@@ -569,7 +570,35 @@ public class XmlRpcSyncHandler {
 		}
 
 	}
-	
+	private void unBindUsersToWorkspace(Workspace workspace, Long folderId) {
+		
+		// Create notification
+		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
+				workspace.getName(), folderId, workspace.getOwner().getId(), workspace.getOwner().getName(),
+				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
+
+		notification.setRequestId("");
+
+		// Send notification to owner
+		RemoteClient client;
+		try {
+			client = broker.lookupMulti(workspace.getOwner().getId().toString(), RemoteClient.class);
+			client.notifyShareProposal(notification);
+		} catch (RemoteException e1) {
+			logger.error(String.format("Could not notify user: '%s'", workspace.getOwner().getId()), e1);
+		}
+
+		// Send notifications to users
+		for (User addressee : workspace.getUsers()) {
+			try {
+				client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
+				client.notifyShareProposal(notification);
+			} catch (RemoteException e) {
+				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
+			}
+		}
+
+	}
 	private void sendMessageToClients(String workspaceName, APIResponse generalResponse) {
 
 		CommitInfo info = generalResponse.getItem();
