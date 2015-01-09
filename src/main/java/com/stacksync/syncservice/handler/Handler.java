@@ -395,9 +395,9 @@ public class Handler {
 
 		if (workspaceMembers.size() <= 1) {
 			// All members have been removed from the workspace
-
 			Workspace defaultWorkspace;
 			try {
+				//Always the last member of a shared folder will be the owner
 				defaultWorkspace = workspaceDAO.getDefaultWorkspaceByUserId(sourceWorkspace.getOwner().getId());
 			} catch (DAOException e) {
 				logger.error(e);

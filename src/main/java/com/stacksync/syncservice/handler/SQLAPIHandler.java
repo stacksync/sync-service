@@ -644,7 +644,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		APIUnshareFolderResponse response;
 		Workspace workspace;
-
+		
 		try {
 			workspace = this.doUnshareFolder(user, emails, item, false);
 			response = new APIUnshareFolderResponse(workspace, true, 0, "");

@@ -449,7 +449,7 @@ public class XmlRpcSyncHandler {
 		if (response.getSuccess()) {
 			//FIXME: Do the user-workspace unbindings before
 //			this.unBindUsersToWorkspace(response.getWorkspace(), folderId);
-			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
+//			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
 		}
 
 		String strResponse = response.toString();
