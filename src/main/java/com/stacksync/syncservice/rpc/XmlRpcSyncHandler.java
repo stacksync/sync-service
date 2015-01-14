@@ -18,6 +18,7 @@ import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.commons.notifications.ShareProposalNotification;
+import com.stacksync.commons.notifications.UnshareNotification;
 import com.stacksync.commons.omq.RemoteClient;
 import com.stacksync.commons.omq.RemoteWorkspace;
 import com.stacksync.syncservice.db.ConnectionPool;
@@ -448,7 +449,7 @@ public class XmlRpcSyncHandler {
 			
 		if (response.getSuccess()) {
 			//FIXME: Do the user-workspace unbindings before
-//			this.unBindUsersToWorkspace(response.getWorkspace(), folderId);
+			this.unBindUsersToWorkspace(response.getWorkspace(),response.getUsersToRemove(), response.isUnshared(), folderId);
 //			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
 		}
 
@@ -570,34 +571,35 @@ public class XmlRpcSyncHandler {
 		}
 
 	}
-	private void unBindUsersToWorkspace(Workspace workspace, Long folderId) {
+	private void unBindUsersToWorkspace(Workspace workspace, List<User> usersToRemove, boolean isUnshared, Long folderId) {
 		
 		// Create notification
-		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
+		UnshareNotification notification = new UnshareNotification(workspace.getId(),
 				workspace.getName(), folderId, workspace.getOwner().getId(), workspace.getOwner().getName(),
 				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
 
 		notification.setRequestId("");
-
-		// Send notification to owner
 		RemoteClient client;
-		try {
-			client = broker.lookupMulti(workspace.getOwner().getId().toString(), RemoteClient.class);
-			client.notifyShareProposal(notification);
-		} catch (RemoteException e1) {
-			logger.error(String.format("Could not notify user: '%s'", workspace.getOwner().getId()), e1);
+		// Send notification to owner
+		if (isUnshared){
+			try {
+				client = broker.lookupMulti(workspace.getOwner().getId().toString(), RemoteClient.class);
+				client.notifyUnshare(notification);
+			} catch (RemoteException e1) {
+				logger.error(String.format("Could not notify user: '%s'", workspace.getOwner().getId()), e1);
+			}
 		}
+	
 
 		// Send notifications to users
-		for (User addressee : workspace.getUsers()) {
+		for (User addressee : usersToRemove) {
 			try {
 				client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
-				client.notifyShareProposal(notification);
+				client.notifyUnshare(notification);
 			} catch (RemoteException e) {
 				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
 			}
-		}
-
+		} 	
 	}
 	private void sendMessageToClients(String workspaceName, APIResponse generalResponse) {
 

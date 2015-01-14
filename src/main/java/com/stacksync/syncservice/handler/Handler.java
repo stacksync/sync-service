@@ -302,9 +302,10 @@ public class Handler {
 		return workspace;
 	}
 
-	public Workspace doUnshareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
+	public UnshareData doUnshareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
-
+		
+		UnshareData response;
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
@@ -397,7 +398,7 @@ public class Handler {
 			// All members have been removed from the workspace
 			Workspace defaultWorkspace;
 			try {
-				//Always the last member of a shared folder will be the owner
+				//Always the last member of a shared folder should be the owner
 				defaultWorkspace = workspaceDAO.getDefaultWorkspaceByUserId(sourceWorkspace.getOwner().getId());
 			} catch (DAOException e) {
 				logger.error(e);
@@ -437,11 +438,13 @@ public class Handler {
 			
 			// delete container from swift
 			try {
-				storageManager.deleteWorkspace(defaultWorkspace);
+				storageManager.deleteWorkspace(sourceWorkspace);
 			} catch (Exception e) {
 				logger.error(e);
 				throw new ShareProposalNotCreatedException(e);
 			}
+			
+			response = new UnshareData(usersToRemove, sourceWorkspace, true);
 
 		} else {
 			
@@ -461,9 +464,10 @@ public class Handler {
 					throw new ShareProposalNotCreatedException(e);
 				}
 			}
-		}
-		return sourceWorkspace;
+			response = new UnshareData(usersToRemove, sourceWorkspace, false);
 
+		}
+		return response;
 	}
 
 	public List<UserWorkspace> doGetWorkspaceMembers(User user,
