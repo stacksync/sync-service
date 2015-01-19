@@ -200,7 +200,7 @@ If something went wrong, you can check the standard and error log files located 
 We use the GitHub issue tracking.
 
 # Licensing
-StackSync is licensed under the GPLv3. Check [LICENSE](LICENSE) for the latest
+StackSync is licensed under the Apache 2.0. Check [LICENSE](LICENSE) for the latest
 licensing information.
 
 # Contact
