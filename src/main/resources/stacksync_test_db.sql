@@ -171,7 +171,7 @@ CREATE TABLE item (
     workspace_id uuid NOT NULL,
     latest_version bigint NOT NULL,
     parent_id bigint,
-    encrypted_dek varchar(500),
+    encrypted_dek bytea,
     filename character varying(100) NOT NULL,
     mimetype character varying(45) NOT NULL,
     is_folder boolean NOT NULL,
@@ -237,7 +237,7 @@ CREATE TABLE public.attribute (
     id uuid NOT NULL default uuid_generate_v4(),
     name varchar(100) NOT NULL,
     latest_version bigint NOT NULL,
-    public_key_component varchar(500) NOT NULL,
+    public_key_component bytea NOT NULL,
     history_list json
 );
 
@@ -267,7 +267,7 @@ CREATE TABLE public.abe_component (
     id uuid NOT NULL default uuid_generate_v4(),
     item_id bigint NOT NULL,
     attribute uuid NOT NULL,
-    encrypted_pk_component varchar(500) NOT NULL,
+    encrypted_pk_component bytea NOT NULL,
     version integer NOT NULL
 );
 

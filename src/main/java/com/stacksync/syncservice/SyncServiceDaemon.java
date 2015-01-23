@@ -92,16 +92,16 @@ public class SyncServiceDaemon implements Daemon {
 		}
 		
                 /*TODO: Uncomment on deployment */
-//		logger.info("Connecting to OpenStack Swift...");
-//		
-//		try{
-//			StorageManager storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
-//			storageManager.login();
-//			logger.info("Connected to OpenStack Swift successfully");
-//		}catch (Exception e) {
-//			logger.fatal("Could not connect to Swift.", e);
-//			System.exit(7);
-//		}
+		logger.info("Connecting to OpenStack Swift...");
+		
+		try{
+			StorageManager storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
+			storageManager.login();
+			logger.info("Connected to OpenStack Swift successfully");
+		}catch (Exception e) {
+			logger.fatal("Could not connect to Swift.", e);
+			System.exit(7);
+		}
 		
 
 		logger.info("Initializing the messaging middleware...");

@@ -135,7 +135,7 @@ public class AbeHandlerTest {
                 for (int i = 0; i < 3; i++) {
                     ABEMetaComponent component = new ABEMetaComponent();
                     component.setAttributeId("4659032a-1437-4bcb-a8eb-bb482e1e21a3");
-                    component.setEncryptedPKComponent("myencryptedPKComponent");
+                    component.setEncryptedPKComponent(("myencryptedPKComponent").getBytes());
                     component.setVersion(0L);
                     components.add(component);
                 }
@@ -150,7 +150,7 @@ public class AbeHandlerTest {
                 SyncMetadata item = new ABEItemMetadata(null, 1L, device.getId(), 
                         null, null, "NEW", Date.valueOf("2014-12-12"),
                         3499525671L, 1968L, false, "abetesting", "text/plain", chunks,
-                        components, cipherSymKey);
+                        components, cipherSymKey.getBytes());
                 
                 List<SyncMetadata> metaList = new ArrayList<SyncMetadata>();
                 metaList.add(item);

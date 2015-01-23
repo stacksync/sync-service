@@ -31,7 +31,7 @@ public interface SyncHandler {
 
 	public List<Workspace> doGetWorkspaces(User user) throws NoWorkspacesFoundException;
 
-	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
+	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted, boolean abeEncryption)
 			throws ShareProposalNotCreatedException, UserNotFoundException;
 
 	public void doUpdateWorkspace(User user, Workspace workspace) throws UserNotFoundException,

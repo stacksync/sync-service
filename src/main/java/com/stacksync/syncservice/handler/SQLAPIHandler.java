@@ -629,7 +629,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		Workspace workspace;
 		try {
-			workspace = this.doShareFolder(user, emails, item, false);
+			workspace = this.doShareFolder(user, emails, item, false, false);
 			response = new APIShareFolderResponse(workspace, true, 0, "");
 		} catch (ShareProposalNotCreatedException e) {
 			response = new APIShareFolderResponse(null, false, 400, e.getMessage());
@@ -846,7 +846,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 
 		Boolean success = false;
-		ItemMetadata fileToDelete = null;
+		SyncMetadata fileToDelete = null;
 
 		List<CommitInfo> commitResponse = this.doCommit(user, workspace, apiDevice, items);
 

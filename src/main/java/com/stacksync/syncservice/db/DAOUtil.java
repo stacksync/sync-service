@@ -304,7 +304,7 @@ public final class DAOUtil {
 		metadata.setChecksum(result.getLong("checksum"));
 		metadata.setSize(result.getLong("size"));
 		metadata.setModifiedAt(result.getTimestamp("modified_at"));
-		metadata.setCipherSymKey(result.getString("encrypted_dek"));
+		metadata.setCipherSymKey(result.getBytes("encrypted_dek"));
                 
 		metadata.setLevel(getIntFromResultSet(result, "level"));
 
@@ -316,7 +316,7 @@ public final class DAOUtil {
                 // Get ABE metadata component
                 ABEMetaComponent metaComponent = new ABEMetaComponent();
                 metaComponent.setAttributeId(result.getString("attribute_id"));
-                metaComponent.setEncryptedPKComponent(result.getString("encrypted_pk_component"));
+                metaComponent.setEncryptedPKComponent(result.getBytes("encrypted_pk_component"));
                 metaComponent.setVersion(result.getLong("abe_version"));
                 metadata.addAbeComponent(metaComponent);
 

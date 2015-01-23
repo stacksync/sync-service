@@ -542,10 +542,11 @@ public class XmlRpcSyncHandler {
 	
 	private void bindUsersToWorkspace(Workspace workspace, Long folderId) {
 		
+                // TODO: fix abe encrypted always false!!
 		// Create notification
 		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
 				workspace.getName(), folderId, workspace.getOwner().getId(), workspace.getOwner().getName(),
-				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
+				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted(), false);
 
 		notification.setRequestId("");
 

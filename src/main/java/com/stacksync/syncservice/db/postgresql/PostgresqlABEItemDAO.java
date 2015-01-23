@@ -58,7 +58,7 @@ public class PostgresqlABEItemDAO extends PostgresqlItemDAO implements ABEItemDA
                         String abeQuery = "INSERT INTO abe_component ( item_id, attribute, "
                                         + "encrypted_pk_component,"
                                         + " version ) "
-                                        + "VALUES ( ?, ?::uuid, ?, ? )";
+                                        + "VALUES ( ?, ?, ?, ? )";
  
                         executeUpdate(abeQuery, abeValues);
                 }

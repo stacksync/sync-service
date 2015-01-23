@@ -75,7 +75,7 @@ public class ShareFolderTest {
 		emails.add("c@c.c");
 		Item item = new Item(125L);
 		
-		handler.doShareFolder(user1, emails, item, false);
+		handler.doShareFolder(user1, emails, item, false, false);
 		
 	}
 

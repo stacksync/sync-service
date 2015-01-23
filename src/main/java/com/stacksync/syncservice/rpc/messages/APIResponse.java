@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 
@@ -42,7 +43,7 @@ public abstract class APIResponse {
 		return item;
 	}
 	
-	public ItemMetadata getMetadata(){
+	public SyncMetadata getMetadata(){
 		return item.getMetadata();
 	}
 	
@@ -55,15 +56,15 @@ public abstract class APIResponse {
 			jResponse.addProperty("error", getErrorCode());
 			jResponse.addProperty("description", getDescription());
 		} else {
-			ItemMetadata file = getItem().getMetadata();
+			SyncMetadata file = getItem().getMetadata();
 			jResponse = this.parseItemMetadata(file);
 		}
 
 		return jResponse.toString();
 	}
 	
-	private JsonObject parseItemMetadata(ItemMetadata metadata) {
-		JsonObject jMetadata = parseMetadata(metadata);
+	private JsonObject parseItemMetadata(SyncMetadata metadata) {
+		JsonObject jMetadata = parseMetadata((ItemMetadata) metadata);
 
 		if (metadata.getParentId() == null) {
 			jMetadata.addProperty("parent_file_id", "");

@@ -14,7 +14,6 @@ import com.stacksync.commons.models.AccountInfo;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.commons.notifications.CommitNotification;
@@ -160,12 +159,12 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		Item item = new Item(request.getItemId());
 
 		// Create share proposal
-		Workspace workspace = getHandler().doShareFolder(user, request.getEmails(), item, request.isEncrypted());
+		Workspace workspace = getHandler().doShareFolder(user, request.getEmails(), item, request.isEncrypted(), request.isAbeEncrypted());
 
 		// Create notification
 		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
 				workspace.getName(), item.getId(), workspace.getOwner().getId(), workspace.getOwner().getName(),
-				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
+				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted(), workspace.isAbeEncrypted());
 
 		notification.setRequestId(request.getRequestId());
 

@@ -141,7 +141,7 @@ public class Handler {
 		return responseObjects;
 	}
 
-	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
+	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
 
 		// Check the owner
@@ -213,6 +213,7 @@ public class Handler {
 			workspace = new Workspace();
 			workspace.setShared(true);
 			workspace.setEncrypted(isEncrypted);
+                        workspace.setAbeEncrypted(abeEncrypted);
 			workspace.setName(item.getFilename());
 			workspace.setOwner(user);
 			workspace.setUsers(addressees);

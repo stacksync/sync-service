@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
@@ -81,8 +82,8 @@ public class JSONParser implements IParser {
 			jResponse.addProperty("description", response.getDescription());
 			jResponse.addProperty("error", response.getErrorCode());
 		} else {
-			ItemMetadata file = response.getItem().getMetadata();
-			jResponse = this.parseItemMetadata(file);
+			SyncMetadata file = response.getItem().getMetadata();
+			jResponse = this.parseItemMetadata((ItemMetadata) file);
 		}
 
 		return jResponse;
