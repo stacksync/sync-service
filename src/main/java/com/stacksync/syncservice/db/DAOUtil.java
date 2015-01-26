@@ -15,6 +15,7 @@ import java.util.UUID;
 import com.stacksync.commons.models.Chunk;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.models.SharingProposal;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
@@ -332,6 +333,24 @@ public final class DAOUtil {
 		item.setParent(parent);
 
 		return item;
+	}
+	
+	public static SharingProposal getSharingProposalFromResultSet(ResultSet result) throws SQLException{
+		SharingProposal proposal = new SharingProposal();
+		proposal.setId(result.getLong("id"));
+		proposal.setFolder(result.getLong("folder_id"));
+		proposal.setIsLocal(result.getBoolean("write_access"));
+		proposal.setCallback(result.getString("callback"));
+		proposal.setOwner(result.getLong("owner_id"));
+		proposal.setKey(UUID.fromString(result.getString("key")));
+		proposal.setService(result.getInt("service_id"));
+		proposal.setProtocolVersion(result.getString("protocol_version"));
+		proposal.setRecipient(result.getString("recipient"));
+		proposal.setResourceUrl(result.getString("resource_url"));
+		proposal.setStatus(result.getString("status"));
+		
+		return proposal;
+		
 	}
 	
 }
