@@ -53,12 +53,12 @@ public class PostgresqlABEItemDAO extends PostgresqlItemDAO implements ABEItemDA
                 for (ABEMetaComponent metaComponent : it.getAbeComponents()) {
                         Object[] abeValues = { id, metaComponent.getAttributeId(),
                                             metaComponent.getEncryptedPKComponent(),
-                                            metaComponent.getVersion()};
+                                            metaComponent.getVersion(), it.getLatestVersion()};
 
                         String abeQuery = "INSERT INTO abe_component ( item_id, attribute, "
                                         + "encrypted_pk_component,"
-                                        + " version ) "
-                                        + "VALUES ( ?, ?, ?, ? )";
+                                        + " version, item_version ) "
+                                        + "VALUES ( ?, ?, ?, ?, ? )";
  
                         executeUpdate(abeQuery, abeValues);
                 }
@@ -103,7 +103,19 @@ public class PostgresqlABEItemDAO extends PostgresqlItemDAO implements ABEItemDA
 				+ "client_parent_file_version = ?, encrypted_dek = ? " + "WHERE id = ?";
 
 		executeUpdate(query, values);
+                
+                for (ABEMetaComponent metaComponent : it.getAbeComponents()) {
+                        Object[] abeValues = { it.getId(), metaComponent.getAttributeId(),
+                                            metaComponent.getEncryptedPKComponent(),
+                                            metaComponent.getVersion(), it.getLatestVersion()};
 
+                        String abeQuery = "INSERT INTO abe_component ( item_id, attribute, "
+                                        + "encrypted_pk_component,"
+                                        + " version, item_version ) "
+                                        + "VALUES ( ?, ?, ?, ?, ? )";
+ 
+                        executeUpdate(abeQuery, abeValues);
+                }
 	}
         
         @Override
@@ -141,6 +153,7 @@ public class PostgresqlABEItemDAO extends PostgresqlItemDAO implements ABEItemDA
                             + " FROM q  "
                             + " LEFT OUTER JOIN abe_component c "
                             + " ON c.item_id = q.item_id "
+                            + " AND c.item_version = q.version "
                             + " ORDER BY level_array ASC";
 
             ResultSet result = null;

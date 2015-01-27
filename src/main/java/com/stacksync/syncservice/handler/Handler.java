@@ -502,7 +502,7 @@ public class Handler {
 		} else {
 			// Check if version is correct
 			if (serverVersion + 1 == clientVersion) {
-				this.saveNewVersion((ItemMetadata) item, serverItem, workspace, device);
+				this.saveNewVersion(item, serverItem, workspace, device);
 			} else {
 				throw new CommitWrongVersion("Invalid version.", serverItem);
 			}
@@ -604,22 +604,14 @@ public class Handler {
                 return objectVersion;
         }
 
-	private void saveNewVersion(ItemMetadata metadata, Item serverItem, Workspace workspace, Device device)
+	private void saveNewVersion(SyncMetadata metadata, Item serverItem, Workspace workspace, Device device)
 			throws DAOException {
 
 		beginTransaction();
 
 		try {
-			// Create new objectVersion
-			ItemVersion itemVersion = new ItemVersion();
-			itemVersion.setVersion(metadata.getVersion());
-			itemVersion.setModifiedAt(metadata.getModifiedAt());
-			itemVersion.setChecksum(metadata.getChecksum());
-			itemVersion.setStatus(metadata.getStatus());
-			itemVersion.setSize(metadata.getSize());
-
-			itemVersion.setItem(serverItem);
-			itemVersion.setDevice(device);
+                        // Get an item version object from provided metadata
+                        ItemVersion itemVersion = getItemVersionFromMeta(serverItem, metadata, device);
 
 			itemVersionDao.add(itemVersion);
 
@@ -629,34 +621,50 @@ public class Handler {
 				this.createChunks(chunks, itemVersion);
 			}
 
-			// TODO To Test!!
-			String status = metadata.getStatus();
-			if (status.equals(Status.RENAMED.toString()) || status.equals(Status.MOVED.toString())
-					|| status.equals(Status.DELETED.toString())) {
-
-				serverItem.setFilename(metadata.getFilename());
-
-				Long parentFileId = metadata.getParentId();
-				if (parentFileId == null) {
-					serverItem.setClientParentFileVersion(null);
-					serverItem.setParent(null);
-				} else {
-					serverItem.setClientParentFileVersion(metadata.getParentVersion());
-					Item parent = itemDao.findById(parentFileId);
-					serverItem.setParent(parent);
-				}
-			}
-
+                        serverItem = updateServerItem(serverItem, metadata);
+                        
 			// Update object latest version
 			serverItem.setLatestVersion(metadata.getVersion());
-			itemDao.put(serverItem);
 
+                        // Save the item to DB according to the expected metadata managed by the workspace
+                        if(workspace.isAbeEncrypted()) {
+                                // Get an ABE item object from a plain item and the provided ABE metadata
+                                ABEItem abeItem = getAbeItemFromMeta(metadata, serverItem);
+                                // Insert ABE item to DB
+                                abeItemDao.put(abeItem);
+                        } else {
+                                // Insert item to DB
+                                itemDao.put(serverItem);                                
+                        }
+                        
 			commitTransaction();
 		} catch (Exception e) {
 			logger.error(e);
 			rollbackTransaction();
 		}
 	}
+        
+        private Item updateServerItem(Item serverItem, SyncMetadata meta) throws DAOException{
+                ItemMetadata metadata = (ItemMetadata) meta;
+                // TODO To Test!!
+                String status = metadata.getStatus();
+                if (status.equals(Status.RENAMED.toString()) || status.equals(Status.MOVED.toString())
+                                || status.equals(Status.DELETED.toString())) {
+
+                        serverItem.setFilename(metadata.getFilename());
+
+                        Long parentFileId = metadata.getParentId();
+                        if (parentFileId == null) {
+                                serverItem.setClientParentFileVersion(null);
+                                serverItem.setParent(null);
+                        } else {
+                                serverItem.setClientParentFileVersion(metadata.getParentVersion());
+                                Item parent = itemDao.findById(parentFileId);
+                                serverItem.setParent(parent);
+                        }
+                }
+                return serverItem;
+        }
 
 	private void createChunks(List<String> chunksString, ItemVersion objectVersion) throws IllegalArgumentException,
 			DAOException {
