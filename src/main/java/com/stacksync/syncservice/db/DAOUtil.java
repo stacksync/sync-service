@@ -337,11 +337,11 @@ public final class DAOUtil {
 	
 	public static SharingProposal getSharingProposalFromResultSet(ResultSet result) throws SQLException{
 		SharingProposal proposal = new SharingProposal();
-		proposal.setId(result.getLong("id"));
+		proposal.setId(result.getInt("id"));
 		proposal.setFolder(result.getLong("folder_id"));
 		proposal.setIsLocal(result.getBoolean("write_access"));
 		proposal.setCallback(result.getString("callback"));
-		proposal.setOwner(result.getLong("owner_id"));
+		proposal.setOwner(UUID.fromString(result.getString("owner_id")));
 		proposal.setKey(UUID.fromString(result.getString("key")));
 		proposal.setService(result.getInt("service_id"));
 		proposal.setProtocolVersion(result.getString("protocol_version"));

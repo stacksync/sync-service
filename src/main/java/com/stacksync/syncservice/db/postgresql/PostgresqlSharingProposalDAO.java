@@ -13,11 +13,10 @@ import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.SharingProposalDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public class PostgresqlSharingProposalDAO extends PostgresqlDAO implements SharingProposalDAO{
-	
-	private static final Logger logger = Logger
-			.getLogger(PostgresqlItemDAO.class.getName());
-	
+public class PostgresqlSharingProposalDAO extends PostgresqlDAO implements SharingProposalDAO {
+
+	private static final Logger logger = Logger.getLogger(PostgresqlItemDAO.class.getName());
+
 	public PostgresqlSharingProposalDAO(Connection connection) {
 		super(connection);
 		// TODO Auto-generated constructor stub
@@ -31,7 +30,7 @@ public class PostgresqlSharingProposalDAO extends PostgresqlDAO implements Shari
 		String query = "SELECT * FROM cloudspaces_sharing_proposal WHERE id = ?";
 
 		try {
-			resultSet = executeQuery(query, new Object[] { id });
+			resultSet = executeQuery(query, new Object[]{id});
 
 			if (resultSet.next()) {
 				sharingProposal = DAOUtil.getSharingProposalFromResultSet(resultSet);
@@ -43,7 +42,6 @@ public class PostgresqlSharingProposalDAO extends PostgresqlDAO implements Shari
 
 		return sharingProposal;
 	}
-	
 
 	@Override
 	public void add(SharingProposal sharingProposal) throws DAOException {
@@ -51,18 +49,17 @@ public class PostgresqlSharingProposalDAO extends PostgresqlDAO implements Shari
 			throw new IllegalArgumentException("SharingProposal attributes not set");
 		}
 
-		Object[] values = { sharingProposal.getKey(),
-				sharingProposal.getIsLocal(), sharingProposal.getService(),
+		Object[] values = {sharingProposal.getKey(), sharingProposal.getIsLocal(), sharingProposal.getService(),
 				sharingProposal.getResourceUrl(), sharingProposal.getOwner(), sharingProposal.getFolder(),
-				sharingProposal.getWriteAccess(), sharingProposal.getRecipient(), sharingProposal.getCallback(), 
+				sharingProposal.getWriteAccess(), sharingProposal.getRecipient(), sharingProposal.getCallback(),
 				sharingProposal.getProtocolVersion(), sharingProposal.getStatus()};
 
-		String query = "INSERT INTO cloudspaces_sharing_proposal ( key, service_id, resource_url,"
-				+ " owner_id, folder_id, write_access,"
-				+ " recipient, callback, protocol_version, status"
-				+ "VALUES ( ?::uuid, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )";
+		String query = "INSERT INTO cloudspaces_sharing_proposal (key, is_local, service_id, resource_url,"
+				+ " owner, folder, write_access,"
+				+ " recipient, callback, protocol_version, status, updated_at, created_at)"
+				+ "VALUES ( ?::uuid, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, now(), now())";
 
-		Long id = (Long)executeUpdate(query, values);
+		Integer id = (Integer) executeUpdate(query, values);
 
 		if (id != null) {
 			sharingProposal.setId(id);
@@ -75,24 +72,18 @@ public class PostgresqlSharingProposalDAO extends PostgresqlDAO implements Shari
 			throw new IllegalArgumentException("Item attributes not set");
 		}
 
+		Object[] values = {sharingProposal.getKey(), sharingProposal.getIsLocal(), sharingProposal.getService(),
+				sharingProposal.getResourceUrl(), sharingProposal.getOwner(), sharingProposal.getFolder(),
+				sharingProposal.getWriteAccess(), sharingProposal.getRecipient(), sharingProposal.getCallback(),
+				sharingProposal.getProtocolVersion(), sharingProposal.getStatus(),
+				new java.sql.Timestamp(sharingProposal.getUpdatedAt().getTime()), sharingProposal.getId()};
 
-		Object[] values = { sharingProposal.getKey(),
-				sharingProposal.getIsLocal(), sharingProposal.getService(),
-				sharingProposal.getResourceUrl(), sharingProposal.getOwner(),
-				sharingProposal.getFolder(),sharingProposal.getWriteAccess(), 
-				sharingProposal.getRecipient(), sharingProposal.getCallback(), 
-				sharingProposal.getProtocolVersion(), sharingProposal.getStatus(), 
-				sharingProposal.getId()};
-
-
-		String query = "UPDATE item SET " + "key = ?::uuid, "
-				+ "service_id = ?, " + "resource_url = ?, " + "owner_id = ?, "
-				+ "folder_id = ?, " + "write_access = ?, "
-				+ "recipient = ?," + "callback = ?, "+ "protocol_version = ?, "
-				+ "status = ?" + "WHERE id = ?";
+		String query = "UPDATE item SET " + "key = ?::uuid, " + "service_id = ?, " + "resource_url = ?, "
+				+ "owner = ?, " + "folder = ?, " + "write_access = ?, " + "recipient = ?," + "callback = ?, "
+				+ "protocol_version = ?, " + "status = ?" + "updated_at = ?" + "WHERE id = ?";
 
 		executeUpdate(query, values);
-		
+
 	}
 
 	@Override
@@ -107,8 +98,7 @@ public class PostgresqlSharingProposalDAO extends PostgresqlDAO implements Shari
 	@Override
 	public void delete(SharingProposal sharingProposal) throws DAOException {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
 
 }

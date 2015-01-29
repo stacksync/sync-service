@@ -17,6 +17,7 @@ import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
+import com.stacksync.commons.models.SharingProposal;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
@@ -25,6 +26,7 @@ import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.DeviceDAO;
 import com.stacksync.syncservice.db.ItemDAO;
 import com.stacksync.syncservice.db.ItemVersionDAO;
+import com.stacksync.syncservice.db.SharingProposalDAO;
 import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.CommitExistantVersion;
@@ -50,6 +52,7 @@ public class Handler {
 	protected DeviceDAO deviceDao;
 	protected ItemDAO itemDao;
 	protected ItemVersionDAO itemVersionDao;
+	protected SharingProposalDAO sharingProposalDao;
 
 	protected StorageManager storageManager;
 
@@ -68,6 +71,7 @@ public class Handler {
 		deviceDao = factory.getDeviceDAO(connection);
 		userDao = factory.getUserDao(connection);
 		itemDao = factory.getItemDAO(connection);
+		sharingProposalDao = factory.getSharingProposalDao(connection);
 		itemVersionDao = factory.getItemVersionDAO(connection);
 		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
 	}
@@ -201,12 +205,13 @@ public class Handler {
 			throw new ShareProposalNotCreatedException("No addressees found");
 		}
 
-		Workspace workspace;
+		Workspace workspace = null;
 
 		if (sourceWorkspace.isShared()) {
 			workspace = sourceWorkspace;
 
-		} else {
+		} else if(!addressees.isEmpty()) { 
+			//if share with stacksync users. Else we do not create the new workspace until Accepted the proposal.
 			// Create the new workspace
 			String container = UUID.randomUUID().toString();
 
@@ -269,7 +274,7 @@ public class Handler {
 				}
 			}
 		}
-
+		
 		// Add the addressees to the workspace
 		for (User addressee : addressees) {
 			try {
@@ -289,7 +294,40 @@ public class Handler {
 				throw new ShareProposalNotCreatedException(e);
 			}
 		}
-
+		if (!externalAddressees.isEmpty()){
+			
+			SharingProposal proposal;
+			for (String email : externalAddressees){
+				//Create proposal
+				proposal = new SharingProposal();
+				proposal.setKey(UUID.randomUUID());
+				proposal.setIsLocal(false); //TODO: What mean this variable? 
+				proposal.setResourceUrl("http:localhost:8080/api/folder/"+item.getId());
+				proposal.setOwner(sourceWorkspace.getOwner().getId());
+				proposal.setFolder(item.getId());
+				proposal.setWriteAccess(true);
+				proposal.setCallback("http:localhost:8080/result");
+				proposal.setRecipient(email);
+				proposal.setProtocolVersion("1.0");
+				proposal.setStatus("CREATED");
+				//Save proposal
+				try {
+					sharingProposalDao.add(proposal);
+				} catch (Exception e) {
+					logger.error(e);
+					throw new ShareProposalNotCreatedException(e);
+				}
+				//generate link to /select/share_id
+				String link = "http://127.0.0.1:8080/interop/select/"+proposal.getKey();
+				logger.debug("Link that will be send into email: "+link);
+				
+				
+				//send email to all the external users
+				//TODO: Send Email to all the external users
+			}
+			
+		}
+		
 		return workspace;
 	}
 	public UnshareData doUnshareFolder(User user, List<String> emails, Item item, boolean isEncrypted)

@@ -5,6 +5,7 @@ import java.sql.Connection;
 import com.stacksync.syncservice.db.postgresql.PostgresqlDeviceDAO;
 import com.stacksync.syncservice.db.postgresql.PostgresqlItemDAO;
 import com.stacksync.syncservice.db.postgresql.PostgresqlItemVersionDao;
+import com.stacksync.syncservice.db.postgresql.PostgresqlSharingProposalDAO;
 import com.stacksync.syncservice.db.postgresql.PostgresqlUserDAO;
 import com.stacksync.syncservice.db.postgresql.PostgresqlWorkspaceDAO;
 
@@ -30,6 +31,10 @@ public class DAOFactory {
 
 	public ItemVersionDAO getItemVersionDAO(Connection connection) {
 		return new PostgresqlItemVersionDao(connection);
+	}
+	
+	public SharingProposalDAO getSharingProposalDao(Connection connection){
+		return new PostgresqlSharingProposalDAO(connection);
 	}
 
 	public DeviceDAO getDeviceDAO(Connection connection) {
