@@ -5,6 +5,7 @@ import java.util.List;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.SharingProposal;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
@@ -41,4 +42,6 @@ public interface APIHandler {
 	public APIGetWorkspaceInfoResponse getWorkspaceInfo(User user, ItemMetadata item);
 	
 	public APIGetFolderMembersResponse getFolderMembers(User user, Item item);
+	
+	public APIShareFolderResponse addExternalUserToWorkspace(User user, SharingProposal proposal);
 }

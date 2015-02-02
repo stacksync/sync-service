@@ -3,6 +3,7 @@ package com.stacksync.syncservice.db.postgresql;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
@@ -42,7 +43,28 @@ public class PostgresqlSharingProposalDAO extends PostgresqlDAO implements Shari
 
 		return sharingProposal;
 	}
+	
+	@Override
+	public SharingProposal findByKey(UUID key) throws DAOException {
+		ResultSet resultSet = null;
+		SharingProposal sharingProposal = null;
 
+		String query = "SELECT * FROM cloudspaces_sharing_proposal WHERE key = ?";
+
+		try {
+			resultSet = executeQuery(query, new Object[]{key});
+
+			if (resultSet.next()) {
+				sharingProposal = DAOUtil.getSharingProposalFromResultSet(resultSet);
+			}
+		} catch (SQLException e) {
+			logger.error(e);
+			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
+		}
+
+		return sharingProposal;
+	}
+	
 	@Override
 	public void add(SharingProposal sharingProposal) throws DAOException {
 		if (!sharingProposal.isValid()) {
@@ -100,5 +122,7 @@ public class PostgresqlSharingProposalDAO extends PostgresqlDAO implements Shari
 		// TODO Auto-generated method stub
 
 	}
+
+
 
 }

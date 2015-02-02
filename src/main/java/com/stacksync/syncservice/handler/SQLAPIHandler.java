@@ -18,6 +18,7 @@ import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.commons.models.SharingProposal;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.exceptions.InternalServerError;
@@ -657,6 +658,23 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		return response;
 	}
+	
+	@Override
+	public APIShareFolderResponse addExternalUserToWorkspace(User user, SharingProposal proposal) {
+		APIShareFolderResponse response;
+		
+		Workspace workspace;
+
+		try {
+			workspace = this.doAddExternalUser(user, proposal);
+			response = new APIShareFolderResponse(workspace, true, 0, "");
+		} catch (ShareProposalNotCreatedException e) {
+			response = new APIShareFolderResponse(null, false, 400, e.getMessage());
+		} catch (UserNotFoundException e) {
+			response = new APIShareFolderResponse(null, false, 404, e.getMessage());
+		}
+		return null;
+	}
 
 	@Override
 	public APIGetFolderMembersResponse getFolderMembers(User user, Item item) {
@@ -859,5 +877,6 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		APIDeleteResponse response = new APIDeleteResponse(fileToDelete, success, 0, "");
 		return response;
 	}
+	
 
 }

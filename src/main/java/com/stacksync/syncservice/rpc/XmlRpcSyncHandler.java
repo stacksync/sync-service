@@ -15,6 +15,7 @@ import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.SharingProposal;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.commons.notifications.ShareProposalNotification;
@@ -513,6 +514,21 @@ public class XmlRpcSyncHandler {
 
 	}
 
+	public String addExternalUserToWorkspace(String strUserId, String strKeyProposal){
+		logger.debug("XMLRPC -> add external user to workspace -->[User:" + strUserId + ", Share Key: " + strKeyProposal + "]");
+		
+		UUID key = UUID.fromString(strKeyProposal);
+		SharingProposal proposal = new SharingProposal();
+		proposal.setKey(key);
+		
+		UUID userId = UUID.fromString(strUserId);
+		User user = new User();
+		user.setId(userId);
+		
+		this.apiHandler.addExternalUserToWorkspace(user, proposal);
+		
+		return "";
+	}
 	private APIGetMetadata getParentMetadata(UUID userId, Long parentId) {
 		Boolean includeDeleted = true;
 
@@ -523,7 +539,8 @@ public class XmlRpcSyncHandler {
 
 		return metadataResponse;
 	}
-
+	
+	
 	private APICommitResponse checkParentMetadata(Long parentId, APIGetMetadata metadataResponse) {
 		APICommitResponse response = new APICommitResponse(null, true, 0, null);
 		ItemMetadata parentMetadata = metadataResponse.getItemMetadata();

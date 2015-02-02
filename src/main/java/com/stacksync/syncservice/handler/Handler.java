@@ -196,7 +196,7 @@ public class Handler {
 				throw new ShareProposalNotCreatedException(e);
 			} catch (DAOException e) {
 				logger.warn(String.format("Email '%s' does not correspond with any user. ", email), e);
-				//Add email into externalAdresses
+				// Add email into externalAdresses
 				externalAddressees.add(email);
 			}
 		}
@@ -210,71 +210,15 @@ public class Handler {
 		if (sourceWorkspace.isShared()) {
 			workspace = sourceWorkspace;
 
-		} else if(!addressees.isEmpty()) { 
-			//if share with stacksync users. Else we do not create the new workspace until Accepted the proposal.
+		} else if (!addressees.isEmpty()) {
+			// if share with stacksync users. Else we do not create the new
+			// workspace until Accepted the proposal.
 			// Create the new workspace
-			String container = UUID.randomUUID().toString();
-
-			workspace = new Workspace();
-			workspace.setShared(true);
-			workspace.setEncrypted(isEncrypted);
-			workspace.setName(item.getFilename());
-			workspace.setOwner(user);
-			workspace.setUsers(addressees);
-			workspace.setSwiftContainer(container);
-			workspace.setSwiftUrl(Config.getSwiftUrl() + "/" + user.getSwiftAccount());
-
-			// Create container in Swift
-			try {
-				storageManager.createNewWorkspace(workspace);
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
-
-			// Save the workspace to the DB
-			try {
-				workspaceDAO.add(workspace);
-				// add the owner to the workspace
-				workspaceDAO.addUser(user, workspace);
-
-			} catch (DAOException e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
-
-			// Grant user to container in Swift
-			try {
-				storageManager.grantUserToWorkspace(user, user, workspace);
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
-
-			// Migrate files to new workspace
-			List<String> chunks;
-			try {
-				chunks = itemDao.migrateItem(item.getId(), workspace.getId());
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
-
-			// Move chunks to new container
-			for (String chunkName : chunks) {
-				try {
-					storageManager.copyChunk(sourceWorkspace, workspace, chunkName);
-				} catch (ObjectNotFoundException e) {
-					logger.error(String.format(
-							"Chunk %s not found in container %s. Could not migrate to container %s.", chunkName,
-							sourceWorkspace.getSwiftContainer(), workspace.getSwiftContainer()), e);
-				} catch (Exception e) {
-					logger.error(e);
-					throw new ShareProposalNotCreatedException(e);
-				}
-			}
+			
+			workspace = newSharedWorkspace(user, sourceWorkspace, item, addressees, isEncrypted);
+			
 		}
-		
+
 		// Add the addressees to the workspace
 		for (User addressee : addressees) {
 			try {
@@ -294,15 +238,15 @@ public class Handler {
 				throw new ShareProposalNotCreatedException(e);
 			}
 		}
-		if (!externalAddressees.isEmpty()){
-			
+		if (!externalAddressees.isEmpty()) {
+
 			SharingProposal proposal;
-			for (String email : externalAddressees){
-				//Create proposal
+			for (String email : externalAddressees) {
+				// Create proposal
 				proposal = new SharingProposal();
 				proposal.setKey(UUID.randomUUID());
-				proposal.setIsLocal(false); //TODO: What mean this variable? 
-				proposal.setResourceUrl("http:localhost:8080/api/folder/"+item.getId());
+				proposal.setIsLocal(true);
+				proposal.setResourceUrl("http:localhost:8080/api/folder/" + item.getId());
 				proposal.setOwner(sourceWorkspace.getOwner().getId());
 				proposal.setFolder(item.getId());
 				proposal.setWriteAccess(true);
@@ -310,25 +254,107 @@ public class Handler {
 				proposal.setRecipient(email);
 				proposal.setProtocolVersion("1.0");
 				proposal.setStatus("CREATED");
-				//Save proposal
+				// Save proposal
 				try {
 					sharingProposalDao.add(proposal);
 				} catch (Exception e) {
 					logger.error(e);
 					throw new ShareProposalNotCreatedException(e);
 				}
-				//generate link to /select/share_id
-				String link = "http://127.0.0.1:8080/interop/select/"+proposal.getKey();
-				logger.debug("Link that will be send into email: "+link);
-				
-				
-				//send email to all the external users
-				//TODO: Send Email to all the external users
+				// generate link to /select/share_id
+				String link = "http://127.0.0.1:8000/interop/select/" + proposal.getKey();
+				logger.debug("Link that will be send into email: " + link);
+
+				// send email to all the external users
+				// TODO: Send Email to all the external users
 			}
-			
+
+		}
+
+		return workspace;
+	}
+	public Workspace doAddExternalUser(User user, SharingProposal proposal) throws ShareProposalNotCreatedException,
+			UserNotFoundException {
+		List<User> users = new ArrayList<User>();
+		try {
+			users.add(userDao.findById(user.getId()));
+		} catch (NoResultReturnedDAOException e) {
+			logger.warn(e);
+			throw new UserNotFoundException(e);
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		// get proposal
+		try {
+			proposal = sharingProposalDao.findByKey(proposal.getKey());
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		if (proposal == null) {
+			throw new ShareProposalNotCreatedException("No proposal found with the given Key.");
+		}
+
+		Item item;
+		try {
+			item = itemDao.findById(proposal.getFolder());
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		if (item == null || !item.isFolder()) {
+			throw new ShareProposalNotCreatedException("No folder found with the given ID.");
+		}
+
+		// Get the source workspace
+		Workspace sourceWorkspace;
+		try {
+			sourceWorkspace = workspaceDAO.getById(item.getWorkspace().getId());
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+		if (sourceWorkspace == null) {
+			throw new ShareProposalNotCreatedException("Workspace not found.");
+		}
+		User owner = sourceWorkspace.getOwner();
+		
+		Workspace workspace = null;
+		
+		if (sourceWorkspace.isShared()) {
+			workspace = sourceWorkspace;
+
+		} else {
+			//if the workspace isn't shared, create a new shared workspace
+			workspace = newSharedWorkspace(owner, sourceWorkspace, item, users, false);
 		}
 		
+		// Add the addressees to the workspace
+		for (User addressee : users) {
+			try {
+				workspaceDAO.addUser(addressee, workspace);
+
+			} catch (DAOException e) {
+				workspace.getUsers().remove(addressee);
+				logger.error(String.format("An error ocurred when adding the user '%s' to workspace '%s'",
+						addressee.getId(), workspace.getId()), e);
+			}
+
+			// Grant the user to container in Swift
+			try {
+				storageManager.grantUserToWorkspace(owner, addressee, workspace);
+			} catch (Exception e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+		}
+
 		return workspace;
+
 	}
 	public UnshareData doUnshareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
@@ -734,6 +760,72 @@ public class Handler {
 		} catch (SQLException e) {
 			throw new DAOException(e);
 		}
+	}
+
+	private Workspace newSharedWorkspace(User user, Workspace sourceWorkspace, Item item, List<User> users,
+			boolean isEncrypted) throws ShareProposalNotCreatedException {
+		Workspace workspace;
+		String container = UUID.randomUUID().toString();
+
+		workspace = new Workspace();
+		workspace.setShared(true);
+		workspace.setEncrypted(isEncrypted);
+		workspace.setName(item.getFilename());
+		workspace.setOwner(user);
+		workspace.setUsers(users);
+		workspace.setSwiftContainer(container);
+		workspace.setSwiftUrl(Config.getSwiftUrl() + "/" + user.getSwiftAccount());
+
+		// Create container in Swift
+		try {
+			storageManager.createNewWorkspace(workspace);
+		} catch (Exception e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		// Save the workspace to the DB
+		try {
+			workspaceDAO.add(workspace);
+			// add the owner to the workspace
+			workspaceDAO.addUser(user, workspace);
+
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		// Grant user to container in Swift
+		try {
+			storageManager.grantUserToWorkspace(user, user, workspace);
+		} catch (Exception e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		// Migrate files to new workspace
+		List<String> chunks;
+		try {
+			chunks = itemDao.migrateItem(item.getId(), workspace.getId());
+		} catch (Exception e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
+		// Move chunks to new container
+		for (String chunkName : chunks) {
+			try {
+				storageManager.copyChunk(sourceWorkspace, workspace, chunkName);
+			} catch (ObjectNotFoundException e) {
+				logger.error(String.format("Chunk %s not found in container %s. Could not migrate to container %s.",
+						chunkName, sourceWorkspace.getSwiftContainer(), workspace.getSwiftContainer()), e);
+			} catch (Exception e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+		}
+		
+		return workspace;
 	}
 
 }
