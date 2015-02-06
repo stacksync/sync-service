@@ -20,4 +20,6 @@ public abstract class StorageManager {
 	public abstract void copyChunk(Workspace sourceWorkspace, Workspace destinationWorkspace, String chunkName) throws Exception;
 	
 	public abstract void deleteWorkspace(Workspace workspace) throws Exception;
+	
+	public abstract void createNewUser(User user) throws Exception;
 }

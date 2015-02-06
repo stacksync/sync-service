@@ -197,9 +197,18 @@ public class Config {
 		String authUrl = String.format("%s://%s:%s/v2.0/tokens", getSwiftKeystoneProtocol(), getSwiftKeystoneHost(), getSwiftKeystonePort());
 		return authUrl;
 	}
-	
+		
 	public static String getSwiftUrl(){
 		String url = String.format("%s://%s:%s/v1", getSwiftProtocol(), getSwiftHost(), getSwiftPort());
 		return url;
+	}
+	
+	public static String getKeystoneBaseUrl(){
+		String keystoneUrl = String.format("%s://%s:%s/v2.0", getSwiftKeystoneProtocol(), getSwiftKeystoneHost(), getSwiftKeystonePort());
+		return keystoneUrl;
+	}
+	
+	public static String getSwiftAccount() {
+		return properties.getProperty(Constants.PROP_SWIFT_ACCOUNT);
 	}
 }

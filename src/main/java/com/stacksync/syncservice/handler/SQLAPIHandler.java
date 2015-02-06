@@ -660,13 +660,13 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 	
 	@Override
-	public APIShareFolderResponse addExternalUserToWorkspace(User user, SharingProposal proposal) {
+	public APIShareFolderResponse addExternalUserToWorkspace(SharingProposal proposal) {
 		APIShareFolderResponse response;
 		
 		Workspace workspace;
 
 		try {
-			workspace = this.doAddExternalUser(user, proposal);
+			workspace = this.doAddExternalUser(proposal);
 			response = new APIShareFolderResponse(workspace, true, 0, "");
 		} catch (ShareProposalNotCreatedException e) {
 			response = new APIShareFolderResponse(null, false, 400, e.getMessage());

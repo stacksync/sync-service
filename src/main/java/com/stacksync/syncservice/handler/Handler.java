@@ -41,6 +41,7 @@ import com.stacksync.syncservice.storage.StorageFactory;
 import com.stacksync.syncservice.storage.StorageManager;
 import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
+import com.stacksync.syncservice.util.Constants;
 
 public class Handler {
 
@@ -273,19 +274,8 @@ public class Handler {
 
 		return workspace;
 	}
-	public Workspace doAddExternalUser(User user, SharingProposal proposal) throws ShareProposalNotCreatedException,
+	public Workspace doAddExternalUser(SharingProposal proposal) throws ShareProposalNotCreatedException,
 			UserNotFoundException {
-		List<User> users = new ArrayList<User>();
-		try {
-			users.add(userDao.findById(user.getId()));
-		} catch (NoResultReturnedDAOException e) {
-			logger.warn(e);
-			throw new UserNotFoundException(e);
-		} catch (DAOException e) {
-			logger.error(e);
-			throw new ShareProposalNotCreatedException(e);
-		}
-
 		// get proposal
 		try {
 			proposal = sharingProposalDao.findByKey(proposal.getKey());
@@ -297,6 +287,20 @@ public class Handler {
 		if (proposal == null) {
 			throw new ShareProposalNotCreatedException("No proposal found with the given Key.");
 		}
+		
+		//TODO: Create User ( make function to create new user)
+		User user = createNewUser(proposal.getRecipient());
+		List<User> users = new ArrayList<User>();
+		try {
+			users.add(userDao.getByEmail(proposal.getRecipient()));
+		} catch (NoResultReturnedDAOException e) {
+			logger.warn(e); 
+			throw new UserNotFoundException(e);
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
 
 		Item item;
 		try {
@@ -826,6 +830,28 @@ public class Handler {
 		}
 		
 		return workspace;
+	}
+	
+	private User createNewUser(String email) throws ShareProposalNotCreatedException{
+		User user = new User();
+		user.setEmail(email);
+		user.setSwiftAccount(Config.getSwiftAccount());
+		user.setName(email);
+		user.setQuotaLimit(0);
+		user.setQuotaUsed(0);
+		user.setSwiftUser(email);
+		
+		try {
+			storageManager.createNewUser(user);
+			userDao.add(user);
+		} catch (Exception e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+		
+		
+		
+		return null;
 	}
 
 }

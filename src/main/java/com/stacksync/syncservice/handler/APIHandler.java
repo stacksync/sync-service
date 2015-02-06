@@ -43,5 +43,5 @@ public interface APIHandler {
 	
 	public APIGetFolderMembersResponse getFolderMembers(User user, Item item);
 	
-	public APIShareFolderResponse addExternalUserToWorkspace(User user, SharingProposal proposal);
+	public APIShareFolderResponse addExternalUserToWorkspace(SharingProposal proposal);
 }

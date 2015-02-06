@@ -39,6 +39,7 @@ public class Constants {
 	public static final String PROP_SWIFT_TENANT = "swift.tenant";
 	public static final String PROP_SWIFT_USER = "swift.user";
 	public static final String PROP_SWIFT_PASSWORD = "swift.password";
+	public static final String PROP_SWIFT_ACCOUNT = "swift.account";
 	
 	/* GENERAL */
 	public static final String DEFAULT_DATASOURCE = "postgresql";

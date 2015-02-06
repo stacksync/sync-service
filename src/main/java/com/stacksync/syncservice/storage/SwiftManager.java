@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.storage;
 
 import java.io.IOException;
+import java.math.BigInteger;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
@@ -29,6 +30,8 @@ import com.stacksync.syncservice.storage.swift.LoginResponseObject;
 import com.stacksync.syncservice.storage.swift.ServiceObject;
 import com.stacksync.syncservice.util.Config;
 
+import java.security.SecureRandom;
+
 public class SwiftManager extends StorageManager {
 
 	private static StorageManager instance = null;
@@ -39,6 +42,7 @@ public class SwiftManager extends StorageManager {
 	private String password;
 	private String storageUrl;
 	private String authToken;
+	private String keystoneUrl;
 	private DateTime expirationDate;
 
 	private SwiftManager() {
@@ -48,6 +52,7 @@ public class SwiftManager extends StorageManager {
 		this.tenant = Config.getSwiftTenant();
 		this.password = Config.getSwiftPassword();
 		this.expirationDate = DateTime.now();
+		this.keystoneUrl = Config.getKeystoneBaseUrl();
 	}
 
 	public static synchronized StorageManager getInstance() {
@@ -169,15 +174,15 @@ public class SwiftManager extends StorageManager {
 		String permissions = getWorkspacePermissions(owner, workspace);
 
 		String tenantUser = Config.getSwiftTenant() + ":" + user.getSwiftUser();
-		
-		if (permissions.contains("," + tenantUser)){
+
+		if (permissions.contains("," + tenantUser)) {
 			permissions.replace("," + tenantUser, "");
-	    }else if (permissions.contains(tenantUser)){
-	    	permissions.replace(tenantUser, "");
-	    }else{
-	    	return;
-	    }
-		
+		} else if (permissions.contains(tenantUser)) {
+			permissions.replace(tenantUser, "");
+		} else {
+			return;
+		}
+
 		HttpClient httpClient = new DefaultHttpClient();
 		String url = this.storageUrl + "/" + workspace.getSwiftContainer();
 
@@ -204,7 +209,7 @@ public class SwiftManager extends StorageManager {
 			httpClient.getConnectionManager().shutdown();
 		}
 	}
-	
+
 	@Override
 	public void grantUserToWorkspace(User owner, User user, Workspace workspace) throws Exception {
 
@@ -255,14 +260,13 @@ public class SwiftManager extends StorageManager {
 		if (!isTokenActive()) {
 			login();
 		}
-		
+
 		chunkName = "chk-" + chunkName;
 
 		HttpClient httpClient = new DefaultHttpClient();
 
-		String url = this.storageUrl + "/" + destinationWorkspace.getSwiftContainer() + "/"
-				+ chunkName;
-		
+		String url = this.storageUrl + "/" + destinationWorkspace.getSwiftContainer() + "/" + chunkName;
+
 		String copyFrom = "/" + sourceWorkspace.getSwiftContainer() + "/" + chunkName;
 
 		try {
@@ -270,7 +274,7 @@ public class SwiftManager extends StorageManager {
 			HttpPut request = new HttpPut(url);
 			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
 			request.setHeader(SwiftResponse.X_COPY_FROM, copyFrom);
-			//request.setHeader("Content-Length", "0");
+			// request.setHeader("Content-Length", "0");
 
 			HttpResponse response = httpClient.execute(request);
 
@@ -279,7 +283,7 @@ public class SwiftManager extends StorageManager {
 			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
 				throw new UnauthorizedException("401 User unauthorized");
 			}
-			
+
 			if (swiftResponse.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
 				throw new ObjectNotFoundException("404 Not Found");
 			}
@@ -292,7 +296,7 @@ public class SwiftManager extends StorageManager {
 			httpClient.getConnectionManager().shutdown();
 		}
 	}
-	
+
 	@Override
 	public void deleteWorkspace(Workspace workspace) throws Exception {
 
@@ -324,6 +328,66 @@ public class SwiftManager extends StorageManager {
 		} finally {
 			httpClient.getConnectionManager().shutdown();
 		}
+	}
+
+	@Override
+	public void createNewUser(User user) throws Exception {
+		if (!isTokenActive()) {
+			login();
+		}
+
+		// crear usuario en keystone
+
+		String permissions = Config.getSwiftTenant() + ":" + user.getEmail();
+
+		HttpClient httpClient = new DefaultHttpClient();
+			
+		String url = this.keystoneUrl + "/users";
+		SecureRandom secureRandom = new SecureRandom();
+		String randomPass = new BigInteger(130, secureRandom).toString(32);
+
+		try {
+			
+			HttpPut request = new HttpPut(url);
+			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
+
+			String body = String.format("{\"user\": { \"username\": \"%s\", \"email\": \"%s\",, \"password\": \"%s\", \"tenant\": \"%s\" \"enabled\": true }",
+					user.getName(), user.getEmail(), randomPass, "stacksync");
+
+			StringEntity entity = new StringEntity(body);
+			entity.setContentType("application/json");
+			request.setEntity(entity);
+
+			HttpResponse response = httpClient.execute(request);
+
+		} finally {
+			httpClient.getConnectionManager().shutdown();
+		}
+
+		// try{
+		// HttpPut request = new HttpPut(url);
+		// request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
+		// request.setHeader(SwiftResponse.X_CONTAINER_READ, permissions);
+		// request.setHeader(SwiftResponse.X_CONTAINER_WRITE, permissions);
+		//
+		// HttpResponse response = httpClient.execute(request);
+		//
+		// SwiftResponse swiftResponse = new SwiftResponse(response);
+		//
+		// if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+		// throw new UnauthorizedException("404 User unauthorized");
+		// }
+		//
+		// if (swiftResponse.getStatusCode() < 200 ||
+		// swiftResponse.getStatusCode() >= 300) {
+		// throw new UnexpectedStatusCodeException("Unexpected status code: " +
+		// swiftResponse.getStatusCode());
+		// }
+		//
+		// }finally {
+		// httpClient.getConnectionManager().shutdown();
+		// }
+
 	}
 
 	private String getWorkspacePermissions(User user, Workspace workspace) throws Exception {

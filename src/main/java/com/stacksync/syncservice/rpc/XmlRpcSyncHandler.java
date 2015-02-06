@@ -514,20 +514,25 @@ public class XmlRpcSyncHandler {
 
 	}
 
-	public String addExternalUserToWorkspace(String strUserId, String strKeyProposal){
-		logger.debug("XMLRPC -> add external user to workspace -->[User:" + strUserId + ", Share Key: " + strKeyProposal + "]");
+	public String addExternalUserToWorkspace(String strKeyProposal){
+		logger.debug("XMLRPC -> add external user to workspace -->[Share Key: " + strKeyProposal + "]");
 		
 		UUID key = UUID.fromString(strKeyProposal);
 		SharingProposal proposal = new SharingProposal();
 		proposal.setKey(key);
 		
-		UUID userId = UUID.fromString(strUserId);
-		User user = new User();
-		user.setId(userId);
+		APIShareFolderResponse response = this.apiHandler.addExternalUserToWorkspace(proposal);
 		
-		this.apiHandler.addExternalUserToWorkspace(user, proposal);
+		//if (response.getSuccess()) {
+			// FIXME: Do the user-workspace bindings before
+			//this.bindUsersToWorkspace(response.getWorkspace(), folderId);
+		//}
+
+		String strResponse = response.toString();
+
+		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+		return strResponse;
 		
-		return "";
 	}
 	private APIGetMetadata getParentMetadata(UUID userId, Long parentId) {
 		Boolean includeDeleted = true;
