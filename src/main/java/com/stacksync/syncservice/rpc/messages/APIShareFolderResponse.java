@@ -28,14 +28,14 @@ public class APIShareFolderResponse extends APIResponse {
 
 		if (getSuccess()) {
 			if(workspace != null){ //TODO: Review what return when workspace is null
-			JsonArray sharedTo = new JsonArray();
-
-			for (User user : workspace.getUsers()) {
-				JsonObject jUser = parseUser(user);
-				sharedTo.add(jUser);
-			}
-			
-			jResponse.add("shared_to", sharedTo);
+				JsonArray sharedTo = new JsonArray();
+	
+				for (User user : workspace.getUsers()) {
+					JsonObject jUser = parseUser(user);
+					sharedTo.add(jUser);
+				}
+				
+				jResponse.add("shared_to", sharedTo);
 			}
 			
 
