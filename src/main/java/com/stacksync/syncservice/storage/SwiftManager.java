@@ -13,6 +13,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Period;
@@ -26,6 +27,7 @@ import com.stacksync.syncservice.exceptions.storage.EndpointNotFoundException;
 import com.stacksync.syncservice.exceptions.storage.ObjectNotFoundException;
 import com.stacksync.syncservice.exceptions.storage.UnauthorizedException;
 import com.stacksync.syncservice.exceptions.storage.UnexpectedStatusCodeException;
+import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.storage.swift.LoginResponseObject;
 import com.stacksync.syncservice.storage.swift.ServiceObject;
 import com.stacksync.syncservice.util.Config;
@@ -39,17 +41,20 @@ public class SwiftManager extends StorageManager {
 	private String authUrl;
 	private String user;
 	private String tenant;
+	private String tenantId;
 	private String password;
 	private String storageUrl;
 	private String authToken;
 	private String keystoneUrl;
 	private DateTime expirationDate;
+	private static final Logger logger = Logger.getLogger(SwiftManager.class.getName());
 
 	private SwiftManager() {
 
 		this.authUrl = Config.getSwiftAuthUrl();
 		this.user = Config.getSwiftUser();
 		this.tenant = Config.getSwiftTenant();
+		this.tenantId = Config.getSwiftTenantId();
 		this.password = Config.getSwiftPassword();
 		this.expirationDate = DateTime.now();
 		this.keystoneUrl = Config.getKeystoneBaseUrl();
@@ -74,6 +79,7 @@ public class SwiftManager extends StorageManager {
 			String body = String
 					.format("{\"auth\": {\"passwordCredentials\": {\"username\": \"%s\", \"password\": \"%s\"}, \"tenantName\":\"%s\"}}",
 							user, password, tenant);
+			
 			StringEntity entity = new StringEntity(body);
 			entity.setContentType("application/json");
 			request.setEntity(entity);
@@ -331,38 +337,44 @@ public class SwiftManager extends StorageManager {
 	}
 
 	@Override
-	public void createNewUser(User user) throws Exception {
+	public String createNewUser(User user) throws Exception {
 		if (!isTokenActive()) {
 			login();
 		}
 
 		// crear usuario en keystone
 
-		String permissions = Config.getSwiftTenant() + ":" + user.getEmail();
-
 		HttpClient httpClient = new DefaultHttpClient();
-			
-		String url = this.keystoneUrl + "/users";
+
+		String url = "http://10.30.233.214:35357/v2.0/users";
 		SecureRandom secureRandom = new SecureRandom();
 		String randomPass = new BigInteger(130, secureRandom).toString(32);
 
 		try {
-			
-			HttpPut request = new HttpPut(url);
+
+			HttpPost request = new HttpPost(url);
 			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
-
-			String body = String.format("{\"user\": { \"username\": \"%s\", \"email\": \"%s\",, \"password\": \"%s\", \"tenant\": \"%s\" \"enabled\": true }",
-					user.getName(), user.getEmail(), randomPass, "stacksync");
-
+			// '{"user": {"name": "hola","email": "z@z.com","enabled":true,"password": "hola", "tenant":"stacksync"}}'
+//			String body1 = String
+//					.format("{\"user\": { \"name\": \"%s\", \"email\": \"%s\", \"password\": \"%s\", \"tenant\": \"%s\", \"enabled\": true }",
+//							user.getName(), user.getEmail(), randomPass, Config.getSwiftTenant());
+			String body = String
+					.format("{\"user\": {\"name\":\"%s\", \"email\":\"%s\", \"enabled\":true, \"password\":\"%s\", \"tenantId\":\"%s\" }}",
+							user.getName(), user.getEmail(), randomPass, Config.getSwiftTenantId());
+			
+			
 			StringEntity entity = new StringEntity(body);
 			entity.setContentType("application/json");
 			request.setEntity(entity);
 
 			HttpResponse response = httpClient.execute(request);
+			logger.debug("Keystone response: " + response.toString());
 
 		} finally {
 			httpClient.getConnectionManager().shutdown();
 		}
+
+		return randomPass;
 
 		// try{
 		// HttpPut request = new HttpPut(url);

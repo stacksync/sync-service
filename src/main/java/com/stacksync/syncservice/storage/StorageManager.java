@@ -21,5 +21,5 @@ public abstract class StorageManager {
 	
 	public abstract void deleteWorkspace(Workspace workspace) throws Exception;
 	
-	public abstract void createNewUser(User user) throws Exception;
+	public abstract String createNewUser(User user) throws Exception;
 }

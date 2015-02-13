@@ -1,5 +1,7 @@
 package com.stacksync.syncservice.handler;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -146,20 +148,13 @@ public class Handler {
 	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
 
-		// Check the owner
+		// Get user and item
 		try {
 			user = userDao.findById(user.getId());
+			item = itemDao.findById(item.getId());
 		} catch (NoResultReturnedDAOException e) {
 			logger.warn(e);
 			throw new UserNotFoundException(e);
-		} catch (DAOException e) {
-			logger.error(e);
-			throw new ShareProposalNotCreatedException(e);
-		}
-
-		// Get folder metadata
-		try {
-			item = itemDao.findById(item.getId());
 		} catch (DAOException e) {
 			logger.error(e);
 			throw new ShareProposalNotCreatedException(e);
@@ -241,55 +236,42 @@ public class Handler {
 		}
 		if (!externalAddressees.isEmpty()) {
 
-			SharingProposal proposal;
-			for (String email : externalAddressees) {
-				// Create proposal
-				proposal = new SharingProposal();
-				proposal.setKey(UUID.randomUUID());
-				proposal.setIsLocal(true);
-				proposal.setResourceUrl("http:localhost:8080/api/folder/" + item.getId());
-				proposal.setOwner(sourceWorkspace.getOwner().getId());
-				proposal.setFolder(item.getId());
-				proposal.setWriteAccess(true);
-				proposal.setCallback("http:localhost:8080/result");
-				proposal.setRecipient(email);
-				proposal.setProtocolVersion("1.0");
-				proposal.setStatus("CREATED");
-				// Save proposal
-				try {
-					sharingProposalDao.add(proposal);
-				} catch (Exception e) {
-					logger.error(e);
-					throw new ShareProposalNotCreatedException(e);
-				}
-				// generate link to /select/share_id
-				String link = "http://127.0.0.1:8000/interop/select/" + proposal.getKey();
-				logger.debug("Link that will be send into email: " + link);
-
-				// send email to all the external users
-				// TODO: Send Email to all the external users
-			}
+			createProposals(externalAddressees, sourceWorkspace.getOwner().getId() ,item.getId());
 
 		}
 
 		return workspace;
 	}
-	public Workspace doAddExternalUser(SharingProposal proposal) throws ShareProposalNotCreatedException,
+	public NewUserData doAddExternalUser(SharingProposal proposal) throws ShareProposalNotCreatedException,
 			UserNotFoundException {
+		boolean isNewWorkspace = false;
 		// get proposal
+		
+		Item item;
+		
 		try {
 			proposal = sharingProposalDao.findByKey(proposal.getKey());
+			item = itemDao.findById(proposal.getFolder());
+
 		} catch (DAOException e) {
 			logger.error(e);
 			throw new ShareProposalNotCreatedException(e);
-		}
-
-		if (proposal == null) {
+		} catch(NullPointerException e){
+			logger.error(e);
 			throw new ShareProposalNotCreatedException("No proposal found with the given Key.");
+
 		}
 		
-		//TODO: Create User ( make function to create new user)
-		User user = createNewUser(proposal.getRecipient());
+		if (item == null || !item.isFolder()) {
+			throw new ShareProposalNotCreatedException("No folder found with the given ID.");
+		}
+		
+		//create new user
+		//TODO: check if external user (email) already exists
+		
+		List<Object> newUserResponse = createNewUser(proposal.getRecipient());
+		User user = (User)newUserResponse.get(0);
+		String pass = (String)newUserResponse.get(1);
 		List<User> users = new ArrayList<User>();
 		try {
 			users.add(userDao.getByEmail(proposal.getRecipient()));
@@ -301,33 +283,23 @@ public class Handler {
 			throw new ShareProposalNotCreatedException(e);
 		}
 
-
-		Item item;
-		try {
-			item = itemDao.findById(proposal.getFolder());
-		} catch (DAOException e) {
-			logger.error(e);
-			throw new ShareProposalNotCreatedException(e);
-		}
-
-		if (item == null || !item.isFolder()) {
-			throw new ShareProposalNotCreatedException("No folder found with the given ID.");
-		}
-
 		// Get the source workspace
 		Workspace sourceWorkspace;
+		User owner;
+		
 		try {
 			sourceWorkspace = workspaceDAO.getById(item.getWorkspace().getId());
+			owner = userDao.findById(sourceWorkspace.getOwner().getId());
 		} catch (DAOException e) {
 			logger.error(e);
 			throw new ShareProposalNotCreatedException(e);
 		}
+		
 		if (sourceWorkspace == null) {
 			throw new ShareProposalNotCreatedException("Workspace not found.");
 		}
-		User owner = sourceWorkspace.getOwner();
 		
-		Workspace workspace = null;
+		Workspace workspace;
 		
 		if (sourceWorkspace.isShared()) {
 			workspace = sourceWorkspace;
@@ -335,12 +307,14 @@ public class Handler {
 		} else {
 			//if the workspace isn't shared, create a new shared workspace
 			workspace = newSharedWorkspace(owner, sourceWorkspace, item, users, false);
+			isNewWorkspace = true;
 		}
 		
 		// Add the addressees to the workspace
 		for (User addressee : users) {
 			try {
 				workspaceDAO.addUser(addressee, workspace);
+
 
 			} catch (DAOException e) {
 				workspace.getUsers().remove(addressee);
@@ -356,8 +330,8 @@ public class Handler {
 				throw new ShareProposalNotCreatedException(e);
 			}
 		}
-
-		return workspace;
+			
+		return new NewUserData(workspace, item, user.getName(), pass, isNewWorkspace);
 
 	}
 	public UnshareData doUnshareFolder(User user, List<String> emails, Item item, boolean isEncrypted)
@@ -832,26 +806,60 @@ public class Handler {
 		return workspace;
 	}
 	
-	private User createNewUser(String email) throws ShareProposalNotCreatedException{
+	private void createProposals(List<String> externalAddressees, UUID ownerId, Long itemId) throws ShareProposalNotCreatedException{
+		SharingProposal proposal;
+		for (String email : externalAddressees) {
+			// Create proposal
+			proposal = new SharingProposal();
+			proposal.setKey(UUID.randomUUID());
+			proposal.setIsLocal(true);
+			proposal.setResourceUrl("http:localhost:8080/api/folder/" + itemId);
+			proposal.setOwner(ownerId);
+			proposal.setFolder(itemId);
+			proposal.setWriteAccess(true);
+			proposal.setCallback("http:localhost:8000/result");
+			proposal.setRecipient(email);
+			proposal.setProtocolVersion("1.0");
+			proposal.setStatus("CREATED");
+			// Save proposal
+			try {
+				sharingProposalDao.add(proposal);
+			} catch (Exception e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
+			// generate link to /select/share_id
+			String link = "http://127.0.0.1:8000/interop/select/" + proposal.getKey();
+			logger.debug("Link that will be send into email: " + link);
+		}
+
+			// send email to all the external users
+			// TODO: Send Email to all the external users
+	}
+	
+	private List<Object> createNewUser(String email) throws ShareProposalNotCreatedException{
 		User user = new User();
+		SecureRandom secureRandom = new SecureRandom();
+		String randomName = new BigInteger(130, secureRandom).toString(32);
 		user.setEmail(email);
 		user.setSwiftAccount(Config.getSwiftAccount());
-		user.setName(email);
+		user.setName(randomName);
 		user.setQuotaLimit(0);
 		user.setQuotaUsed(0);
-		user.setSwiftUser(email);
-		
+		user.setSwiftUser(randomName);
+		String pass;
 		try {
-			storageManager.createNewUser(user);
+			pass = storageManager.createNewUser(user);
 			userDao.add(user);
 		} catch (Exception e) {
 			logger.error(e);
 			throw new ShareProposalNotCreatedException(e);
 		}
-		
-		
-		
-		return null;
+		List<Object> response = new ArrayList<Object>();
+		response.add(user);
+		response.add(pass);
+		logger.debug("User name: " + user.getName() + " Password: " + pass);
+		return response;
 	}
 
 }

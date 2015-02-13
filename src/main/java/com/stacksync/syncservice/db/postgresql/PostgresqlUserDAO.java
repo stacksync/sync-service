@@ -98,7 +98,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 
 		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsed() };
 
-		String query = "INSERT INTO user1 (email, name, swift_user, swift_account, quota_limit, quota_used) VALUES (?, ?, ?, ?, ?)";
+		String query = "INSERT INTO user1 (email, name, swift_user, swift_account, quota_limit, quota_used) VALUES (?, ?, ?, ?, ?, ?)";
 
 		try {
 			UUID userId = (UUID) executeUpdate(query, values);

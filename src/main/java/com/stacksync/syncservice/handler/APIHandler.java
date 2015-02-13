@@ -13,6 +13,7 @@ import com.stacksync.syncservice.rpc.messages.APIGetFolderMembersResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
+import com.stacksync.syncservice.rpc.messages.APINewUserResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIUnshareFolderResponse;
@@ -43,5 +44,5 @@ public interface APIHandler {
 	
 	public APIGetFolderMembersResponse getFolderMembers(User user, Item item);
 	
-	public APIShareFolderResponse addExternalUserToWorkspace(SharingProposal proposal);
+	public APINewUserResponse addExternalUserToWorkspace(SharingProposal proposal);
 }

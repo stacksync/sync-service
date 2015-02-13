@@ -184,6 +184,10 @@ public class Config {
 	public static String getSwiftTenant() {
 		return properties.getProperty(Constants.PROP_SWIFT_TENANT, Constants.DEFAULT_SWIFT_TENANT);
 	}
+	
+	public static String getSwiftTenantId() {
+		return properties.getProperty(Constants.PROP_SWIFT_TENANT_ID, Constants.DEFAULT_SWIFT_TENANT_ID);
+	}
 
 	public static String getSwiftUser() {
 		return properties.getProperty(Constants.PROP_SWIFT_USER, Constants.DEFAULT_SWIFT_USER);
@@ -204,7 +208,7 @@ public class Config {
 	}
 	
 	public static String getKeystoneBaseUrl(){
-		String keystoneUrl = String.format("%s://%s:%s/v2.0", getSwiftKeystoneProtocol(), getSwiftKeystoneHost(), getSwiftKeystonePort());
+		String keystoneUrl = String.format("%s://%s:%s/v2.0", getSwiftKeystoneProtocol(), getSwiftKeystoneHost(), getSwiftKeystoneAdminPort());
 		return keystoneUrl;
 	}
 	

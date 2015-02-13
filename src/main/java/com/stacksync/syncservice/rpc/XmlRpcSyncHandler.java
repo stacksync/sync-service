@@ -32,6 +32,7 @@ import com.stacksync.syncservice.rpc.messages.APIGetFolderMembersResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
+import com.stacksync.syncservice.rpc.messages.APINewUserResponse;
 import com.stacksync.syncservice.rpc.messages.APIResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
@@ -416,9 +417,9 @@ public class XmlRpcSyncHandler {
 
 		APIShareFolderResponse response = this.apiHandler.shareFolder(user, item, emails);
 
-		if (response.getSuccess()) {
+		if (response.getSuccess() && response.getWorkspace() != null) {
 			// FIXME: Do the user-workspace bindings before
-			this.bindUsersToWorkspace(response.getWorkspace(), folderId);
+			this.bindUsersToWorkspace(response.getWorkspace(), folderId, false);
 		}
 
 		String strResponse = response.toString();
@@ -427,16 +428,17 @@ public class XmlRpcSyncHandler {
 		return strResponse;
 
 	}
-	
-	public String unshareFolder(String strUserId, String strFolderId, List<String> emails){
-		
-		logger.debug("XMLRPC -> unshare_folder --> [User:" + strUserId + ", Folder ID:" + strFolderId
-				+ ", Emails: " + emails.toString() + "]");
+
+	public String unshareFolder(String strUserId, String strFolderId, List<String> emails) {
+
+		logger.debug("XMLRPC -> unshare_folder --> [User:" + strUserId + ", Folder ID:" + strFolderId + ", Emails: "
+				+ emails.toString() + "]");
 
 		Long folderId = null;
 		try {
 			folderId = Long.parseLong(strFolderId);
-		} catch (NumberFormatException ex) { }
+		} catch (NumberFormatException ex) {
+		}
 
 		UUID userId = UUID.fromString(strUserId);
 
@@ -447,18 +449,20 @@ public class XmlRpcSyncHandler {
 		item.setId(folderId);
 
 		APIUnshareFolderResponse response = this.apiHandler.unshareFolder(user, item, emails);
-			
+
 		if (response.getSuccess()) {
-			//FIXME: Do the user-workspace unbindings before
-			this.unBindUsersToWorkspace(response.getWorkspace(),response.getUsersToRemove(), response.isUnshared(), folderId);
-//			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
+			// FIXME: Do the user-workspace unbindings before
+			this.unBindUsersToWorkspace(response.getWorkspace(), response.getUsersToRemove(), response.isUnshared(),
+					folderId);
+			// this.sendMessageToClients(response.getWorkspace().getId().toString(),
+			// response);
 		}
 
 		String strResponse = response.toString();
 
 		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
 		return strResponse;
-		
+
 	}
 
 	public String getFolderMembers(String strUserId, String strFolderId) {
@@ -514,25 +518,25 @@ public class XmlRpcSyncHandler {
 
 	}
 
-	public String addExternalUserToWorkspace(String strKeyProposal){
+	public String addExternalUserToWorkspace(String strKeyProposal) {
 		logger.debug("XMLRPC -> add external user to workspace -->[Share Key: " + strKeyProposal + "]");
-		
+
 		UUID key = UUID.fromString(strKeyProposal);
 		SharingProposal proposal = new SharingProposal();
 		proposal.setKey(key);
-		
-		APIShareFolderResponse response = this.apiHandler.addExternalUserToWorkspace(proposal);
-		
-		//if (response.getSuccess()) {
+
+		APINewUserResponse response = this.apiHandler.addExternalUserToWorkspace(proposal);
+
+		if (response.getSuccess() && response.getIsNewWorkspace()) {
 			// FIXME: Do the user-workspace bindings before
-			//this.bindUsersToWorkspace(response.getWorkspace(), folderId);
-		//}
+			this.bindUsersToWorkspace(response.getWorkspace(), response.getFolder().getId(), true);
+		}
 
 		String strResponse = response.toString();
 
 		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
 		return strResponse;
-		
+
 	}
 	private APIGetMetadata getParentMetadata(UUID userId, Long parentId) {
 		Boolean includeDeleted = true;
@@ -544,8 +548,7 @@ public class XmlRpcSyncHandler {
 
 		return metadataResponse;
 	}
-	
-	
+
 	private APICommitResponse checkParentMetadata(Long parentId, APIGetMetadata metadataResponse) {
 		APICommitResponse response = new APICommitResponse(null, true, 0, null);
 		ItemMetadata parentMetadata = metadataResponse.getItemMetadata();
@@ -563,13 +566,13 @@ public class XmlRpcSyncHandler {
 
 		return response;
 	}
-	
-	private void bindUsersToWorkspace(Workspace workspace, Long folderId) {
-		
+
+	private void bindUsersToWorkspace(Workspace workspace, Long folderId, boolean onlyOwner) {
+
 		// Create notification
-		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
-				workspace.getName(), folderId, workspace.getOwner().getId(), workspace.getOwner().getName(),
-				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
+		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(), workspace.getName(),
+				folderId, workspace.getOwner().getId(), workspace.getOwner().getName(), workspace.getSwiftContainer(),
+				workspace.getSwiftUrl(), workspace.isEncrypted());
 
 		notification.setRequestId("");
 
@@ -581,29 +584,31 @@ public class XmlRpcSyncHandler {
 		} catch (RemoteException e1) {
 			logger.error(String.format("Could not notify user: '%s'", workspace.getOwner().getId()), e1);
 		}
-
-		// Send notifications to users
-		for (User addressee : workspace.getUsers()) {
-			try {
-				client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
-				client.notifyShareProposal(notification);
-			} catch (RemoteException e) {
-				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
+		
+		if (!onlyOwner) {
+			// Send notifications to users
+			for (User addressee : workspace.getUsers()) {
+				try {
+					client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
+					client.notifyShareProposal(notification);
+				} catch (RemoteException e) {
+					logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
+				}
 			}
 		}
 
 	}
 	private void unBindUsersToWorkspace(Workspace workspace, List<User> usersToRemove, boolean isUnshared, Long folderId) {
-		
+
 		// Create notification
-		UnshareNotification notification = new UnshareNotification(workspace.getId(),
-				workspace.getName(), folderId, workspace.getOwner().getId(), workspace.getOwner().getName(),
-				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
+		UnshareNotification notification = new UnshareNotification(workspace.getId(), workspace.getName(), folderId,
+				workspace.getOwner().getId(), workspace.getOwner().getName(), workspace.getSwiftContainer(),
+				workspace.getSwiftUrl(), workspace.isEncrypted());
 
 		notification.setRequestId("");
 		RemoteClient client;
 		// Send notification to owner
-		if (isUnshared){
+		if (isUnshared) {
 			try {
 				client = broker.lookupMulti(workspace.getOwner().getId().toString(), RemoteClient.class);
 				client.notifyUnshare(notification);
@@ -611,7 +616,6 @@ public class XmlRpcSyncHandler {
 				logger.error(String.format("Could not notify user: '%s'", workspace.getOwner().getId()), e1);
 			}
 		}
-	
 
 		// Send notifications to users
 		for (User addressee : usersToRemove) {
@@ -621,7 +625,7 @@ public class XmlRpcSyncHandler {
 			} catch (RemoteException e) {
 				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
 			}
-		} 	
+		}
 	}
 	private void sendMessageToClients(String workspaceName, APIResponse generalResponse) {
 

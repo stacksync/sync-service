@@ -32,6 +32,7 @@ import com.stacksync.syncservice.rpc.messages.APIGetFolderMembersResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.messages.APIGetVersions;
 import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
+import com.stacksync.syncservice.rpc.messages.APINewUserResponse;
 import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIUnshareFolderResponse;
@@ -658,22 +659,23 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		return response;
 	}
-	
+
 	@Override
-	public APIShareFolderResponse addExternalUserToWorkspace(SharingProposal proposal) {
-		APIShareFolderResponse response;
-		
-		Workspace workspace;
+	public APINewUserResponse addExternalUserToWorkspace(SharingProposal proposal) {
+		APINewUserResponse response;
+
+		NewUserData newUserData;
 
 		try {
-			workspace = this.doAddExternalUser(proposal);
-			response = new APIShareFolderResponse(workspace, true, 0, "");
+			newUserData = this.doAddExternalUser(proposal);
+			response = new APINewUserResponse(newUserData.getWorkspace(), newUserData.getItem(), true, newUserData.getUserName(),
+					newUserData.getPass(), newUserData.isNewWorkspace(), 0, "");
 		} catch (ShareProposalNotCreatedException e) {
-			response = new APIShareFolderResponse(null, false, 400, e.getMessage());
+			response = new APINewUserResponse(null, null, false, null, null, false, 400, e.getMessage());
 		} catch (UserNotFoundException e) {
-			response = new APIShareFolderResponse(null, false, 404, e.getMessage());
+			response = new APINewUserResponse(null, null, false, null, null, false, 404, e.getMessage());
 		}
-		return null;
+		return response;
 	}
 
 	@Override
@@ -877,6 +879,5 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		APIDeleteResponse response = new APIDeleteResponse(fileToDelete, success, 0, "");
 		return response;
 	}
-	
 
 }
