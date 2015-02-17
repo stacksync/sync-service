@@ -236,7 +236,7 @@ public class Handler {
 		}
 		if (!externalAddressees.isEmpty()) {
 
-			createProposals(externalAddressees, sourceWorkspace.getOwner().getId() ,item.getId());
+			createProposals(externalAddressees, sourceWorkspace.getOwner().getId() ,item);
 
 		}
 
@@ -806,16 +806,30 @@ public class Handler {
 		return workspace;
 	}
 	
-	private void createProposals(List<String> externalAddressees, UUID ownerId, Long itemId) throws ShareProposalNotCreatedException{
+	private void createProposals(List<String> externalAddressees, UUID ownerId, Item item) throws ShareProposalNotCreatedException, UserNotFoundException{
 		SharingProposal proposal;
+		User owner;
+		try {
+			owner = userDao.findById(ownerId);
+		} catch (NoResultReturnedDAOException e) {
+			logger.warn(e);
+			throw new UserNotFoundException(e);
+		} catch (DAOException e) {
+			logger.error(e);
+			throw new ShareProposalNotCreatedException(e);
+		}
+
 		for (String email : externalAddressees) {
 			// Create proposal
 			proposal = new SharingProposal();
 			proposal.setKey(UUID.randomUUID());
 			proposal.setIsLocal(true);
-			proposal.setResourceUrl("http:localhost:8080/api/folder/" + itemId);
+			proposal.setResourceUrl("http:localhost:8080/api/folder/" + item.getId());
 			proposal.setOwner(ownerId);
-			proposal.setFolder(itemId);
+			proposal.setOwnerName(owner.getName());
+			proposal.setOwnerEmail(owner.getEmail());
+			proposal.setFolder(item.getId());
+			proposal.setFolderName(item.getFilename());
 			proposal.setWriteAccess(true);
 			proposal.setCallback("http:localhost:8000/result");
 			proposal.setRecipient(email);
