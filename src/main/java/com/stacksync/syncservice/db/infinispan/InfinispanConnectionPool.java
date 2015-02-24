@@ -5,11 +5,20 @@
  */
 package com.stacksync.syncservice.db.infinispan;
 
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
-import java.sql.Connection;
+import java.io.IOException;
 import java.sql.SQLException;
-import org.postgresql.ds.PGPoolingDataSource;
+import org.infinispan.configuration.cache.CacheMode;
+import org.infinispan.configuration.cache.Configuration;
+import org.infinispan.configuration.cache.ConfigurationBuilder;
+import org.infinispan.configuration.global.GlobalConfiguration;
+import org.infinispan.configuration.global.GlobalConfigurationBuilder;
+import org.infinispan.lifecycle.ComponentStatus;
+import org.infinispan.manager.DefaultCacheManager;
+import org.infinispan.manager.EmbeddedCacheManager;
+import org.infinispan.transaction.TransactionMode;
 
 /**
  *
@@ -17,28 +26,47 @@ import org.postgresql.ds.PGPoolingDataSource;
  */
 public class InfinispanConnectionPool extends ConnectionPool {
 
-    private PGPoolingDataSource source;
+    private EmbeddedCacheManager cacheManager;
+    private final Integer NumCaches = 1;
 
     public InfinispanConnectionPool() throws DAOConfigurationException {
-        try {
-            Class.forName("org.postgresql.Driver");
-
-            // Initialize a pooling DataSource
-            source = new PGPoolingDataSource();
-            source.getConnection().close();
-
-        } catch (ClassNotFoundException e) {
-            throw new DAOConfigurationException("Infinispan JDBC driver not found", e);
-        } catch (SQLException e) {
-            throw new DAOConfigurationException("SQLException catched at DAOFactory", e);
+        if (cacheManager != null && cacheManager.getStatus() == ComponentStatus.RUNNING) {
+            System.out.println("CacheManager already started, nothing to do here");
+            return;
         }
+
+        String infinispanConfig = System.getProperties().getProperty("infinispanConfigFile");
+        if (infinispanConfig != null) {
+            try {
+                cacheManager = new DefaultCacheManager(infinispanConfig);
+            } catch (IOException e) {
+                System.out.println("File " + infinispanConfig + " is corrupted.");
+            }
+        }
+
+        if (cacheManager == null) {
+            for (int i = 0; i < NumCaches; i++) {
+                GlobalConfiguration globalConfig = new GlobalConfigurationBuilder()
+                        .transport().defaultTransport()
+                        .build();
+                ConfigurationBuilder cb = new ConfigurationBuilder();
+                Configuration c = cb.
+                        transaction().transactionMode(TransactionMode.NON_TRANSACTIONAL).
+                        clustering().cacheMode(CacheMode.DIST_SYNC).
+                        build();
+                cacheManager = new DefaultCacheManager(globalConfig, c);
+            }
+        }
+
+        cacheManager.start();
+        System.out.println("Cache manager started.");
 
     }
 
     @Override
     public Connection getConnection() throws SQLException {
         try {
-            return source.getConnection();
+            return new InfinispanConnection(cacheManager.getCache());
         } catch (Exception e) {
             throw new SQLException(e);
         }

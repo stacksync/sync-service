@@ -1,6 +1,5 @@
 package com.stacksync.syncservice.db.postgresql;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -11,6 +10,7 @@ import org.apache.log4j.Logger;
 import com.stacksync.commons.models.Chunk;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.ItemVersionDAO;
@@ -21,7 +21,7 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 	private static final Logger logger = Logger.getLogger(PostgresqlItemVersionDao.class.getName());
 
 	public PostgresqlItemVersionDao(Connection connection) {
-		super(connection);
+		super((PostgresqlConnection)connection);
 	}
 
 	@Override

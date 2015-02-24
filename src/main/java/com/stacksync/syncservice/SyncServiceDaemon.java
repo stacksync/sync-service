@@ -3,7 +3,6 @@ package com.stacksync.syncservice;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Properties;
 
@@ -15,6 +14,7 @@ import org.apache.commons.daemon.DaemonInitException;
 import org.apache.log4j.Logger;
 
 import com.stacksync.commons.omq.ISyncService;
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
@@ -79,7 +79,7 @@ public class SyncServiceDaemon implements Daemon {
 
 			// it will try to connect to the DB, throws exception if not
 			// possible.
-			Connection conn = pool.getConnection();
+                        Connection conn = pool.getConnection();
 			conn.close();
 
 			logger.info("Connection to database succeded");

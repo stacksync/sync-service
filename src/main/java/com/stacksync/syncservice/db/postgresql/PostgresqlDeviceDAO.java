@@ -1,6 +1,5 @@
 package com.stacksync.syncservice.db.postgresql;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
@@ -9,6 +8,7 @@ import org.apache.log4j.Logger;
 
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.User;
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.DeviceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.util.Constants;
@@ -18,7 +18,7 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 	private static final Logger logger = Logger.getLogger(PostgresqlDeviceDAO.class.getName());
 
 	public PostgresqlDeviceDAO(Connection connection) {
-		super(connection);
+		super((PostgresqlConnection)connection);
 	}
 
 	@Override

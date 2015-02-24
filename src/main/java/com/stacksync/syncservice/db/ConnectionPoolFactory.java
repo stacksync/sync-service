@@ -25,11 +25,8 @@ public class ConnectionPoolFactory {
 			//
 			return new PostgresqlConnectionPool(host, port, database, username, password, initialConns, maxConns);
 		} else if ("infinispan".equalsIgnoreCase(datasource)) {
-			// Obtain info
-
-			//
-			return new InfinispanConnectionPool();
-		}
+                    return new InfinispanConnectionPool();
+                }
 
 		logger.error("Could not find any driver matching your request");
 		throw new DAOConfigurationException("Driver not found");

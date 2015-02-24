@@ -1,6 +1,5 @@
 package com.stacksync.syncservice.db.postgresql;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 import org.postgresql.ds.PGPoolingDataSource;
@@ -37,9 +36,9 @@ public class PostgresqlConnectionPool extends ConnectionPool {
 	}
 
 	@Override
-	public synchronized Connection getConnection() throws SQLException {
+	public synchronized PostgresqlConnection getConnection() throws SQLException {
 		try {
-			return source.getConnection();
+			return new PostgresqlConnection(source.getConnection());
 		} catch (Exception e) {
 			throw new SQLException(e);
 		}

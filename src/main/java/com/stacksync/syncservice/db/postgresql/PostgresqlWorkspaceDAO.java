@@ -1,6 +1,5 @@
 package com.stacksync.syncservice.db.postgresql;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -13,6 +12,7 @@ import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.Connection;
 
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.DAOUtil;
@@ -25,7 +25,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 	private static final Logger logger = Logger.getLogger(PostgresqlWorkspaceDAO.class.getName());
 
 	public PostgresqlWorkspaceDAO(Connection connection) {
-		super(connection);
+		super((PostgresqlConnection)connection);
 	}
 
 	@Override

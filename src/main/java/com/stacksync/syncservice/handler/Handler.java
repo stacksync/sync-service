@@ -1,6 +1,5 @@
 package com.stacksync.syncservice.handler;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +19,7 @@ import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.DeviceDAO;
@@ -58,7 +58,7 @@ public class Handler {
 		NEW, DELETED, CHANGED, RENAMED, MOVED
 	};
 
-	public Handler(ConnectionPool pool) throws SQLException,
+	public Handler(ConnectionPool pool) throws Exception,
 			NoStorageManagerAvailable {
 		connection = pool.getConnection();
 
@@ -702,7 +702,7 @@ public class Handler {
 	private void beginTransaction() throws DAOException {
 		try {
 			connection.setAutoCommit(false);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DAOException(e);
 		}
 	}
@@ -711,7 +711,7 @@ public class Handler {
 		try {
 			connection.commit();
 			this.connection.setAutoCommit(true);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DAOException(e);
 		}
 	}
@@ -720,7 +720,7 @@ public class Handler {
 		try {
 			this.connection.rollback();
 			this.connection.setAutoCommit(true);
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			throw new DAOException(e);
 		}
 	}

@@ -17,8 +17,8 @@ public class PostgresqlDAO {
 	private static final Logger logger = Logger.getLogger(PostgresqlDAO.class.getName());
 	protected Connection connection;
 
-	public PostgresqlDAO(Connection connection) {
-		this.connection = connection;
+	public PostgresqlDAO(PostgresqlConnection connection) {
+		this.connection = connection.getConnection();
 	}
 
 	protected ResultSet executeQuery(String query, Object[] values) throws DAOException {
