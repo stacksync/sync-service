@@ -6,8 +6,10 @@
 package com.stacksync.syncservice.db.infinispan;
 
 import com.stacksync.syncservice.db.ConnectionPool;
+import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import org.postgresql.ds.PGPoolingDataSource;
 
 /**
  *
@@ -15,9 +17,31 @@ import java.sql.SQLException;
  */
 public class InfinispanConnectionPool extends ConnectionPool {
 
+    private PGPoolingDataSource source;
+
+    public InfinispanConnectionPool() throws DAOConfigurationException {
+        try {
+            Class.forName("org.postgresql.Driver");
+
+            // Initialize a pooling DataSource
+            source = new PGPoolingDataSource();
+            source.getConnection().close();
+
+        } catch (ClassNotFoundException e) {
+            throw new DAOConfigurationException("Infinispan JDBC driver not found", e);
+        } catch (SQLException e) {
+            throw new DAOConfigurationException("SQLException catched at DAOFactory", e);
+        }
+
+    }
+
     @Override
     public Connection getConnection() throws SQLException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        try {
+            return source.getConnection();
+        } catch (Exception e) {
+            throw new SQLException(e);
+        }
     }
-    
+
 }
