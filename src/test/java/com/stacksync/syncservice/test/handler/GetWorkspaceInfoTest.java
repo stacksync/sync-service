@@ -1,6 +1,5 @@
 package com.stacksync.syncservice.test.handler;
 
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
@@ -11,6 +10,7 @@ import org.junit.Test;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;

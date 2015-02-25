@@ -1,6 +1,5 @@
 package com.stacksync.syncservice.test.benchmark.db;
 
-import java.sql.Connection;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,6 +8,7 @@ import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;

@@ -1,6 +1,5 @@
 package com.stacksync.syncservice.handler;
 
-import java.sql.Connection;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,6 +15,7 @@ import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface SyncHandler {

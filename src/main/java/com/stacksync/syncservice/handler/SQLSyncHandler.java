@@ -17,6 +17,7 @@ import com.stacksync.commons.exceptions.DeviceNotValidException;
 import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 import com.stacksync.syncservice.exceptions.dao.NoRowsAffectedDAOException;
@@ -26,7 +27,7 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 
 	private static final Logger logger = Logger.getLogger(SQLSyncHandler.class.getName());	
 
-	public SQLSyncHandler(ConnectionPool pool) throws SQLException, NoStorageManagerAvailable {
+	public SQLSyncHandler(ConnectionPool pool) throws SQLException, NoStorageManagerAvailable, Exception {
 		super(pool);
 	}
 
@@ -141,5 +142,10 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 			throw new UserNotFoundException(e);
 		}
 	}
+
+    @Override
+    public Connection getConnection() {
+        return super.getConnection();
+    }
 
 }

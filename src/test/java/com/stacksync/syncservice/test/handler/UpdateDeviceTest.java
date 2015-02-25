@@ -1,6 +1,5 @@
 package com.stacksync.syncservice.test.handler;
 
-import java.sql.Connection;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -12,6 +11,7 @@ import org.junit.Test;
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
@@ -42,7 +42,7 @@ public class UpdateDeviceTest {
 			handler = new SQLSyncHandler(pool);
 			DAOFactory factory = new DAOFactory(datasource);
 
-			Connection connection = pool.getConnection();
+			         Connection connection = pool.getConnection();
 
 			workspaceDAO = factory.getWorkspaceDao(connection);
 			userDao = factory.getUserDao(connection);

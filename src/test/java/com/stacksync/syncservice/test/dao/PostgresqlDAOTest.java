@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.security.SecureRandom;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
@@ -22,6 +21,7 @@ import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.ItemDAO;
@@ -42,7 +42,7 @@ public class PostgresqlDAOTest {
 	private static SecureRandom random = new SecureRandom();
 
 	@BeforeClass
-	public static void testSetup() throws IOException, SQLException, DAOConfigurationException {
+	public static void testSetup() throws IOException, SQLException, DAOConfigurationException, Exception {
 
 		URL configFileResource = PostgresqlDAOTest.class.getResource("/com/ast/processserver/resources/log4j.xml");
 		DOMConfigurator.configure(configFileResource);

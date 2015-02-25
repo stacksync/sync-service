@@ -1,7 +1,6 @@
 package com.stacksync.syncservice.test.handler;
 
-import java.sql.Connection;
-
+import com.stacksync.syncservice.db.Connection;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
