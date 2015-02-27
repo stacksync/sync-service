@@ -8,15 +8,14 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.UserDAO;
-import com.stacksync.syncservice.db.WorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
@@ -25,10 +24,10 @@ import com.stacksync.syncservice.util.Config;
 public class UpdateDeviceTest {
 
 	private static Handler handler;
-	private static WorkspaceDAO workspaceDAO;
-	private static UserDAO userDao;
-	private static User user1;
-	private static User user2;
+	private static InfinispanWorkspaceDAO workspaceDAO;
+	private static InfinispanUserDAO userDao;
+	private static UserRMI user1;
+	private static UserRMI user2;
 
 	@BeforeClass
 	public static void initializeData() throws Exception {
@@ -47,16 +46,16 @@ public class UpdateDeviceTest {
 			workspaceDAO = factory.getWorkspaceDao(connection);
 			userDao = factory.getUserDao(connection);
 
-			user1 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+			user1 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 
 			userDao.add(user1);
-			Workspace workspace1 = new Workspace(null, 1, user1, false, false);
+			WorkspaceRMI workspace1 = new WorkspaceRMI(null, 1, user1.getId(), false, false);
 			workspaceDAO.add(workspace1);
 
-			user2 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+			user2 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 
 			userDao.add(user2);
-			Workspace workspace2 = new Workspace(null, 1, user2, false, false);
+			WorkspaceRMI workspace2 = new WorkspaceRMI(null, 1, user2.getId(), false, false);
 			workspaceDAO.add(workspace2);
 
 

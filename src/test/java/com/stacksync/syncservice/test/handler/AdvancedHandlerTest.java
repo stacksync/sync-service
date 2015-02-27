@@ -8,22 +8,23 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.DeviceDAO;
-import com.stacksync.syncservice.db.ItemDAO;
-import com.stacksync.syncservice.db.ItemVersionDAO;
-import com.stacksync.syncservice.db.UserDAO;
-import com.stacksync.syncservice.db.WorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanItemDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanItemVersionDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.rpc.parser.IParser;
 import com.stacksync.syncservice.rpc.parser.JSONParser;
 import com.stacksync.syncservice.util.Config;
+import java.rmi.RemoteException;
 
 public class AdvancedHandlerTest {
 
@@ -32,11 +33,11 @@ public class AdvancedHandlerTest {
 	private static IParser reader;
 	private static ConnectionPool pool;
 	private static Connection connection;
-	private static WorkspaceDAO workspaceDAO;
-	private static UserDAO userDao;
-	private static DeviceDAO deviceDao;
-	private static ItemDAO objectDao;
-	private static ItemVersionDAO oversionDao;
+	private static InfinispanWorkspaceDAO workspaceDAO;
+	private static InfinispanUserDAO userDao;
+	private static InfinispanDeviceDAO deviceDao;
+	private static InfinispanItemDAO objectDao;
+	private static InfinispanItemVersionDAO oversionDao;
 	private static UUID user1 = UUID.randomUUID();
 	
 	
@@ -59,13 +60,13 @@ public class AdvancedHandlerTest {
 			oversionDao = factory.getItemVersionDAO(connection);
 
 
-			User user = new User(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+			UserRMI user = new UserRMI(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			userDao.add(user);
 
-			Workspace workspace = new Workspace(null,  1, user, false, false);
+			WorkspaceRMI workspace = new WorkspaceRMI(null,  1, user.getId(), false, false);
 			workspaceDAO.add(workspace);
 
-			Device device = new Device(null, "junitdevice", user);
+			DeviceRMI device = new DeviceRMI(null, "junitdevice");
 			deviceDao.add(device);
 
 		} catch (Exception e) {
@@ -74,8 +75,8 @@ public class AdvancedHandlerTest {
 	}
 
 	@AfterClass
-	public static void cleanData() throws DAOException {
-		userDao.delete(user1);
+	public static void cleanData() throws DAOException, RemoteException {
+		userDao.deleteUser(user1);
 	}
 
 	@Before

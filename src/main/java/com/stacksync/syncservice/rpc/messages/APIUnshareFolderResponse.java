@@ -4,15 +4,15 @@ import java.util.List;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 
 public class APIUnshareFolderResponse extends APIResponse {
-	private List<User> usersToRemove;
-	private Workspace workspace;
+	private List<UserRMI> usersToRemove;
+	private WorkspaceRMI workspace;
 	private boolean isUnshared;
 
-	public APIUnshareFolderResponse(Workspace workspace,  List<User> usersToRemove, boolean isUnshared, Boolean success, int error, String description) {
+	public APIUnshareFolderResponse(WorkspaceRMI workspace,  List<UserRMI> usersToRemove, boolean isUnshared, Boolean success, int error, String description) {
 		super();
 
 		this.success = success;
@@ -23,11 +23,11 @@ public class APIUnshareFolderResponse extends APIResponse {
 		this.isUnshared = isUnshared;
 	}
 
-	public Workspace getWorkspace() {
+	public WorkspaceRMI getWorkspace() {
 		return workspace;
 	}
 	
-	public List<User> getUsersToRemove() {
+	public List<UserRMI> getUsersToRemove() {
 		return usersToRemove;
 	}
 
@@ -43,7 +43,7 @@ public class APIUnshareFolderResponse extends APIResponse {
 
 			JsonArray sharedTo = new JsonArray();
 
-			for (User user : usersToRemove) {
+			for (UserRMI user : usersToRemove) {
 				JsonObject jUser = parseUser(user);
 				sharedTo.add(jUser);
 			}

@@ -9,20 +9,18 @@ import org.apache.log4j.Logger;
 
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
-import com.stacksync.commons.models.Chunk;
-import com.stacksync.commons.models.CommitInfo;
-import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.ItemVersion;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.UserWorkspace;
-import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.infinispan.models.ChunkRMI;
+import com.stacksync.syncservice.db.infinispan.models.CommitInfoRMI;
+import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserWorkspaceRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOError;
-import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
-import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
@@ -35,24 +33,28 @@ import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
 import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIUnshareFolderResponse;
 import com.stacksync.syncservice.util.Constants;
+import java.rmi.RemoteException;
+import java.util.UUID;
+import java.util.logging.Level;
 
 public class SQLAPIHandler extends Handler implements APIHandler {
 
 	private static final Logger logger = Logger.getLogger(SQLAPIHandler.class
 			.getName());
 
-	private Device apiDevice = new Device(Constants.API_DEVICE_ID);
+	private DeviceRMI apiDevice = new DeviceRMI(Constants.API_DEVICE_ID);
 
 	public SQLAPIHandler(ConnectionPool pool) throws SQLException,
-			NoStorageManagerAvailable {
+			NoStorageManagerAvailable,
+			Exception {
 		super(pool);
 	}
 
 	@Override
-	public APIGetMetadata getMetadata(User user, Long fileId,
+	public APIGetMetadata getMetadata(UserRMI user, Long fileId,
 			Boolean includeChunks, Long version, Boolean isFolder) {
 
-		ItemMetadata responseObject = null;
+		ItemMetadataRMI responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;
 		String description = "";
@@ -65,7 +67,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			} else {
 
 				// check if user has permission on this file
-				List<User> users = this.userDao.findByItemId(fileId);
+				List<UserRMI> users = this.userDao.findByItemId(fileId);
 
 				if (users.isEmpty()) {
 					throw new DAOException(DAOError.FILE_NOT_FOUND);
@@ -89,17 +91,19 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			description = e.getError().getMessage();
 			errorCode = e.getError().getCode();
 			logger.error(e.toString(), e);
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		APIGetMetadata response = new APIGetMetadata(responseObject, success,
 				errorCode, description);
 		return response;
 	}
 
-	public APIGetMetadata getFolderContent(User user, Long folderId,
+	public APIGetMetadata getFolderContent(UserRMI user, Long folderId,
 			Boolean includeDeleted) {
 
-		ItemMetadata responseObject = null;
+		ItemMetadataRMI responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;
 		String description = "";
@@ -113,7 +117,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			} else {
 
 				// check if user has permission on this file
-				List<User> users = this.userDao.findByItemId(folderId);
+				List<UserRMI> users = this.userDao.findByItemId(folderId);
 
 				if (users.isEmpty()) {
 					throw new DAOException(DAOError.FILE_NOT_FOUND);
@@ -133,7 +137,9 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			description = e.getError().getMessage();
 			errorCode = e.getError().getCode();
 			logger.error(e.toString(), e);
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		APIGetMetadata response = new APIGetMetadata(responseObject, success,
 				errorCode, description);
@@ -141,26 +147,26 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APICommitResponse createFile(User user, ItemMetadata fileToSave) {
+	public APICommitResponse createFile(UserRMI user, ItemMetadataRMI fileToSave) {
 
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APICommitResponse(fileToSave, false, 404,
-					"User not found.");
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// Get user workspaces
 		try {
-			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
-			user.setWorkspaces(workspaces);
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APICommitResponse(fileToSave, false, 404,
-					"No workspaces found for the user.");
-		}
+			List<WorkspaceRMI> workspaces = workspaceDAO.getByUserId(user.getId());
+                        List<UUID> workspaceUUIDs = new ArrayList<UUID>();
+                        for (WorkspaceRMI workspaceInList : workspaces) {
+                            workspaceUUIDs.add(workspaceInList.getId());
+                        }
+			user.setWorkspaces(workspaceUUIDs);
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		boolean includeList = true;
 		Long version = null;
@@ -168,7 +174,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		boolean includeChunks = false;
 
 		// check that the given parent ID exists
-		ItemMetadata parent;
+		ItemMetadataRMI parent = null;
 		if (fileToSave.getParentId() != null) {
 			try {
 				parent = itemDao.findById(fileToSave.getParentId(),
@@ -181,27 +187,25 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 							"Parent must be a folder, not a file.");
 				}
 
-			} catch (DAOException e) {
-				return new APICommitResponse(fileToSave, false, 404,
-						"Parent folder not found");
-			}
+			} catch (RemoteException ex) {
+                        java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 		} else {
 			try {
 				parent = this.itemDao
 						.findByUserId(user.getId(), includeDeleted);
-				Workspace parentWorkspace = workspaceDAO
+				WorkspaceRMI parentWorkspace = workspaceDAO
 						.getDefaultWorkspaceByUserId(user.getId());
 				parent.setWorkspaceId(parentWorkspace.getId());
-			} catch (DAOException e) {
-				return new APICommitResponse(fileToSave, false, e.getError()
-						.getCode(), e.getMessage());
-			}
+			} catch (RemoteException ex) {
+                        java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 		}
 
 		// check if the user has permission on the file and parent
 		boolean permissionParent = false;
-		for (Workspace w : user.getWorkspaces()) {
-			if (parent.isRoot() || w.getId().equals(parent.getWorkspaceId())) {
+		for (UUID w : user.getWorkspaces()) {
+			if (parent.isRoot() || w.equals(parent.getWorkspaceId())) {
 				permissionParent = true;
 				break;
 			}
@@ -213,7 +217,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		// check if there is already a file with the same name
 		boolean repeated = false;
-		for (ItemMetadata child : parent.getChildren()) {
+		for (ItemMetadataRMI child : parent.getChildren()) {
 			if (child.getFilename().equals(fileToSave.getFilename())) {
 				repeated = true;
 				break;
@@ -240,26 +244,26 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APICommitResponse updateData(User user, ItemMetadata fileToUpdate) {
+	public APICommitResponse updateData(UserRMI user, ItemMetadataRMI fileToUpdate) {
 
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APICommitResponse(fileToUpdate, false, 404,
-					"User not found.");
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// Get user workspaces
 		try {
-			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
-			user.setWorkspaces(workspaces);
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APICommitResponse(fileToUpdate, false, 404,
-					"No workspaces found for the user.");
-		}
+			List<WorkspaceRMI> workspaces = workspaceDAO.getByUserId(user.getId());
+                        List<UUID> workspaceUUIDs = new ArrayList<UUID>();
+                        for (WorkspaceRMI workspaceInList : workspaces) {
+                            workspaceUUIDs.add(workspaceInList.getId());
+                        }
+			user.setWorkspaces(workspaceUUIDs);
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		boolean includeList = true;
 		Long version = null;
@@ -267,19 +271,18 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		boolean includeChunks = false;
 
 		// check that the given file ID exists
-		ItemMetadata file;
+		ItemMetadataRMI file = null;
 		try {
 			file = itemDao.findById(fileToUpdate.getId(), includeList, version,
 					includeDeleted, includeChunks);
-		} catch (DAOException e) {
-			return new APICommitResponse(fileToUpdate, false, 404,
-					"File not found");
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// check if the user has permission on the file and parent
 		boolean permission = false;
-		for (Workspace w : user.getWorkspaces()) {
-			if (w.getId().equals(file.getWorkspaceId())) {
+		for (UUID w : user.getWorkspaces()) {
+			if (w.equals(file.getWorkspaceId())) {
 				permission = true;
 			}
 		}
@@ -299,43 +302,45 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		file.setStatus(Status.CHANGED.toString());
 
 		// Commit the file
-		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		List<ItemMetadataRMI> items = new ArrayList<ItemMetadataRMI>();
 		items.add(file);
 
-		Workspace workspace = new Workspace(file.getWorkspaceId());
+		WorkspaceRMI workspace = new WorkspaceRMI(file.getWorkspaceId());
 
 		try {
 			this.doCommit(user, workspace, apiDevice, items);
 		} catch (DAOException e) {
 			return new APICommitResponse(fileToUpdate, false, e.getError()
 					.getCode(), e.getMessage());
-		}
+		} catch (Exception ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		APICommitResponse responseAPI = new APICommitResponse(file, true, 0, "");
 		return responseAPI;
 	}
 
 	@Override
-	public APICommitResponse updateMetadata(User user, ItemMetadata fileToUpdate) {
+	public APICommitResponse updateMetadata(UserRMI user, ItemMetadataRMI fileToUpdate) {
 
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APICommitResponse(fileToUpdate, false, 404,
-					"User not found.");
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// Get user workspaces
 		try {
-			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
-			user.setWorkspaces(workspaces);
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APICommitResponse(fileToUpdate, false, 404,
-					"No workspaces found for the user.");
-		}
+			List<WorkspaceRMI> workspaces = workspaceDAO.getByUserId(user.getId());
+                        List<UUID> workspaceUUIDs = new ArrayList<UUID>();
+                        for (WorkspaceRMI workspaceInList : workspaces) {
+                            workspaceUUIDs.add(workspaceInList.getId());
+                        }
+			user.setWorkspaces(workspaceUUIDs);
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		boolean includeList = true;
 		Long version = null;
@@ -343,17 +348,16 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		boolean includeChunks = true;
 
 		// check that the given file ID exists
-		ItemMetadata file;
+		ItemMetadataRMI file = null;
 		try {
 			file = itemDao.findById(fileToUpdate.getId(), includeList, version,
 					includeDeleted, includeChunks);
-		} catch (DAOException e) {
-			return new APICommitResponse(fileToUpdate, false, 404,
-					"File not found");
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// check that the given parent ID exists
-		ItemMetadata parent;
+		ItemMetadataRMI parent = null;
 		if (fileToUpdate.getParentId() != null) {
 			try {
 				parent = itemDao.findById(fileToUpdate.getParentId(),
@@ -365,28 +369,26 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 							"Parent must be a folder, not a file.");
 				}
 
-			} catch (DAOException e) {
-				return new APICommitResponse(fileToUpdate, false, 404,
-						"Parent folder not found");
-			}
+			} catch (RemoteException ex) {
+                        java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 		} else {
 			try {
 				parent = this.itemDao
 						.findByUserId(user.getId(), includeDeleted);
-			} catch (DAOException e) {
-				return new APICommitResponse(fileToUpdate, false, e.getError()
-						.getCode(), e.getMessage());
-			}
+			} catch (RemoteException ex) {
+                        java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 		}
 
 		// check if the user has permission on the file and parent
 		boolean permissionFile = false;
 		boolean permissionParent = false;
-		for (Workspace w : user.getWorkspaces()) {
-			if (w.getId().equals(file.getWorkspaceId())) {
+		for (UUID w : user.getWorkspaces()) {
+			if (w.equals(file.getWorkspaceId())) {
 				permissionFile = true;
 			}
-			if (parent.isRoot() || w.getId().equals(parent.getWorkspaceId())) {
+			if (parent.isRoot() || w.equals(parent.getWorkspaceId())) {
 				permissionParent = true;
 			}
 		}
@@ -397,7 +399,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		// check if there is already a file with the same name
 		boolean repeated = false;
-		for (ItemMetadata child : parent.getChildren()) {
+		for (ItemMetadataRMI child : parent.getChildren()) {
 			if (child.getFilename().equals(fileToUpdate.getFilename())) {
 				repeated = true;
 			}
@@ -415,53 +417,49 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		file.setStatus(Status.RENAMED.toString());
 
 		// Commit the file
-		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		List<ItemMetadataRMI> items = new ArrayList<ItemMetadataRMI>();
 		items.add(file);
 
-		Workspace workspace = new Workspace(file.getWorkspaceId());
+		WorkspaceRMI workspace = new WorkspaceRMI(file.getWorkspaceId());
 
 		try {
 			this.doCommit(user, workspace, apiDevice, items);
 		} catch (DAOException e) {
 			return new APICommitResponse(fileToUpdate, false, e.getError()
 					.getCode(), e.getMessage());
-		}
+		} catch (Exception ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		APICommitResponse responseAPI = new APICommitResponse(file, true, 0, "");
 		return responseAPI;
 	}
 
 	@Override
-	public APICreateFolderResponse createFolder(User user, ItemMetadata item) {
+	public APICreateFolderResponse createFolder(UserRMI user, ItemMetadataRMI item) {
 
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
-		} catch (DAOException e) {
-			logger.error(e);
-			APICreateFolderResponse response = new APICreateFolderResponse(
-					item, false, 404, "User not found.");
-			return response;
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// get metadata of the parent item
 		APIGetMetadata parentResponse = this.getFolderContent(user,
 				item.getParentId(), false);
-		ItemMetadata parentMetadata = parentResponse.getItemMetadata();
+		ItemMetadataRMI parentMetadata = parentResponse.getItemMetadata();
 
 		// if it is the root, get the default workspace
 		if (parentMetadata.isRoot()) {
 
 			try {
-				Workspace workspace = workspaceDAO
+				WorkspaceRMI workspace = workspaceDAO
 						.getDefaultWorkspaceByUserId(user.getId());
 				parentMetadata.setWorkspaceId(workspace.getId());
-			} catch (DAOException e) {
-				logger.error(e);
-				APICreateFolderResponse response = new APICreateFolderResponse(
-						item, false, 404, "Workspace not found.");
-				return response;
-			}
+			} catch (RemoteException ex) {
+                        java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 		} else {
 
 			if (!parentMetadata.isFolder()) {
@@ -473,11 +471,11 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 
 		String folderName = item.getFilename();
-		List<ItemMetadata> files = parentMetadata.getChildren();
+		List<ItemMetadataRMI> files = parentMetadata.getChildren();
 
 		// check if there exists a folder with the same name
-		ItemMetadata object = null;
-		for (ItemMetadata file : files) {
+		ItemMetadataRMI object = null;
+		for (ItemMetadataRMI file : files) {
 			if (file.getFilename().equals(folderName)
 					&& !file.getStatus().equals("DELETED")) {
 				object = file;
@@ -491,7 +489,12 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			return response;
 		}
 
-		boolean succeded = this.createNewFolder(user, item, parentMetadata);
+		boolean succeded;
+            try {
+                succeded = this.createNewFolder(user, item, parentMetadata);
+            } catch (Exception ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		if (!succeded) {
 			APICreateFolderResponse response = new APICreateFolderResponse(
@@ -505,18 +508,18 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIRestoreMetadata restoreMetadata(User user, ItemMetadata item) {
+	public APIRestoreMetadata restoreMetadata(UserRMI user, ItemMetadataRMI item) {
 		try {
 
-			Item serverItem = itemDao.findById(item.getId());
-			ItemMetadata lastObjectVersion = itemDao.findById(item.getId(),
+			ItemRMI serverItem = itemDao.findById(item.getId());
+			ItemMetadataRMI lastObjectVersion = itemDao.findById(item.getId(),
 					false, null, false, false);
 			if (serverItem != null && lastObjectVersion != null) {
 
-				ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(
+				ItemMetadataRMI metadata = itemVersionDao.findByItemIdAndVersion(
 						serverItem.getId(), item.getVersion());
 
-				ItemVersion restoredObject = new ItemVersion(metadata);
+				ItemVersionRMI restoredObject = new ItemVersionRMI(metadata);
 
 				if (restoredObject != null
 						&& restoredObject.getStatus().compareTo(
@@ -531,13 +534,13 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 					List<String> chunks = new ArrayList<String>();
 					// If no folder, create new chunks
 					if (!restoredObject.getChunks().isEmpty()) {
-						for (Chunk chunk : restoredObject.getChunks()) {
+						for (ChunkRMI chunk : restoredObject.getChunks()) {
 							chunks.add(chunk.getClientChunkName());
 						}
 						this.createChunks(chunks, restoredObject);
 					}
 
-					serverItem.setLatestVersion(restoredObject.getVersion());
+					serverItem.setLatestVersionNumber(restoredObject.getVersion());
 					itemDao.put(serverItem);
 
 					item.setChecksum(restoredObject.getChecksum());
@@ -573,38 +576,41 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			APIRestoreMetadata response = new APIRestoreMetadata(item, false,
 					400, e.getMessage());
 			return response;
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            return null;
 	}
 
 	@Override
-	public APIDeleteResponse deleteItem(User user, ItemMetadata item) {
-		List<ItemMetadata> filesToDelete;
+	public APIDeleteResponse deleteItem(UserRMI user, ItemMetadataRMI item) {
+		List<ItemMetadataRMI> filesToDelete = null;
 
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APIDeleteResponse(null, false, 404, "User not found.");
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// Get user workspaces
 		try {
-			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
-			user.setWorkspaces(workspaces);
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APIDeleteResponse(null, false, 404,
-					"No workspaces found for the user.");
-		}
+			List<WorkspaceRMI> workspaces = workspaceDAO.getByUserId(user.getId());
+                        List<UUID> workspaceUUIDs = new ArrayList<UUID>();
+                        for (WorkspaceRMI workspaceInList : workspaces) {
+                            workspaceUUIDs.add(workspaceInList.getId());
+                        }
+			user.setWorkspaces(workspaceUUIDs);
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// check that the given file ID exists
 		try {
 			filesToDelete = itemDao.getItemsById(item.getId());
-		} catch (DAOException e) {
-			return new APIDeleteResponse(null, false, 404,
-					"File or folder not found");
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 		if (filesToDelete.isEmpty()) {
 			return new APIDeleteResponse(null, false, 404,
 					"File or folder not found.");
@@ -618,8 +624,8 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		// check if the user has permission on the file and parent
 		boolean permission = false;
-		for (Workspace w : user.getWorkspaces()) {
-			if (w.getId().equals(filesToDelete.get(0).getWorkspaceId())) {
+		for (UUID w : user.getWorkspaces()) {
+			if (w.equals(filesToDelete.get(0).getWorkspaceId())) {
 				permission = true;
 			}
 		}
@@ -628,50 +634,52 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 					"You are not allowed to deleted this file");
 		}
 
-		Workspace workspace = new Workspace(filesToDelete.get(0)
+		WorkspaceRMI workspace = new WorkspaceRMI(filesToDelete.get(0)
 				.getWorkspaceId());
 
-		APIDeleteResponse response;
+		APIDeleteResponse response = null;
 		try {
 			response = deleteItemsAPI(user, workspace, filesToDelete);
 		} catch (DAOException e) {
 			logger.error(e.toString(), e);
 			response = new APIDeleteResponse(null, false, e.getError()
 					.getCode(), e.getMessage());
-		}
+		} catch (Exception ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		return response;
 	}
 
 	@Override
-	public APIGetVersions getVersions(User user, ItemMetadata item) {
-		ItemMetadata serverItem = null;
+	public APIGetVersions getVersions(UserRMI user, ItemMetadataRMI item) {
+		ItemMetadataRMI serverItem = null;
 
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APIGetVersions(null, false, 404, "User not found.");
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// Get user workspaces
 		try {
-			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
-			user.setWorkspaces(workspaces);
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APIGetVersions(null, false, 404,
-					"No workspaces found for the user.");
-		}
+			List<WorkspaceRMI> workspaces = workspaceDAO.getByUserId(user.getId());
+                        List<UUID> workspaceUUIDs = new ArrayList<UUID>();
+                        for (WorkspaceRMI workspaceInList : workspaces) {
+                            workspaceUUIDs.add(workspaceInList.getId());
+                        }
+			user.setWorkspaces(workspaceUUIDs);
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// check that the given file ID exists
 		try {
 			serverItem = itemDao.findItemVersionsById(item.getId());
-		} catch (DAOException e) {
-			return new APIGetVersions(null, false, 404,
-					"File or folder not found");
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// check if it's a file or a folder
 		if (serverItem.isFolder()) {
@@ -684,12 +692,12 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIShareFolderResponse shareFolder(User user, Item item,
+	public APIShareFolderResponse shareFolder(UserRMI user, ItemRMI item,
 			List<String> emails) {
 
 		APIShareFolderResponse response;
 
-		Workspace workspace;
+		WorkspaceRMI workspace;
 		try {
 			workspace = this.doShareFolder(user, emails, item, false);
 			response = new APIShareFolderResponse(workspace, true, 0, "");
@@ -705,7 +713,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIUnshareFolderResponse unshareFolder(User user, Item item,
+	public APIUnshareFolderResponse unshareFolder(UserRMI user, ItemRMI item,
 			List<String> emails) {
 
 		APIUnshareFolderResponse response;
@@ -728,44 +736,31 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIGetFolderMembersResponse getFolderMembers(User user, Item item) {
+	public APIGetFolderMembersResponse getFolderMembers(UserRMI user, ItemRMI item) {
 
 		APIGetFolderMembersResponse response;
 
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
-		} catch (NoResultReturnedDAOException e) {
-			logger.warn(e);
-			return new APIGetFolderMembersResponse(null, false, 404,
-					e.toString());
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APIGetFolderMembersResponse(null, false, 500,
-					e.toString());
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// Get folder metadata
 		try {
 			item = itemDao.findById(item.getId());
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APIGetFolderMembersResponse(null, false, 500,
-					e.toString());
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		if (item == null || !item.isFolder()) {
 			return new APIGetFolderMembersResponse(null, false, 404,
 					"No folder found with the given ID.");
 		}
 
-		List<UserWorkspace> members;
-		try {
-			members = this.doGetWorkspaceMembers(user, item.getWorkspace());
-		} catch (InternalServerError e) {
-			return new APIGetFolderMembersResponse(null, false, 500,
-					e.toString());
-		}
+		List<UserWorkspaceRMI> members;
+                members = this.doGetWorkspaceMembers(user, item.getWorkspace());
 
 		response = new APIGetFolderMembersResponse(members, true, 0, "");
 
@@ -773,52 +768,50 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIGetWorkspaceInfoResponse getWorkspaceInfo(User user,
-			ItemMetadata item) {
+	public APIGetWorkspaceInfoResponse getWorkspaceInfo(UserRMI user,
+			ItemMetadataRMI item) {
 
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APIGetWorkspaceInfoResponse(null, false, 404,
-					"User not found.");
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// Get user workspaces
 		try {
-			List<Workspace> workspaces = workspaceDAO.getByUserId(user.getId());
-			user.setWorkspaces(workspaces);
-		} catch (DAOException e) {
-			logger.error(e);
-			return new APIGetWorkspaceInfoResponse(null, false, 404,
-					"No workspaces found for the user.");
-		}
+			List<WorkspaceRMI> workspaces = workspaceDAO.getByUserId(user.getId());
+                        List<UUID> workspaceUUIDs = new ArrayList<UUID>();
+                        for (WorkspaceRMI workspaceInList : workspaces) {
+                            workspaceUUIDs.add(workspaceInList.getId());
+                        }
+			user.setWorkspaces(workspaceUUIDs);
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// get the workspace
 
-		Workspace workspace;
+		WorkspaceRMI workspace = null;
 		if (item.getId() == null) {
 			try {
 				workspace = workspaceDAO.getDefaultWorkspaceByUserId(user
 						.getId());
-			} catch (DAOException e) {
-				return new APIGetWorkspaceInfoResponse(null, false, 404,
-						"Workspace not found");
-			}
+			} catch (RemoteException ex) {
+                        java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 		} else {
 			try {
 				workspace = workspaceDAO.getByItemId(item.getId());
-			} catch (DAOException e) {
-				return new APIGetWorkspaceInfoResponse(null, false, 404,
-						"Workspace not found");
-			}
+			} catch (RemoteException ex) {
+                        java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
+                    }
 		}
 
 		// check if the user has permission on the file and parent
 		boolean permission = false;
-		for (Workspace w : user.getWorkspaces()) {
-			if (item.getId() == null || w.getId().equals(workspace.getId())) {
+		for (UUID w : user.getWorkspaces()) {
+			if (item.getId() == null || w.equals(workspace.getId())) {
 				permission = true;
 				break;
 			}
@@ -833,9 +826,9 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		return response;
 	}
 
-	private boolean userHasPermission(User user, List<User> users) {
+	private boolean userHasPermission(UserRMI user, List<UserRMI> users) {
 		boolean hasPermission = false;
-		for (User u : users) {
+		for (UserRMI u : users) {
 			if (u.getId().equals(user.getId())) {
 				hasPermission = true;
 				break;
@@ -844,21 +837,21 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		return hasPermission;
 	}
 
-	private void saveNewItemAPI(User user, ItemMetadata itemToSave,
-			ItemMetadata parent) throws DAOException {
+	private void saveNewItemAPI(UserRMI user, ItemMetadataRMI itemToSave,
+			ItemMetadataRMI parent) throws DAOException, Exception {
 
 		itemToSave.setWorkspaceId(parent.getWorkspaceId());
-		Workspace workspace = new Workspace(parent.getWorkspaceId());
+		WorkspaceRMI workspace = new WorkspaceRMI(parent.getWorkspaceId());
 
-		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
+		List<ItemMetadataRMI> objects = new ArrayList<ItemMetadataRMI>();
 		objects.add(itemToSave);
 
 		this.doCommit(user, workspace, apiDevice, objects);
 
 	}
 
-	private boolean createNewFolder(User user, ItemMetadata item,
-			ItemMetadata parent) {
+	private boolean createNewFolder(UserRMI user, ItemMetadataRMI item,
+			ItemMetadataRMI parent) throws Exception {
 
 		// Create metadata
 
@@ -877,13 +870,13 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		item.setDeviceId(Constants.API_DEVICE_ID);
 		item.setChecksum(0L);
 
-		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		List<ItemMetadataRMI> items = new ArrayList<ItemMetadataRMI>();
 		items.add(item);
 
-		Workspace workspace = new Workspace(item.getWorkspaceId());
+		WorkspaceRMI workspace = new WorkspaceRMI(item.getWorkspaceId());
 
 		try {
-			List<CommitInfo> commitInfo = this.doCommit(user, workspace,
+			List<CommitInfoRMI> commitInfo = this.doCommit(user, workspace,
 					apiDevice, items);
 			return commitInfo.get(0).isCommitSucceed();
 		} catch (DAOException e) {
@@ -893,15 +886,16 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	private void createChunks(List<String> chunksString,
-			ItemVersion objectVersion) throws IllegalArgumentException,
-			DAOException {
+			ItemVersionRMI objectVersion) throws IllegalArgumentException,
+			DAOException,
+			RemoteException {
 
 		if (chunksString.size() > 0) {
-			List<Chunk> chunks = new ArrayList<Chunk>();
+			List<ChunkRMI> chunks = new ArrayList<ChunkRMI>();
 			int i = 0;
 
 			for (String chunkName : chunksString) {
-				chunks.add(new Chunk(chunkName, i));
+				chunks.add(new ChunkRMI(chunkName, i));
 				i++;
 			}
 
@@ -909,12 +903,12 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 	}
 
-	private APIDeleteResponse deleteItemsAPI(User user, Workspace workspace,
-			List<ItemMetadata> filesToDelete) throws DAOException {
+	private APIDeleteResponse deleteItemsAPI(UserRMI user, WorkspaceRMI workspace,
+			List<ItemMetadataRMI> filesToDelete) throws DAOException, Exception {
 
-		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+		List<ItemMetadataRMI> items = new ArrayList<ItemMetadataRMI>();
 
-		for (ItemMetadata fileToDelete : filesToDelete) {
+		for (ItemMetadataRMI fileToDelete : filesToDelete) {
 
 			if (fileToDelete.getStatus().equals("DELETED")) {
 				continue;
@@ -933,9 +927,9 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 
 		Boolean success = false;
-		ItemMetadata fileToDelete = null;
+		ItemMetadataRMI fileToDelete = null;
 
-		List<CommitInfo> commitResponse = this.doCommit(user, workspace,
+		List<CommitInfoRMI> commitResponse = this.doCommit(user, workspace,
 				apiDevice, items);
 
 		if (!commitResponse.isEmpty()) {

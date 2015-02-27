@@ -1,11 +1,11 @@
 package com.stacksync.syncservice.exceptions;
 
-import com.stacksync.commons.models.Item;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 
 public class CommitWrongVersion extends Exception {
 
 	private static final long serialVersionUID = 632312815010044106L;
-	private Item item;
+	private ItemRMI item;
 
 	public CommitWrongVersion() {
 		super();
@@ -15,7 +15,7 @@ public class CommitWrongVersion extends Exception {
 		super(message);
 	}
 	
-	public CommitWrongVersion(String message, Item item) {
+	public CommitWrongVersion(String message, ItemRMI item) {
 		super(message);
 		this.item = item;
 	}
@@ -28,7 +28,7 @@ public class CommitWrongVersion extends Exception {
 		super(cause);
 	}
 	
-	public Item getItem() {
+	public ItemRMI getItem() {
 		return item;
 	}
 

@@ -3,34 +3,34 @@ package com.stacksync.syncservice.handler;
 
 import java.util.List;
 
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 
 public class UnshareData {
-	private List<User> usersToRemove;
-	private Workspace workspace;
+	private List<UserRMI> usersToRemove;
+	private WorkspaceRMI workspace;
 	private boolean isUnshared;
 	
-	public UnshareData(List<User> usersToRemove, Workspace workspace,
+	public UnshareData(List<UserRMI> usersToRemove, WorkspaceRMI workspace,
 			boolean isUnshared) {
 		this.usersToRemove = usersToRemove;
 		this.workspace = workspace;
 		this.isUnshared = isUnshared;
 	}
 
-	public List<User> getUsersToRemove() {
+	public List<UserRMI> getUsersToRemove() {
 		return usersToRemove;
 	}
 
-	public void setUsersToRemove(List<User> usersToRemove) {
+	public void setUsersToRemove(List<UserRMI> usersToRemove) {
 		this.usersToRemove = usersToRemove;
 	}
 
-	public Workspace getWorkspace() {
+	public WorkspaceRMI getWorkspace() {
 		return workspace;
 	}
 
-	public void setWorkspace(Workspace workspace) {
+	public void setWorkspace(WorkspaceRMI workspace) {
 		this.workspace = workspace;
 	}
 

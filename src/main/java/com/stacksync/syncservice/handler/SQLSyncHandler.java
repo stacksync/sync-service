@@ -7,10 +7,6 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
-import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.commons.exceptions.DeviceNotUpdatedException;
 import com.stacksync.commons.exceptions.DeviceNotValidException;
@@ -18,10 +14,13 @@ import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.syncservice.db.Connection;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
-import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
-import com.stacksync.syncservice.exceptions.dao.NoRowsAffectedDAOException;
+import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
+import java.rmi.RemoteException;
+import java.util.logging.Level;
 
 public class SQLSyncHandler extends Handler implements SyncHandler {
 
@@ -32,52 +31,35 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 	}
 
 	@Override
-	public List<ItemMetadata> doGetChanges(User user, Workspace workspace) {
-		List<ItemMetadata> responseObjects = new ArrayList<ItemMetadata>();
+	public List<ItemMetadataRMI> doGetChanges(UserRMI user, WorkspaceRMI workspace) {
+		List<ItemMetadataRMI> responseObjects = new ArrayList<ItemMetadataRMI>();
 
-		try {
-			responseObjects = itemDao.getItemsByWorkspaceId(workspace.getId());
-		} catch (DAOException e) {
-			logger.error(e.toString(), e);
-		}
+                responseObjects = itemDao.getItemsByWorkspaceId(workspace.getId());
 
 		return responseObjects;
 	}
 
 	@Override
-	public List<Workspace> doGetWorkspaces(User user) throws NoWorkspacesFoundException {
+	public List<WorkspaceRMI> doGetWorkspaces(UserRMI user) throws NoWorkspacesFoundException {
 
-		List<Workspace> workspaces = new ArrayList<Workspace>();
+		List<WorkspaceRMI> workspaces = new ArrayList<WorkspaceRMI>();
 
 		try {
 			workspaces = workspaceDAO.getByUserId(user.getId());
 
-		} catch (NoResultReturnedDAOException e) {
-			logger.error(e);
-			throw new NoWorkspacesFoundException(String.format("No workspaces found for user: %s", user.getId()));
-		} catch (DAOException e) {
-			logger.error(e);
-			throw new NoWorkspacesFoundException(e);
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLSyncHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		return workspaces;
 	}
 
 	@Override
-	public UUID doUpdateDevice(Device device) throws UserNotFoundException, DeviceNotValidException,
+	public UUID doUpdateDevice(DeviceRMI device) throws UserNotFoundException, DeviceNotValidException,
 			DeviceNotUpdatedException {
 
-		try {
-			User dbUser = userDao.findById(device.getUser().getId());
-			device.setUser(dbUser);
-
-		} catch (NoResultReturnedDAOException e) {
-			logger.warn(e);
-			throw new UserNotFoundException(e);
-		} catch (DAOException e) {
-			logger.error(e);
-			throw new DeviceNotUpdatedException(e);
-		}
+            UserRMI dbUser = userDao.findById(device.getUser().getId());
+            device.setUser(dbUser);
 
 		try {
 			if (device.getId() == null) {
@@ -85,62 +67,41 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 			} else {
 				deviceDao.update(device);
 			}
-		} catch (NoRowsAffectedDAOException e) {
-			logger.error(e);
-			throw new DeviceNotUpdatedException(e);
-		} catch (DAOException e) {
-			logger.error(e);
-			throw new DeviceNotUpdatedException(e);
 		} catch (IllegalArgumentException e) {
 			logger.error(e);
 			throw new DeviceNotValidException(e);
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLSyncHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		return device.getId();
 	}
 	
 
 	@Override
-	public void doUpdateWorkspace(User user, Workspace workspace) throws UserNotFoundException,
+	public void doUpdateWorkspace(UserRMI user, WorkspaceRMI workspace) throws UserNotFoundException,
 			WorkspaceNotUpdatedException {
 
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
-		} catch (NoResultReturnedDAOException e) {
-			logger.warn(e);
-			throw new UserNotFoundException(e);
-		} catch (DAOException e) {
-			logger.error(e);
-			throw new WorkspaceNotUpdatedException(e);
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLSyncHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
 		// Update the workspace
 		try {
 			workspaceDAO.update(user, workspace);
-		} catch (NoRowsAffectedDAOException e) {
-			logger.error(e);
-			throw new WorkspaceNotUpdatedException(e);
-		} catch (DAOException e) {
-			logger.error(e);
-			throw new WorkspaceNotUpdatedException(e);
-		}
+		} catch (RemoteException ex) {
+                java.util.logging.Logger.getLogger(SQLSyncHandler.class.getName()).log(Level.SEVERE, null, ex);
+            }
 	}
 
 	@Override
-	public User doGetUser(String email) throws UserNotFoundException {
+	public UserRMI doGetUser(String email) throws UserNotFoundException {
 
-		try {
-			User user = userDao.getByEmail(email);
-			return user;
-
-		} catch (NoResultReturnedDAOException e) {
-			logger.error(e);
-			throw new UserNotFoundException(e);
-		} catch (DAOException e) {
-			logger.error(e);
-			throw new UserNotFoundException(e);
-		}
+            UserRMI user = userDao.getByEmail(email);
+            return user;
 	}
 
     @Override

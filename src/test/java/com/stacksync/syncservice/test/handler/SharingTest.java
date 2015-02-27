@@ -13,14 +13,14 @@ import org.junit.Test;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.UserDAO;
-import com.stacksync.syncservice.db.WorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
@@ -29,11 +29,11 @@ import com.stacksync.syncservice.util.Config;
 public class SharingTest {
 
 	private static Handler handler;
-	private static WorkspaceDAO workspaceDAO;
-	private static UserDAO userDao;
-	private static User user1;
-	private static User user2;
-	private static Workspace workspace1;
+	private static InfinispanWorkspaceDAO workspaceDAO;
+	private static InfinispanUserDAO userDao;
+	private static UserRMI user1;
+	private static UserRMI user2;
+	private static WorkspaceRMI workspace1;
 
 	@BeforeClass
 	public static void initializeData() throws Exception {
@@ -51,10 +51,10 @@ public class SharingTest {
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		userDao = factory.getUserDao(connection);
 
-		user1 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+		user1 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 
 		userDao.add(user1);
-		workspace1 = new Workspace(null, 1, user1, false, false);
+		workspace1 = new WorkspaceRMI(null, 1, user1.getId(), false, false);
 		workspaceDAO.add(workspace1);
 
 	}

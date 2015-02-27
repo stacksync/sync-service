@@ -2,11 +2,11 @@ package com.stacksync.syncservice.db;
 
 import com.stacksync.syncservice.db.infinispan.InfinispanConnection;
 import com.stacksync.syncservice.db.infinispan.InfinispanDAO;
-import com.stacksync.syncservice.db.postgresql.PostgresqlDeviceDAO;
-import com.stacksync.syncservice.db.postgresql.PostgresqlItemDAO;
-import com.stacksync.syncservice.db.postgresql.PostgresqlItemVersionDao;
-import com.stacksync.syncservice.db.postgresql.PostgresqlUserDAO;
-import com.stacksync.syncservice.db.postgresql.PostgresqlWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanItemDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanItemVersionDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
 import org.infinispan.atomic.AtomicObjectFactory;
 
 public class DAOFactory {
@@ -23,34 +23,39 @@ public class DAOFactory {
             this.infinispanGenericDAO = new InfinispanDAO(factory);
         }
 
-	public WorkspaceDAO getWorkspaceDao(Connection connection) {
-            if (type.equalsIgnoreCase("postgresql")) {
-                return new PostgresqlWorkspaceDAO(connection);
-            } else if (type.equalsIgnoreCase("infinispan")) {
-                if (this.infinispanGenericDAO == null) {
+	public InfinispanWorkspaceDAO getWorkspaceDao(Connection connection) {
+            if (this.infinispanGenericDAO == null) {
                     createInfinispanDAO((InfinispanConnection) connection);
                 }
-                //return this.infinispanGenericDAO;
-                return null;
-            }
-            
-            return null;
+                return this.infinispanGenericDAO;
 	}
 
-	public UserDAO getUserDao(Connection connection) {
-		return new PostgresqlUserDAO(connection);
+	public InfinispanUserDAO getUserDao(Connection connection) {
+		if (this.infinispanGenericDAO == null) {
+                    createInfinispanDAO((InfinispanConnection) connection);
+                }
+                return this.infinispanGenericDAO;
 	}
 
-	public ItemDAO getItemDAO(Connection connection) {
-		return new PostgresqlItemDAO(connection);
+	public InfinispanItemDAO getItemDAO(Connection connection) {
+		if (this.infinispanGenericDAO == null) {
+                    createInfinispanDAO((InfinispanConnection) connection);
+                }
+                return this.infinispanGenericDAO;
 	}
 
-	public ItemVersionDAO getItemVersionDAO(Connection connection) {
-		return new PostgresqlItemVersionDao(connection);
+	public InfinispanItemVersionDAO getItemVersionDAO(Connection connection) {
+		if (this.infinispanGenericDAO == null) {
+                    createInfinispanDAO((InfinispanConnection) connection);
+                }
+                return this.infinispanGenericDAO;
 	}
 
-	public DeviceDAO getDeviceDAO(Connection connection) {
-		return new PostgresqlDeviceDAO(connection);
+	public InfinispanDeviceDAO getDeviceDAO(Connection connection) {
+		if (this.infinispanGenericDAO == null) {
+                    createInfinispanDAO((InfinispanConnection) connection);
+                }
+                return this.infinispanGenericDAO;
 	}
 
 	public String getType() {

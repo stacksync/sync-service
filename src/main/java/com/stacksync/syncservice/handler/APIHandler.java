@@ -1,10 +1,10 @@
 package com.stacksync.syncservice.handler;
 
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import java.util.List;
 
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.User;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
 import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
@@ -18,27 +18,27 @@ import com.stacksync.syncservice.rpc.messages.APIUnshareFolderResponse;
 
 public interface APIHandler {
 	
-	public APIGetMetadata getMetadata(User user, Long fileId, Boolean includeChunks, Long version, Boolean isFolder);
+	public APIGetMetadata getMetadata(UserRMI user, Long fileId, Boolean includeChunks, Long version, Boolean isFolder);
 	
-	public APICommitResponse createFile(User user, ItemMetadata fileToSave);
+	public APICommitResponse createFile(UserRMI user, ItemMetadataRMI fileToSave);
 	
-	public APICommitResponse updateData(User user, ItemMetadata fileToUpdate);
+	public APICommitResponse updateData(UserRMI user, ItemMetadataRMI fileToUpdate);
 	
-	public APICommitResponse updateMetadata(User user, ItemMetadata fileToUpdate);
+	public APICommitResponse updateMetadata(UserRMI user, ItemMetadataRMI fileToUpdate);
 
-	public APICreateFolderResponse createFolder(User user, ItemMetadata item);
+	public APICreateFolderResponse createFolder(UserRMI user, ItemMetadataRMI item);
 
-	public APIRestoreMetadata restoreMetadata(User user, ItemMetadata item);
+	public APIRestoreMetadata restoreMetadata(UserRMI user, ItemMetadataRMI item);
 
-	public APIDeleteResponse deleteItem(User user, ItemMetadata item);
+	public APIDeleteResponse deleteItem(UserRMI user, ItemMetadataRMI item);
 
-	public APIGetVersions getVersions(User user, ItemMetadata item);
+	public APIGetVersions getVersions(UserRMI user, ItemMetadataRMI item);
 	
-	public APIShareFolderResponse shareFolder(User user, Item item, List<String> emails);
+	public APIShareFolderResponse shareFolder(UserRMI user, ItemRMI item, List<String> emails);
 	
-	public APIUnshareFolderResponse unshareFolder(User user, Item item, List<String> emails);
+	public APIUnshareFolderResponse unshareFolder(UserRMI user, ItemRMI item, List<String> emails);
 	
-	public APIGetWorkspaceInfoResponse getWorkspaceInfo(User user, ItemMetadata item);
+	public APIGetWorkspaceInfoResponse getWorkspaceInfo(UserRMI user, ItemMetadataRMI item);
 	
-	public APIGetFolderMembersResponse getFolderMembers(User user, Item item);
+	public APIGetFolderMembersResponse getFolderMembers(UserRMI user, ItemRMI item);
 }

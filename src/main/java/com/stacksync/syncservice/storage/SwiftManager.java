@@ -19,8 +19,8 @@ import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 
 import com.google.gson.Gson;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.storage.EndpointNotFoundException;
 import com.stacksync.syncservice.exceptions.storage.ObjectNotFoundException;
 import com.stacksync.syncservice.exceptions.storage.UnauthorizedException;
@@ -127,7 +127,7 @@ public class SwiftManager extends StorageManager {
 	}
 
 	@Override
-	public void createNewWorkspace(Workspace workspace) throws Exception {
+	public void createNewWorkspace(WorkspaceRMI workspace) throws Exception {
 
 		if (!isTokenActive()) {
 			login();
@@ -160,7 +160,7 @@ public class SwiftManager extends StorageManager {
 	}
 
 	@Override
-	public void removeUserToWorkspace(User owner, User user, Workspace workspace) throws Exception {
+	public void removeUserToWorkspace(UserRMI owner, UserRMI user, WorkspaceRMI workspace) throws Exception {
 
 		if (!isTokenActive()) {
 			login();
@@ -206,7 +206,7 @@ public class SwiftManager extends StorageManager {
 	}
 	
 	@Override
-	public void grantUserToWorkspace(User owner, User user, Workspace workspace) throws Exception {
+	public void grantUserToWorkspace(UserRMI owner, UserRMI user, WorkspaceRMI workspace) throws Exception {
 
 		if (!isTokenActive()) {
 			login();
@@ -250,7 +250,7 @@ public class SwiftManager extends StorageManager {
 	}
 
 	@Override
-	public void copyChunk(Workspace sourceWorkspace, Workspace destinationWorkspace, String chunkName) throws Exception {
+	public void copyChunk(WorkspaceRMI sourceWorkspace, WorkspaceRMI destinationWorkspace, String chunkName) throws Exception {
 
 		if (!isTokenActive()) {
 			login();
@@ -294,7 +294,7 @@ public class SwiftManager extends StorageManager {
 	}
 	
 	@Override
-	public void deleteWorkspace(Workspace workspace) throws Exception {
+	public void deleteWorkspace(WorkspaceRMI workspace) throws Exception {
 
 		if (!isTokenActive()) {
 			login();
@@ -326,7 +326,7 @@ public class SwiftManager extends StorageManager {
 		}
 	}
 
-	private String getWorkspacePermissions(User user, Workspace workspace) throws Exception {
+	private String getWorkspacePermissions(UserRMI user, WorkspaceRMI workspace) throws Exception {
 
 		if (!isTokenActive()) {
 			login();

@@ -1,16 +1,19 @@
 package com.stacksync.syncservice.test.benchmark;
 
+import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.test.benchmark.db.DatabaseHelper;
+import java.rmi.RemoteException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 public class DBBenchmark extends Thread {
@@ -35,7 +38,7 @@ public class DBBenchmark extends Thread {
 		this.metadataGen = new MetadataGenerator();
 	}
 
-	public void fillDB(Workspace workspace, Device device) {
+	public void fillDB(WorkspaceRMI workspace, DeviceRMI device) {
 		int firstLevel = 0;
 
 		try {
@@ -47,17 +50,17 @@ public class DBBenchmark extends Thread {
 		}
 	}
 
-	public void createAndStoreMetadata(Workspace workspace, Device device, int currentLevel, Item parent)
-			throws IllegalArgumentException, DAOException {
+	public void createAndStoreMetadata(WorkspaceRMI workspace, DeviceRMI device, int currentLevel, ItemRMI parent)
+			throws IllegalArgumentException, DAOException, RemoteException {
 
 		if (currentLevel >= this.fsDepth) {
 			return;
 		}
 
-		List<Item> objectsLevel = metadataGen.generateLevel(workspace, device, parent);		
+		List<ItemRMI> objectsLevel = metadataGen.generateLevel(workspace, device, parent);		
 		this.dbHelper.storeObjects(objectsLevel);
 
-		for (Item object : objectsLevel) {
+		for (ItemRMI object : objectsLevel) {
 			if (object.isFolder()) {
 				createAndStoreMetadata(workspace, device, currentLevel + 1, object);
 			}
@@ -80,14 +83,14 @@ public class DBBenchmark extends Thread {
 		String cloudId = name;
 		
 		try {
-			User user = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+			UserRMI user = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			dbHelper.addUser(user);
 			
-			Workspace workspace = new Workspace(null, 1, user, false, false);
+			WorkspaceRMI workspace = new WorkspaceRMI(null, 1, user.getId(), false, false);
 			dbHelper.addWorkspace(user, workspace);
 
 			String deviceName = name + "_device";
-			Device device = new Device(null, deviceName, user);
+			DeviceRMI device = new DeviceRMI(null, deviceName);
 			dbHelper.addDevice(device);
 
 			fillDB(workspace, device);
@@ -101,7 +104,9 @@ public class DBBenchmark extends Thread {
 		} catch (DAOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} catch (RemoteException ex) {
+                Logger.getLogger(DBBenchmark.class.getName()).log(Level.SEVERE, null, ex);
+            }
 	}
 
 	

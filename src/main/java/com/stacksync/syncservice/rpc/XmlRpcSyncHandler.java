@@ -11,17 +11,17 @@ import omq.exception.RemoteException;
 
 import org.apache.log4j.Logger;
 
-import com.stacksync.commons.models.CommitInfo;
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.commons.notifications.ShareProposalNotification;
 import com.stacksync.commons.notifications.UnshareNotification;
 import com.stacksync.commons.omq.RemoteClient;
 import com.stacksync.commons.omq.RemoteWorkspace;
 import com.stacksync.syncservice.db.ConnectionPool;
+import com.stacksync.syncservice.db.infinispan.models.CommitInfoRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.handler.SQLAPIHandler;
 import com.stacksync.syncservice.handler.Handler.Status;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
@@ -79,7 +79,7 @@ public class XmlRpcSyncHandler {
 		} catch (NumberFormatException ex) {
 		}
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(UUID.fromString(strUserId));
 
 		APIGetMetadata response = this.apiHandler.getMetadata(user, fileId, includeChunks, version, isFolder);
@@ -104,7 +104,7 @@ public class XmlRpcSyncHandler {
 
 		Boolean includeDeleted = Boolean.parseBoolean(strIncludeDeleted);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(UUID.fromString(strUserId));
 
 		APIGetMetadata response = this.apiHandler.getFolderContent(user, folderId, includeDeleted);
@@ -125,10 +125,10 @@ public class XmlRpcSyncHandler {
 		// TODO: filtrar versiones borradas!!
 		logger.debug("XMLRPC -> get_versions -->[User:" + strUserId + ", itemId:" + itemId + "]");
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(UUID.fromString(strUserId));
 
-		ItemMetadata item = new ItemMetadata();
+		ItemMetadataRMI item = new ItemMetadataRMI();
 		item.setId(itemId);
 
 		APIGetVersions response = this.apiHandler.getVersions(user, item);
@@ -154,10 +154,10 @@ public class XmlRpcSyncHandler {
 			return strResponse;
 		}
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(UUID.fromString(strUserId));
 
-		ItemMetadata item = new ItemMetadata();
+		ItemMetadataRMI item = new ItemMetadataRMI();
 		item.setFilename(strFolderName);
 		item.setIsFolder(true);
 		item.setParentId(parentId);
@@ -209,7 +209,7 @@ public class XmlRpcSyncHandler {
 			return parentResponse.toString();
 		}
 
-		ItemMetadata item = new ItemMetadata();
+		ItemMetadataRMI item = new ItemMetadataRMI();
 
 		item.setId(null);
 		item.setParentId(parentId);
@@ -225,7 +225,7 @@ public class XmlRpcSyncHandler {
 		item.setModifiedAt(new Date());
 		item.setChunks(chunks);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(userId);
 
 		APICommitResponse response = this.apiHandler.createFile(user, item);
@@ -266,7 +266,7 @@ public class XmlRpcSyncHandler {
 
 		UUID userId = UUID.fromString(strUserId);
 
-		ItemMetadata item = new ItemMetadata();
+		ItemMetadataRMI item = new ItemMetadataRMI();
 
 		item.setId(fileId);
 		item.setSize(fileSize);
@@ -274,7 +274,7 @@ public class XmlRpcSyncHandler {
 		item.setMimetype(strMimetype);
 		item.setChunks(chunks);
 		item.setStatus(Status.CHANGED.toString());
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(userId);
 
 		APICommitResponse response = this.apiHandler.updateData(user, item);
@@ -309,10 +309,10 @@ public class XmlRpcSyncHandler {
 
 		UUID userId = UUID.fromString(strUserId);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(userId);
 
-		ItemMetadata file = new ItemMetadata();
+		ItemMetadataRMI file = new ItemMetadataRMI();
 		file.setId(fileId);
 		file.setFilename(strNewFileName);
 		file.setParentId(parentId);
@@ -340,11 +340,11 @@ public class XmlRpcSyncHandler {
 
 		logger.debug("XMLRPC -> delete_metadata_file -->[User:" + strUserId + ", fileId:" + fileId + "]");
 
-		ItemMetadata object = new ItemMetadata();
+		ItemMetadataRMI object = new ItemMetadataRMI();
 		object.setId(fileId);
 		object.setIsFolder(isFolder);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(UUID.fromString(strUserId));
 
 		APIDeleteResponse response = this.apiHandler.deleteItem(user, object);
@@ -376,11 +376,11 @@ public class XmlRpcSyncHandler {
 
 		String workspace = userId + "/";
 
-		ItemMetadata object = new ItemMetadata();
+		ItemMetadataRMI object = new ItemMetadataRMI();
 		object.setId(fileId);
 		object.setVersion(version);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(userId);
 
 		APIRestoreMetadata response = this.apiHandler.restoreMetadata(user, object);
@@ -407,10 +407,10 @@ public class XmlRpcSyncHandler {
 
 		UUID userId = UUID.fromString(strUserId);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(userId);
 
-		Item item = new Item();
+		ItemRMI item = new ItemRMI();
 		item.setId(folderId);
 
 		APIShareFolderResponse response = this.apiHandler.shareFolder(user, item, emails);
@@ -439,10 +439,10 @@ public class XmlRpcSyncHandler {
 
 		UUID userId = UUID.fromString(strUserId);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(userId);
 
-		Item item = new Item();
+		ItemRMI item = new ItemRMI();
 		item.setId(folderId);
 
 		APIUnshareFolderResponse response = this.apiHandler.unshareFolder(user, item, emails);
@@ -472,10 +472,10 @@ public class XmlRpcSyncHandler {
 
 		UUID userId = UUID.fromString(strUserId);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(userId);
 
-		Item item = new Item();
+		ItemRMI item = new ItemRMI();
 		item.setId(folderId);
 
 		APIGetFolderMembersResponse response = this.apiHandler.getFolderMembers(user, item);
@@ -499,11 +499,11 @@ public class XmlRpcSyncHandler {
 
 		UUID userId = UUID.fromString(strUserId);
 
-		ItemMetadata item = new ItemMetadata();
+		ItemMetadataRMI item = new ItemMetadataRMI();
 
 		item.setId(fileId);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(userId);
 
 		APIGetWorkspaceInfoResponse response = this.apiHandler.getWorkspaceInfo(user, item);
@@ -516,7 +516,7 @@ public class XmlRpcSyncHandler {
 	private APIGetMetadata getParentMetadata(UUID userId, Long parentId) {
 		Boolean includeDeleted = true;
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(userId);
 
 		APIGetMetadata metadataResponse = this.apiHandler.getFolderContent(user, parentId, includeDeleted);
@@ -526,7 +526,7 @@ public class XmlRpcSyncHandler {
 
 	private APICommitResponse checkParentMetadata(Long parentId, APIGetMetadata metadataResponse) {
 		APICommitResponse response = new APICommitResponse(null, true, 0, null);
-		ItemMetadata parentMetadata = metadataResponse.getItemMetadata();
+		ItemMetadataRMI parentMetadata = metadataResponse.getItemMetadata();
 
 		if (parentId != null && parentMetadata == null) {
 			response = new APICommitResponse(null, false, 404, "Parent not found.");
@@ -542,40 +542,36 @@ public class XmlRpcSyncHandler {
 		return response;
 	}
 	
-	private void bindUsersToWorkspace(Workspace workspace, Long folderId) {
+	private void bindUsersToWorkspace(WorkspaceRMI workspace, Long folderId) throws RemoteException {
 		
 		// Create notification
 		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
-				workspace.getName(), folderId, workspace.getOwner().getId(), workspace.getOwner().getName(),
+				workspace.getName(), folderId, workspace.getOwner(), workspace.getOwner().getName(),
 				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
 
 		notification.setRequestId("");
 
 		// Send notification to owner
 		RemoteClient client;
-		try {
-			client = broker.lookupMulti(workspace.getOwner().getId().toString(), RemoteClient.class);
-			client.notifyShareProposal(notification);
-		} catch (RemoteException e1) {
-			logger.error(String.format("Could not notify user: '%s'", workspace.getOwner().getId()), e1);
-		}
+                client = broker.lookupMulti(workspace.getOwner().toString(), RemoteClient.class);
+                client.notifyShareProposal(notification);
 
 		// Send notifications to users
-		for (User addressee : workspace.getUsers()) {
+		for (UUID addressee : workspace.getUsers()) {
 			try {
-				client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
+				client = broker.lookupMulti(addressee.toString(), RemoteClient.class);
 				client.notifyShareProposal(notification);
 			} catch (RemoteException e) {
-				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
+				logger.error(String.format("Could not notify user: '%s'", addressee), e);
 			}
 		}
 
 	}
-	private void unBindUsersToWorkspace(Workspace workspace, List<User> usersToRemove, boolean isUnshared, Long folderId) {
+	private void unBindUsersToWorkspace(WorkspaceRMI workspace, List<UserRMI> usersToRemove, boolean isUnshared, Long folderId) {
 		
 		// Create notification
 		UnshareNotification notification = new UnshareNotification(workspace.getId(),
-				workspace.getName(), folderId, workspace.getOwner().getId(), workspace.getOwner().getName(),
+				workspace.getName(), folderId, workspace.getOwner(), workspace.getOwner().getName(),
 				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
 
 		notification.setRequestId("");
@@ -583,16 +579,16 @@ public class XmlRpcSyncHandler {
 		// Send notification to owner
 		if (isUnshared){
 			try {
-				client = broker.lookupMulti(workspace.getOwner().getId().toString(), RemoteClient.class);
+				client = broker.lookupMulti(workspace.getOwner().toString(), RemoteClient.class);
 				client.notifyUnshare(notification);
 			} catch (RemoteException e1) {
-				logger.error(String.format("Could not notify user: '%s'", workspace.getOwner().getId()), e1);
+				logger.error(String.format("Could not notify user: '%s'", workspace.getOwner()), e1);
 			}
 		}
 	
 
 		// Send notifications to users
-		for (User addressee : usersToRemove) {
+		for (UserRMI addressee : usersToRemove) {
 			try {
 				client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
 				client.notifyUnshare(notification);
@@ -603,8 +599,8 @@ public class XmlRpcSyncHandler {
 	}
 	private void sendMessageToClients(String workspaceName, APIResponse generalResponse) {
 
-		CommitInfo info = generalResponse.getItem();
-		List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
+		CommitInfoRMI info = generalResponse.getItem();
+		List<CommitInfoRMI> responseObjects = new ArrayList<CommitInfoRMI>();
 		responseObjects.add(info);
 		CommitNotification result = new CommitNotification("", responseObjects);
 

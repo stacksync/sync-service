@@ -2,14 +2,14 @@ package com.stacksync.syncservice.rpc.messages;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import java.util.UUID;
 
 public class APIShareFolderResponse extends APIResponse {
 
-	private Workspace workspace;
+	private WorkspaceRMI workspace;
 
-	public APIShareFolderResponse(Workspace workspace, Boolean success, int error, String description) {
+	public APIShareFolderResponse(WorkspaceRMI workspace, Boolean success, int error, String description) {
 		super();
 
 		this.success = success;
@@ -18,7 +18,7 @@ public class APIShareFolderResponse extends APIResponse {
 		this.errorCode = error;
 	}
 
-	public Workspace getWorkspace() {
+	public WorkspaceRMI getWorkspace() {
 		return workspace;
 	}
 
@@ -30,7 +30,7 @@ public class APIShareFolderResponse extends APIResponse {
 
 			JsonArray sharedTo = new JsonArray();
 
-			for (User user : workspace.getUsers()) {
+			for (UUID user : workspace.getUsers()) {
 				JsonObject jUser = parseUser(user);
 				sharedTo.add(jUser);
 			}

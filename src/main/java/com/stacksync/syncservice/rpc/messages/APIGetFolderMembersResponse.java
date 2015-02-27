@@ -4,13 +4,13 @@ import java.util.List;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.stacksync.commons.models.UserWorkspace;
+import com.stacksync.syncservice.db.infinispan.models.UserWorkspaceRMI;
 
 public class APIGetFolderMembersResponse extends APIResponse {
 
-	private List<UserWorkspace> members;
+	private List<UserWorkspaceRMI> members;
 
-	public APIGetFolderMembersResponse(List<UserWorkspace> members, Boolean success, int error, String description) {
+	public APIGetFolderMembersResponse(List<UserWorkspaceRMI> members, Boolean success, int error, String description) {
 		super();
 
 		this.success = success;
@@ -19,7 +19,7 @@ public class APIGetFolderMembersResponse extends APIResponse {
 		this.errorCode = error;
 	}
 
-	public List<UserWorkspace> getMembers() {
+	public List<UserWorkspaceRMI> getMembers() {
 		return members;
 	}
 
@@ -31,7 +31,7 @@ public class APIGetFolderMembersResponse extends APIResponse {
 
 			JsonArray list = new JsonArray();
 
-			for (UserWorkspace userWorkspace : members) {
+			for (UserWorkspaceRMI userWorkspace : members) {
 				JsonObject jUser = parseUserWorkspace(userWorkspace);
 				list.add(jUser);
 			}

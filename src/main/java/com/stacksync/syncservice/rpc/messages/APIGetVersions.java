@@ -2,13 +2,13 @@ package com.stacksync.syncservice.rpc.messages;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 
 public class APIGetVersions extends APIResponse {
 
-	private ItemMetadata itemMetadata;
+	private ItemMetadataRMI itemMetadata;
 	
-	public APIGetVersions(ItemMetadata item, Boolean success, int error, String description) {
+	public APIGetVersions(ItemMetadataRMI item, Boolean success, int error, String description) {
 		super();
 
 		this.success = success;
@@ -17,7 +17,7 @@ public class APIGetVersions extends APIResponse {
 		this.errorCode = error;
 	}
 	
-	public ItemMetadata getItemMetadata(){
+	public ItemMetadataRMI getItemMetadata(){
 		return itemMetadata;
 	}
 	
@@ -26,13 +26,13 @@ public class APIGetVersions extends APIResponse {
 		JsonObject jResponse = new JsonObject();
 
 		if (getSuccess()) {
-			ItemMetadata metadata = getItemMetadata();
+			ItemMetadataRMI metadata = getItemMetadata();
 			jResponse = parseObjectMetadataForAPI(metadata);
 
 			if (metadata.getChildren() != null) {
 				JsonArray contents = new JsonArray();
 
-				for (ItemMetadata entry : metadata.getChildren()) {
+				for (ItemMetadataRMI entry : metadata.getChildren()) {
 					JsonObject entryJson = parseObjectMetadataForAPI(entry);
 					contents.add(entryJson);
 				}

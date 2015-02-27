@@ -3,31 +3,32 @@ package com.stacksync.syncservice.test.benchmark.db;
 import java.util.List;
 import java.util.UUID;
 
-import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemVersion;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.DeviceDAO;
-import com.stacksync.syncservice.db.ItemDAO;
-import com.stacksync.syncservice.db.ItemVersionDAO;
-import com.stacksync.syncservice.db.UserDAO;
-import com.stacksync.syncservice.db.WorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanItemDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanItemVersionDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.util.Config;
+import java.rmi.RemoteException;
 
 public class DatabaseHelper {
 	private ConnectionPool pool;
 	private Connection connection;
-	private WorkspaceDAO workspaceDAO;
-	private UserDAO userDao;
-	private DeviceDAO deviceDao;
-	private ItemDAO objectDao;
-	private ItemVersionDAO oversionDao;
+	private InfinispanWorkspaceDAO workspaceDAO;
+	private InfinispanUserDAO userDao;
+	private InfinispanDeviceDAO deviceDao;
+	private InfinispanItemDAO objectDao;
+	private InfinispanItemVersionDAO oversionDao;
 
 	public DatabaseHelper() throws Exception {
 		Config.loadProperties();
@@ -47,19 +48,19 @@ public class DatabaseHelper {
 		oversionDao = factory.getItemVersionDAO(connection);
 	}
 
-	public void storeObjects(List<Item> objectsLevel) throws IllegalArgumentException, DAOException {
+	public void storeObjects(List<ItemRMI> objectsLevel) throws IllegalArgumentException, DAOException, RemoteException {
 
 		long numChunk = 0, totalTimeChunk = 0;
 		long numVersion = 0, totalTimeVersion = 0;
 		long numObject = 0, totalTimeObject = 0;
 
 		long startTotal = System.currentTimeMillis();
-		for (Item object : objectsLevel) {
+		for (ItemRMI object : objectsLevel) {
 			// System.out.println("DatabaseHelper -- Put Object -> " + object);
 			long startObjectTotal = System.currentTimeMillis();
 
 			objectDao.put(object);
-			for (ItemVersion version : object.getVersions()) {
+			for (ItemVersionRMI version : object.getVersions()) {
 
 				long startVersionTotal = System.currentTimeMillis();
 				// System.out.println("DatabaseHelper -- Put Version -> " +
@@ -102,20 +103,20 @@ public class DatabaseHelper {
 
 	}
 
-	public void addUser(User user) throws IllegalArgumentException, DAOException {
+	public void addUser(UserRMI user) throws IllegalArgumentException, DAOException, RemoteException {
 		userDao.add(user);
 	}
 
-	public void addWorkspace(User user, Workspace workspace) throws IllegalArgumentException, DAOException {
+	public void addWorkspace(UserRMI user, WorkspaceRMI workspace) throws IllegalArgumentException, DAOException, RemoteException {
 		workspaceDAO.add(workspace);
 		workspaceDAO.addUser(user, workspace);
 	}
 
-	public void addDevice(Device device) throws IllegalArgumentException, DAOException {
+	public void addDevice(DeviceRMI device) throws IllegalArgumentException, DAOException, RemoteException {
 		deviceDao.add(device);
 	}
 
-	public void deleteUser(UUID id) throws DAOException {
-		userDao.delete(id);
+	public void deleteUser(UUID id) throws DAOException, RemoteException {
+		userDao.deleteUser(id);
 	}
 }

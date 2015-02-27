@@ -10,16 +10,14 @@ import java.util.UUID;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.UserDAO;
-import com.stacksync.syncservice.db.WorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.handler.APIHandler;
 import com.stacksync.syncservice.handler.SQLAPIHandler;
 import com.stacksync.syncservice.handler.Handler.Status;
@@ -31,10 +29,10 @@ import com.stacksync.syncservice.util.Constants;
 public class ShareFolderTest {
 
 	private static SQLSyncHandler handler;
-	private static WorkspaceDAO workspaceDAO;
-	private static UserDAO userDao;
-	private static User user1;
-	private static User user2;
+	private static InfinispanWorkspaceDAO workspaceDAO;
+	private static InfinispanUserDAO userDao;
+	private static UserRMI user1;
+	private static UserRMI user2;
 
 	@BeforeClass
 	public static void initializeData() throws Exception {
@@ -53,7 +51,7 @@ public class ShareFolderTest {
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		userDao = factory.getUserDao(connection);
 
-		user1 = new User(UUID.fromString("159a1286-33df-4453-bf80-cff4af0d97b0"), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+		user1 = new UserRMI(UUID.fromString("159a1286-33df-4453-bf80-cff4af0d97b0"), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 		
 		/*
 		userDao.add(user1);
@@ -73,7 +71,7 @@ public class ShareFolderTest {
 		
 		List<String> emails = new ArrayList<String>();
 		emails.add("c@c.c");
-		Item item = new Item(125L);
+		ItemRMI item = new ItemRMI(125L);
 		
 		handler.doShareFolder(user1, emails, item, false);
 		

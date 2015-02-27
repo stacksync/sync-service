@@ -7,12 +7,12 @@ import java.util.List;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
+import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.test.benchmark.Constants;
@@ -20,8 +20,8 @@ import com.stacksync.syncservice.util.Config;
 
 public class TestCommit {
 
-	public static List<ItemMetadata> getObjectMetadata(JsonArray allFiles) {
-		List<ItemMetadata> metadataList = new ArrayList<ItemMetadata>();
+	public static List<ItemMetadataRMI> getObjectMetadata(JsonArray allFiles) {
+		List<ItemMetadataRMI> metadataList = new ArrayList<ItemMetadataRMI>();
 
 		for (int i = 0; i < allFiles.size(); i++) {
 			JsonObject file = allFiles.get(i).getAsJsonObject();
@@ -61,7 +61,7 @@ public class TestCommit {
 				chunks.add(jChunks.get(j).getAsString());
 			}
 			
-			ItemMetadata object = new ItemMetadata(fileId, version, Constants.DEVICE_ID, parentFileId, parentFileVersion, status, lastModified,
+			ItemMetadataRMI object = new ItemMetadataRMI(fileId, version, Constants.DEVICE_ID, parentFileId, parentFileVersion, status, lastModified,
 					checksum, fileSize, folder, name, mimetype, chunks);
 
 			metadataList.add(object);
@@ -81,12 +81,12 @@ public class TestCommit {
 		long startTotal = System.currentTimeMillis();
 
 		JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
-		List<ItemMetadata> objects = getObjectMetadata(rawObjects);
+		List<ItemMetadataRMI> objects = getObjectMetadata(rawObjects);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(Constants.USER);
-		Device device = new Device( Constants.DEVICE_ID);
-		Workspace workspace = new Workspace(Constants.WORKSPACE_ID);
+		DeviceRMI device = new DeviceRMI( Constants.DEVICE_ID);
+		WorkspaceRMI workspace = new WorkspaceRMI(Constants.WORKSPACE_ID);
 
 		handler.doCommit(user, workspace, device, objects);
 

@@ -1,13 +1,13 @@
 package com.stacksync.syncservice.rpc.messages;
 
 import com.google.gson.JsonObject;
-import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 
 public class APIGetWorkspaceInfoResponse extends APIResponse {
 
-	private Workspace workspace;
+	private WorkspaceRMI workspace;
 
-	public APIGetWorkspaceInfoResponse(Workspace workspace, Boolean success, int error, String description) {
+	public APIGetWorkspaceInfoResponse(WorkspaceRMI workspace, Boolean success, int error, String description) {
 		super();
 		this.success = success;
 		this.description = description;
@@ -15,7 +15,7 @@ public class APIGetWorkspaceInfoResponse extends APIResponse {
 		this.workspace = workspace;
 	}
 
-	public Workspace getWorkspace() {
+	public WorkspaceRMI getWorkspace() {
 		return workspace;
 	}
 
@@ -46,7 +46,7 @@ public class APIGetWorkspaceInfoResponse extends APIResponse {
 		jMetadata.addProperty("name", workspace.getName());
 		jMetadata.addProperty("swift_container", workspace.getSwiftContainer());
 		jMetadata.addProperty("is_shared", workspace.isShared());
-		jMetadata.addProperty("owner", workspace.getOwner().getId().toString());
+		jMetadata.addProperty("owner", workspace.getOwner().toString());
 		jMetadata.addProperty("latest_revision", workspace.getLatestRevision());
 		jMetadata.addProperty("parent_item_id", workspace.getParentItem().getId());
 		jMetadata.addProperty("is_encrypted", workspace.isEncrypted());
