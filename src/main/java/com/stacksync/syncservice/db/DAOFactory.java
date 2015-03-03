@@ -11,20 +11,12 @@ import org.infinispan.atomic.AtomicObjectFactory;
 
 public class DAOFactory {
 
-        private static DAOFactory instance = null;
 	private String type;
         private InfinispanDAO infinispanGenericDAO;
 
-	private DAOFactory(String type) {
+	public DAOFactory(String type) {
 		this.type = type;
 	}
-        
-        public static DAOFactory getInstance(){
-            if (instance == null) {
-                instance = new DAOFactory("infinispan");
-            }
-            return instance;
-        }
         
         private void createInfinispanDAO(InfinispanConnection connection) {
             AtomicObjectFactory factory = connection.getFactory();

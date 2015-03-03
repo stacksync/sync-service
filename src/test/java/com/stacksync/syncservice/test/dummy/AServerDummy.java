@@ -58,7 +58,7 @@ public abstract class AServerDummy extends Thread {
         this.minutes = minutes;
         this.handler = new SQLSyncHandler(pool);
         
-        DAOFactory factory = DAOFactory.getInstance();
+        DAOFactory factory = new DAOFactory("infinispan");
         this.userDAO = factory.getUserDao(connection);
         this.deviceDAO = factory.getDeviceDAO(connection);
         this.workspaceDAO = factory.getWorkspaceDao(connection);
@@ -73,8 +73,7 @@ public abstract class AServerDummy extends Thread {
 
     public void doCommit(UUID uuid, Random ran, int min, int max, String id) throws Exception {
         // Create user info
-        UserRMI user = new UserRMI();
-        user.setId(uuid);
+        UserRMI user = new UserRMI(uuid);
         DeviceRMI device = new DeviceRMI(uuid);
         WorkspaceRMI workspace = new WorkspaceRMI(uuid);
 
@@ -136,7 +135,7 @@ public abstract class AServerDummy extends Thread {
 
     }
 
-    public void setup(UUID userID, UUID deviceID, UUID workspaceID) throws RemoteException {
+    public void setup(UUID uuid) throws RemoteException {
         /*try {
             String[] create = new String[]{
                 "INSERT INTO user1 (id, name, swift_user, swift_account, email, quota_limit) VALUES ('" + id + "', '" + id + "', '"
@@ -180,21 +179,21 @@ public abstract class AServerDummy extends Thread {
         workspaceDAO.add(workspace);
         deviceDAO.add(device);*/
         
-        DeviceRMI device = new DeviceRMI(userID);
+        DeviceRMI device = new DeviceRMI(uuid);
         
-        WorkspaceRMI workspace = new WorkspaceRMI(userID);
-        workspace.addUser(userID);
-        workspace.setOwner(userID);
+        WorkspaceRMI workspace = new WorkspaceRMI(uuid);
+        workspace.addUser(uuid);
+        workspace.setOwner(uuid);
         
-        UserRMI user = new UserRMI(userID);
-        user.setEmail("a");
+        UserRMI user = new UserRMI(uuid);
+        user.setEmail(uuid.toString());
         user.setName("a");
         user.setQuotaLimit(10);
         user.setQuotaUsed(0);
         user.setSwiftAccount("a");
         user.setSwiftUser("a");
-        user.addDevice(device);
-        user.addWorkspace(userID);
+        //user.addDevice(device);
+        user.addWorkspace(uuid);
         userDAO.add(user);
         
         workspaceDAO.add(workspace);

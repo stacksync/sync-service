@@ -21,44 +21,45 @@ public class DummyServerTest {
      */
     public static void main(String[] args) throws Exception {
         String configPath = "config.properties";
-        int numThreads = 1;
+        int numThreads = 2;
         int commitsPerMinute = 60;
+        int numUsers = 2;
         int minutes = 1;
-
-        // TODO set another UUID...
-        UUID userID = new UUID(0, 1234);
-        UUID deviceID = new UUID(0, 1235);
-        UUID workspaceID = new UUID(0, 1236);
 
         // Load properties
         Config.loadProperties(configPath);
         String datasource = Config.getDatasource();
         ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
 
-		// it will try to connect to the DB, throws exception if not
+        // it will try to connect to the DB, throws exception if not
         // possible.
         Connection conn = pool.getConnection();
         conn.close();
 
-        ServerDummy[] dummies = new ServerDummy[numThreads];
+        ServerDummy2[] dummies = new ServerDummy2[numThreads];
+        UUID[] uuids = new UUID[numThreads];
 
         for (int i = 0; i < numThreads; i++) {
             // Crear un nou thread
-            dummies[i] = new ServerDummy(pool, userID, commitsPerMinute, minutes);
+            uuids[i] = UUID.randomUUID();
+            dummies[i] = new ServerDummy2(pool, numUsers, commitsPerMinute, minutes);
         }
 
-		// executar a la senyal
+        // executar a la senyal
         // TODO provar només amb un únic thread
-        for (ServerDummy dummy : dummies) {
-            dummy.setup(userID, deviceID, workspaceID);
+        for (int i = 0; i < numThreads; i++) {
+            ServerDummy2 dummy = dummies[i];
+            dummy.setup(uuids[i]);
             dummy.start();
         }
 
         // Wait all the threads
-        for (ServerDummy dummy : dummies) {
+        for (ServerDummy2 dummy : dummies) {
             dummy.join();
             dummy.getConnection().close();
         }
+
+        System.out.println("END - Commits made: " + minutes * commitsPerMinute);
 
     }
 }

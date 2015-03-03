@@ -61,7 +61,7 @@ public class Handler {
 
 		String dataSource = Config.getDatasource();
 
-		DAOFactory factory = DAOFactory.getInstance();
+		DAOFactory factory =  new DAOFactory(dataSource);
 
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		deviceDao = factory.getDeviceDAO(connection);
@@ -78,11 +78,12 @@ public class Handler {
 
             try {
                 workspace = workspaceDAO.getById(workspace.getId());
-                //userDao.findById(user.getId());
+                user = userDao.findById(user.getId());
                 // TODO: check if the workspace belongs to the user or its been given
                 // access
 
 		device = deviceDao.get(device.getId());
+                System.out.println("Device: "+device);
                 
             } catch (RemoteException ex) {
                 logger.error("Remote Exception getting workspace or device: "+ex);

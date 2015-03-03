@@ -608,7 +608,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
         user.setUser(usr);
 
         factory.disposeInstanceOf(UserRMI.class, usr.getId().toString(), true);
-
+        
         mailUser.put(usr.getEmail(), usr.getId());
         factory.disposeInstanceOf(HashMap.class, "mailUser", true);
     }

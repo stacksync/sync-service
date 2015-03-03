@@ -10,21 +10,27 @@ import java.sql.SQLException;
 import java.util.Random;
 import java.util.UUID;
 
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 
 /**
  * @author Sergi Toda <sergi.toda@estudiants.urv.cat>
  *
  */
-public class ServerDummy extends AServerDummy {
+public class ServerDummy2 extends AServerDummy {
 
-    private UUID userID;
+    private UUID[] uuids;
 
-    public ServerDummy(ConnectionPool pool, UUID userID, int commitsPerMinute, int minutes) throws SQLException,
+    public ServerDummy2(ConnectionPool pool, int numUsers, int commitsPerMinute, int minutes) throws SQLException,
             NoStorageManagerAvailable,
             Exception {
         super(pool, commitsPerMinute, minutes);
-        this.userID = userID;
+
+        uuids = new UUID[numUsers];
+        for (int i = 0; i < numUsers; i++) {
+            uuids[i] = UUID.randomUUID();
+            this.setup(uuids[i]);
+        }
     }
 
     @Override
@@ -40,15 +46,17 @@ public class ServerDummy extends AServerDummy {
             for (int j = 0; j < commitsPerMinute; j++) {
                 String id = UUID.randomUUID().toString();
 
-                logger.info("serverDummy_doCommit_start,commitID=" + id);
+                logger.info("serverDummy2_doCommit_start,commitID=" + id);
                 long start = System.currentTimeMillis();
                 try {
-                    doCommit(userID, ran, 1, 8, id);
-                } catch (Exception e1) {
+                    doCommit(uuids[ran.nextInt(uuids.length)], ran, 1, 8, id);
+                } catch (DAOException e1) {
                     logger.error(e1);
+                } catch (Exception ex) {
+                    logger.error(ex);
                 }
                 long end = System.currentTimeMillis();
-                logger.info("serverDummy_doCommit_end,commitID=" + id);
+                logger.info("serverDummy2_doCommit_end,commitID=" + id);
 
                 // If doCommit had no cost sleep would be distance but we have
                 // to take into account of the time that it takes
