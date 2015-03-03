@@ -346,7 +346,7 @@ public class SwiftManager extends StorageManager {
 
 		HttpClient httpClient = new DefaultHttpClient();
 
-		String url = "http://10.30.233.214:35357/v2.0/users";
+		String url = keystoneUrl+"/users";
 		SecureRandom secureRandom = new SecureRandom();
 		String randomPass = new BigInteger(130, secureRandom).toString(32);
 

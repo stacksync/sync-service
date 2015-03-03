@@ -42,6 +42,10 @@ public class Constants {
 	public static final String PROP_SWIFT_PASSWORD = "swift.password";
 	public static final String PROP_SWIFT_ACCOUNT = "swift.account";
 	
+	/*INTEROP*/
+	public static final String PROP_INTEROP_HOST = "interop.host";
+	public static final String PROP_INTEROP_PORT = "interop.port";
+	
 	/* GENERAL */
 	public static final String DEFAULT_DATASOURCE = "postgresql";
 
@@ -75,6 +79,10 @@ public class Constants {
 	public static final String DEFAULT_SWIFT_TENANT_ID = "5e446d39e4294b57831da7ce3dd0d2c2";
 	public static final String DEFAULT_SWIFT_USER = "stacksync_admin";
 	public static final String DEFAULT_SWIFT_PASSWORD = "secrete";
+	
+	/* INTEROP*/
+	public static final String DEFAULT_INTEROP_HOST = "localhost";
+	public static final String DEFAULT_INTEROP_PORT = "8080";
 	
 	/* XMLRPC */
 	public static final Integer XMLRPC_PORT = 61234;

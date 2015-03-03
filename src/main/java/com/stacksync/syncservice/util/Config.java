@@ -165,7 +165,11 @@ public class Config {
 	public static String getSwiftKeystoneHost() {
 		return properties.getProperty(Constants.PROP_SWIFT_KEYSTONE_HOST, Constants.DEFAULT_SWIFT_KEYSTONE_HOST);
 	}
-
+	
+	public static String getInteropHost() {
+		return properties.getProperty(Constants.PROP_INTEROP_HOST, Constants.DEFAULT_INTEROP_HOST);
+	}
+	
 	public static Integer getSwiftKeystoneAdminPort() {
 		return Integer.parseInt(properties.getProperty(Constants.PROP_SWIFT_KEYSTONE_ADMIN_PORT,
 				Constants.DEFAULT_SWIFT_KEYSTONE_ADMIN_PORT));
@@ -174,6 +178,9 @@ public class Config {
 	public static Integer getSwiftKeystonePort() {
 		return Integer.parseInt(properties.getProperty(Constants.PROP_SWIFT_KEYSTONE_PORT,
 				Constants.DEFAULT_SWIFT_KEYSTONE_PORT));
+	}
+	public static Integer getInteropPort(){
+		return Integer.parseInt(properties.getProperty(Constants.PROP_INTEROP_PORT, Constants.DEFAULT_INTEROP_PORT));
 	}
 
 	public static String getSwiftKeystoneProtocol() {
@@ -214,5 +221,10 @@ public class Config {
 	
 	public static String getSwiftAccount() {
 		return properties.getProperty(Constants.PROP_SWIFT_ACCOUNT);
+	}
+	
+	public static String getInteropBaseUrl(){
+		String interopUrl = String.format("http://%s:%s", getInteropHost(), getInteropPort());
+		return interopUrl;
 	}
 }

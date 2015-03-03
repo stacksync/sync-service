@@ -824,14 +824,14 @@ public class Handler {
 			proposal = new SharingProposal();
 			proposal.setKey(UUID.randomUUID());
 			proposal.setIsLocal(true);
-			proposal.setResourceUrl("http:localhost:8080/api/folder/" + item.getId());
+			proposal.setResourceUrl(Config.getSwiftUrl()+"/folder/" + item.getId());
 			proposal.setOwner(ownerId);
 			proposal.setOwnerName(owner.getName());
 			proposal.setOwnerEmail(owner.getEmail());
 			proposal.setFolder(item.getId());
 			proposal.setFolderName(item.getFilename());
 			proposal.setWriteAccess(true);
-			proposal.setCallback("http:localhost:8000/result");
+			proposal.setCallback(Config.getInteropBaseUrl()+"/interop/result");
 			proposal.setRecipient(email);
 			proposal.setProtocolVersion("1.0");
 			proposal.setStatus("CREATED");
@@ -843,7 +843,7 @@ public class Handler {
 				throw new ShareProposalNotCreatedException(e);
 			}
 			// generate link to /select/share_id
-			String link = "http://127.0.0.1:8000/interop/select/" + proposal.getKey();
+			String link = Config.getInteropBaseUrl()+"/interop/select/" + proposal.getKey();
 			logger.debug("Link that will be send into email: " + link);
 		}
 
