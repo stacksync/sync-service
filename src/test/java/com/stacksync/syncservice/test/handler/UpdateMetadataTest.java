@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.test.handler;
 
+import com.stacksync.commons.models.ItemMetadata;
 import java.util.UUID;
 
 import org.junit.BeforeClass;
@@ -11,7 +12,6 @@ import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.handler.APIHandler;
 import com.stacksync.syncservice.handler.SQLAPIHandler;
@@ -61,7 +61,7 @@ public class UpdateMetadataTest {
 	@Test
 	public void registerNewDevice() throws Exception {
 		
-		ItemMetadataRMI file = new ItemMetadataRMI();
+		ItemMetadata file = new ItemMetadata();
 		file.setId(118L);
 		file.setFilename("chunks-2.png");
 		file.setParentId(null);

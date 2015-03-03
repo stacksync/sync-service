@@ -5,11 +5,11 @@
  */
 package com.stacksync.syncservice.db.infinispan;
 
+import com.stacksync.commons.models.ItemMetadata;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
 import com.stacksync.syncservice.db.infinispan.models.ChunkRMI;
 
@@ -19,7 +19,7 @@ import com.stacksync.syncservice.db.infinispan.models.ChunkRMI;
  */
 public interface InfinispanItemVersionDAO extends Remote {
 
-    public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version)
+    public ItemMetadata findByItemIdAndVersion(Long id, Long version)
             throws RemoteException;
 
     public void add(ItemVersionRMI itemVersion) throws RemoteException;

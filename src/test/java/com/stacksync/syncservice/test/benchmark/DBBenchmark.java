@@ -38,7 +38,7 @@ public class DBBenchmark extends Thread {
 		this.metadataGen = new MetadataGenerator();
 	}
 
-	public void fillDB(WorkspaceRMI workspace, DeviceRMI device) {
+	public void fillDB(WorkspaceRMI workspace, DeviceRMI device) throws RemoteException {
 		int firstLevel = 0;
 
 		try {

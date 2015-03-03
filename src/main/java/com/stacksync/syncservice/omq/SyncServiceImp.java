@@ -12,11 +12,7 @@ import org.apache.log4j.Logger;
 
 import com.stacksync.commons.models.AccountInfo;
 import com.stacksync.commons.models.CommitInfo;
-import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
 import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.commons.notifications.ShareProposalNotification;
 import com.stacksync.commons.notifications.UpdateWorkspaceNotification;
@@ -37,6 +33,12 @@ import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
+import com.stacksync.commons.models.User;
+import com.stacksync.commons.models.Workspace;
+import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.handler.SyncHandler;
 import com.stacksync.syncservice.util.Config;
@@ -71,9 +73,9 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		logger.debug(request);
 
-		User user = new User();
+                UserRMI user = new UserRMI();
 		user.setId(request.getUserId());
-		Workspace workspace = new Workspace(request.getWorkspaceId());
+                WorkspaceRMI workspace = new WorkspaceRMI(request.getWorkspaceId());
 
 		List<ItemMetadata> list = getHandler().doGetChanges(user, workspace);
 
@@ -84,12 +86,14 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	public List<Workspace> getWorkspaces(GetWorkspacesRequest request) throws NoWorkspacesFoundException {
 		logger.debug(request.toString());
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(request.getUserId());
 
-		List<Workspace> workspaces = getHandler().doGetWorkspaces(user);
+		List<WorkspaceRMI> workspaces = getHandler().doGetWorkspaces(user);
+                
+                List<Workspace> w = convertWorkspaces(workspaces);
 
-		return workspaces;
+		return w;
 	}
 
 	@Override
@@ -98,10 +102,10 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		try {
 
-			User user = new User();
+			UserRMI user = new UserRMI();
 			user.setId(request.getUserId());
-			Device device = new Device(request.getDeviceId());
-			Workspace workspace = new Workspace(request.getWorkspaceId());
+			DeviceRMI device = new DeviceRMI(request.getDeviceId());
+			WorkspaceRMI workspace = new WorkspaceRMI(request.getWorkspaceId());
 
 			List<CommitInfo> committedItems = getHandler().doCommit(user, workspace, device, request.getItems());
 
@@ -130,12 +134,12 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		logger.debug(request.toString());
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(request.getUserId());
 
-		Device device = new Device();
+		DeviceRMI device = new DeviceRMI();
 		device.setId(request.getDeviceId());
-		device.setUser(user);
+		//device.setUser(user);
 		device.setName(request.getDeviceName());
 		device.setOs(request.getOs());
 		device.setLastIp(request.getIp());
@@ -152,13 +156,13 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		logger.debug(request);
 
-		User user = new User();
+		/*UserRMI user = new UserRMI();
 		user.setId(request.getUserId());
 		
-		Item item = new Item(request.getItemId());
+		ItemRMI item = new ItemRMI(request.getItemId());
 
 		// Create share proposal
-		Workspace workspace = getHandler().doShareFolder(user, request.getEmails(), item, request.isEncrypted());
+		WorkspaceRMI workspace = getHandler().doShareFolder(user, request.getEmails(), item, request.isEncrypted());
 
 		// Create notification
 		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
@@ -177,14 +181,14 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		}
 
 		// Send notifications to users
-		for (User addressee : workspace.getUsers()) {
+		for (UserRMI addressee : workspace.getUsers()) {
 			try {
 				client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
 				client.notifyShareProposal(notification);
 			} catch (RemoteException e) {
 				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
 			}
-		}
+		}*/
 	}
 
 	@Override
@@ -192,11 +196,11 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 			WorkspaceNotUpdatedException {
 		logger.debug(request);
 
-		User user = new User();
+		UserRMI user = new UserRMI();
 		user.setId(request.getUserId());
-		Item item = new Item(request.getParentItemId());
+                ItemRMI item = new ItemRMI(request.getParentItemId());
 
-		Workspace workspace = new Workspace(request.getWorkspaceId());
+		WorkspaceRMI workspace = new WorkspaceRMI(request.getWorkspaceId());
 		workspace.setName(request.getWorkspaceName());
 		workspace.setParentItem(item);
 
@@ -221,7 +225,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	public AccountInfo getAccountInfo(GetAccountRequest request) throws UserNotFoundException {
 		logger.debug(request);
 
-		User user = getHandler().doGetUser(request.getEmail());
+		UserRMI user = getHandler().doGetUser(request.getEmail());
 
 		AccountInfo accountInfo = new AccountInfo();
 
@@ -236,4 +240,18 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		return accountInfo;
 	}
+
+    private List<Workspace> convertWorkspaces(List<WorkspaceRMI> workspaces) {
+        Workspace wspace;
+        User user;
+        List<Workspace> wspaces = null;
+        
+        for (WorkspaceRMI workspace : workspaces) {
+            user = new User(workspace.getOwner());
+            wspace = new Workspace(workspace.getId(), workspace.getLatestRevision(), user, workspace.isShared(), workspace.isEncrypted());
+            wspaces.add(wspace);
+        }
+        
+        return wspaces;
+    }
 }

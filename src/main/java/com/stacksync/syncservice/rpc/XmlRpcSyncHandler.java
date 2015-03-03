@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.rpc;
 
+import com.stacksync.commons.models.ItemMetadata;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -18,7 +19,6 @@ import com.stacksync.commons.omq.RemoteClient;
 import com.stacksync.commons.omq.RemoteWorkspace;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.infinispan.models.CommitInfoRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
@@ -128,7 +128,7 @@ public class XmlRpcSyncHandler {
 		UserRMI user = new UserRMI();
 		user.setId(UUID.fromString(strUserId));
 
-		ItemMetadataRMI item = new ItemMetadataRMI();
+                ItemMetadata item = new ItemMetadata();
 		item.setId(itemId);
 
 		APIGetVersions response = this.apiHandler.getVersions(user, item);
@@ -157,7 +157,7 @@ public class XmlRpcSyncHandler {
 		UserRMI user = new UserRMI();
 		user.setId(UUID.fromString(strUserId));
 
-		ItemMetadataRMI item = new ItemMetadataRMI();
+		ItemMetadata item = new ItemMetadata();
 		item.setFilename(strFolderName);
 		item.setIsFolder(true);
 		item.setParentId(parentId);
@@ -209,7 +209,7 @@ public class XmlRpcSyncHandler {
 			return parentResponse.toString();
 		}
 
-		ItemMetadataRMI item = new ItemMetadataRMI();
+		ItemMetadata item = new ItemMetadata();
 
 		item.setId(null);
 		item.setParentId(parentId);
@@ -266,7 +266,7 @@ public class XmlRpcSyncHandler {
 
 		UUID userId = UUID.fromString(strUserId);
 
-		ItemMetadataRMI item = new ItemMetadataRMI();
+		ItemMetadata item = new ItemMetadata();
 
 		item.setId(fileId);
 		item.setSize(fileSize);
@@ -312,7 +312,7 @@ public class XmlRpcSyncHandler {
 		UserRMI user = new UserRMI();
 		user.setId(userId);
 
-		ItemMetadataRMI file = new ItemMetadataRMI();
+		ItemMetadata file = new ItemMetadata();
 		file.setId(fileId);
 		file.setFilename(strNewFileName);
 		file.setParentId(parentId);
@@ -340,7 +340,7 @@ public class XmlRpcSyncHandler {
 
 		logger.debug("XMLRPC -> delete_metadata_file -->[User:" + strUserId + ", fileId:" + fileId + "]");
 
-		ItemMetadataRMI object = new ItemMetadataRMI();
+		ItemMetadata object = new ItemMetadata();
 		object.setId(fileId);
 		object.setIsFolder(isFolder);
 
@@ -376,7 +376,7 @@ public class XmlRpcSyncHandler {
 
 		String workspace = userId + "/";
 
-		ItemMetadataRMI object = new ItemMetadataRMI();
+		ItemMetadata object = new ItemMetadata();
 		object.setId(fileId);
 		object.setVersion(version);
 
@@ -396,7 +396,7 @@ public class XmlRpcSyncHandler {
 
 	public String shareFolder(String strUserId, String strFolderId, List<String> emails) {
 
-		logger.debug("XMLRPC -> share_folder -->[User:" + strUserId + ", Folder ID:" + strFolderId + ", Emails: "
+		/*logger.debug("XMLRPC -> share_folder -->[User:" + strUserId + ", Folder ID:" + strFolderId + ", Emails: "
 				+ emails.toString() + "]");
 
 		Long folderId = null;
@@ -423,7 +423,8 @@ public class XmlRpcSyncHandler {
 		String strResponse = response.toString();
 
 		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
+		return strResponse;*/
+            return null;
 
 	}
 	
@@ -499,7 +500,7 @@ public class XmlRpcSyncHandler {
 
 		UUID userId = UUID.fromString(strUserId);
 
-		ItemMetadataRMI item = new ItemMetadataRMI();
+		ItemMetadata item = new ItemMetadata();
 
 		item.setId(fileId);
 
@@ -526,7 +527,7 @@ public class XmlRpcSyncHandler {
 
 	private APICommitResponse checkParentMetadata(Long parentId, APIGetMetadata metadataResponse) {
 		APICommitResponse response = new APICommitResponse(null, true, 0, null);
-		ItemMetadataRMI parentMetadata = metadataResponse.getItemMetadata();
+		ItemMetadata parentMetadata = metadataResponse.getItemMetadata();
 
 		if (parentId != null && parentMetadata == null) {
 			response = new APICommitResponse(null, false, 404, "Parent not found.");
@@ -545,7 +546,7 @@ public class XmlRpcSyncHandler {
 	private void bindUsersToWorkspace(WorkspaceRMI workspace, Long folderId) throws RemoteException {
 		
 		// Create notification
-		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
+		/*ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
 				workspace.getName(), folderId, workspace.getOwner(), workspace.getOwner().getName(),
 				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
 
@@ -564,12 +565,12 @@ public class XmlRpcSyncHandler {
 			} catch (RemoteException e) {
 				logger.error(String.format("Could not notify user: '%s'", addressee), e);
 			}
-		}
+		}*/
 
 	}
 	private void unBindUsersToWorkspace(WorkspaceRMI workspace, List<UserRMI> usersToRemove, boolean isUnshared, Long folderId) {
 		
-		// Create notification
+		/*// Create notification
 		UnshareNotification notification = new UnshareNotification(workspace.getId(),
 				workspace.getName(), folderId, workspace.getOwner(), workspace.getOwner().getName(),
 				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
@@ -595,11 +596,11 @@ public class XmlRpcSyncHandler {
 			} catch (RemoteException e) {
 				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
 			}
-		} 	
+		} */	
 	}
 	private void sendMessageToClients(String workspaceName, APIResponse generalResponse) {
 
-		CommitInfoRMI info = generalResponse.getItem();
+		/*CommitInfoRMI info = generalResponse.getItem();
 		List<CommitInfoRMI> responseObjects = new ArrayList<CommitInfoRMI>();
 		responseObjects.add(info);
 		CommitNotification result = new CommitNotification("", responseObjects);
@@ -611,7 +612,7 @@ public class XmlRpcSyncHandler {
 		} catch (RemoteException e) {
 			// e.printStackTrace();
 			logger.error("Error sending the notification to the clients: " + e);
-		}
+		}*/
 
 	}
 }

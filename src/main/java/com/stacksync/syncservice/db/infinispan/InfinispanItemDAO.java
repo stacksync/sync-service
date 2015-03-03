@@ -5,12 +5,12 @@
  */
 package com.stacksync.syncservice.db.infinispan;
 
+import com.stacksync.commons.models.ItemMetadata;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.UUID;
 
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 
 /**
@@ -30,19 +30,19 @@ public interface InfinispanItemDAO extends Remote {
     public void delete(Long id) throws RemoteException;
 
     // ItemMetadata information
-    public List<ItemMetadataRMI> getItemsByWorkspaceId(UUID workspaceId)
+    public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId)
             throws RemoteException;
 
-    public List<ItemMetadataRMI> getItemsById(Long id) throws RemoteException;
+    public List<ItemMetadata> getItemsById(Long id) throws RemoteException;
 
-    public ItemMetadataRMI findById(Long id, Boolean includeList, Long version,
+    public ItemMetadata findById(Long id, Boolean includeList, Long version,
             Boolean includeDeleted, Boolean includeChunks)
             throws RemoteException;
 
-    public ItemMetadataRMI findByUserId(UUID serverUserId,
+    public ItemMetadata findByUserId(UUID serverUserId,
             Boolean includeDeleted) throws RemoteException;
 
-    public ItemMetadataRMI findItemVersionsById(Long id) throws RemoteException;
+    public ItemMetadata findItemVersionsById(Long id) throws RemoteException;
 
     public List<String> migrateItem(Long itemId, UUID workspaceId)
             throws RemoteException;

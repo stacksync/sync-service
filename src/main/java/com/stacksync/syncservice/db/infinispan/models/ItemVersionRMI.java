@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import com.stacksync.commons.models.ItemMetadata;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -35,7 +36,7 @@ public class ItemVersionRMI implements Serializable {
         this.size = size;
     }
 
-    public ItemVersionRMI(ItemMetadataRMI metadata) {
+    public ItemVersionRMI(ItemMetadata metadata) {
         this.id = metadata.getVersion();
         this.itemId = metadata.getParentId();
         this.device = new DeviceRMI(metadata.getDeviceId());

@@ -9,10 +9,10 @@ import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
+import com.stacksync.commons.models.CommitInfo;
+import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.Connection;
-import com.stacksync.syncservice.db.infinispan.models.CommitInfoRMI;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
@@ -20,10 +20,10 @@ import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface SyncHandler {
 
-	public List<CommitInfoRMI> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device, List<ItemMetadataRMI> items)
-			throws DAOException;
+	public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device, List<ItemMetadata> items)
+			throws Exception;
 	
-	public List<ItemMetadataRMI> doGetChanges(UserRMI user, WorkspaceRMI workspace);
+	public List<ItemMetadata> doGetChanges(UserRMI user, WorkspaceRMI workspace);
 
 	public UUID doUpdateDevice(DeviceRMI device) throws UserNotFoundException, DeviceNotValidException,
 			DeviceNotUpdatedException;

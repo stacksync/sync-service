@@ -1,16 +1,15 @@
 package com.stacksync.syncservice.test.benchmark;
 
+import com.stacksync.syncservice.db.infinispan.models.ChunkRMI;
+import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
-
-import com.stacksync.commons.models.Chunk;
-import com.stacksync.commons.models.Device;
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemVersion;
-import com.stacksync.commons.models.Workspace;
 
 /**
  * 
@@ -31,12 +30,12 @@ public class MetadataGenerator {
 		this.randGenerator = new Random();
 	}
 
-	public ArrayList<Item> generateLevel(Workspace workspace, Device device, Item parent) {
+	public ArrayList<ItemRMI> generateLevel(WorkspaceRMI workspace, DeviceRMI device, ItemRMI parent) {
 		int objectsLevel = randGenerator.nextInt(MAX_FILES_LEVEL);
-		ArrayList<Item> objects = new ArrayList<Item>();
+		ArrayList<ItemRMI> objects = new ArrayList<ItemRMI>();
 
 		for (int i = 0; i < objectsLevel; i++) {
-			Item currentObject;
+			ItemRMI currentObject;
 			int folderValue = randGenerator.nextInt(totalPercentage);
 			boolean folder = false;
 
@@ -51,7 +50,7 @@ public class MetadataGenerator {
 		return objects;
 	}
 
-	private Item generateMetadata(Workspace workspace, Device device, Item parent, boolean folder) {
+	private ItemRMI generateMetadata(WorkspaceRMI workspace, DeviceRMI device, ItemRMI parent, boolean folder) {
 		long numVersions = randGenerator.nextInt(MAX_VERSIONS);
 		if (numVersions == 0) {
 			numVersions = 1;
@@ -62,9 +61,9 @@ public class MetadataGenerator {
 			numChunks = 1;
 		}
 
-		Item item = new Item();
-		item.setWorkspace(workspace);
-		item.setLatestVersion(numVersions);
+		ItemRMI item = new ItemRMI();
+		//item.setWorkspace(workspace);
+		item.setLatestVersionNumber(numVersions);
 		item.setParent(parent);
 		item.setId((long) randGenerator.nextInt()); // If nextLong
 		// fails!
@@ -75,13 +74,13 @@ public class MetadataGenerator {
 		if (parent == null) {
 			item.setClientParentFileVersion(null);
 		} else {
-			item.setClientParentFileVersion(parent.getLatestVersion());
+			item.setClientParentFileVersion(parent.getLatestVersionNumber());
 		}
 
-		List<ItemVersion> versions = new ArrayList<ItemVersion>();
+		List<ItemVersionRMI> versions = new ArrayList<ItemVersionRMI>();
 		for (int i = 0; i < numVersions; i++) {
-			ItemVersion version = new ItemVersion();
-			version.setItem(item);
+			ItemVersionRMI version = new ItemVersionRMI();
+			version.setItem(item.getId());
 			version.setDevice(device);
 			version.setVersion(i + 1L);
 			version.setModifiedAt(new Date());
@@ -96,10 +95,10 @@ public class MetadataGenerator {
 
 			version.setSize((long) randGenerator.nextInt(10000));
 
-			List<Chunk> chunks = new ArrayList<Chunk>();
+			List<ChunkRMI> chunks = new ArrayList<ChunkRMI>();
 			if (!folder) {
 				for (int j = 0; j < numChunks; j++) {
-					Chunk chunk = new Chunk();
+					ChunkRMI chunk = new ChunkRMI();
 					chunk.setClientChunkName(randomString());
 					chunks.add(chunk);
 				}

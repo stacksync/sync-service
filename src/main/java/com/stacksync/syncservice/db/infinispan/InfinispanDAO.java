@@ -5,6 +5,7 @@
  */
 package com.stacksync.syncservice.db.infinispan;
 
+import com.stacksync.commons.models.ItemMetadata;
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -13,12 +14,12 @@ import java.util.UUID;
 
 import com.stacksync.syncservice.db.infinispan.models.ChunkRMI;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserWorkspaceRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import java.util.HashMap;
 
 import org.infinispan.atomic.AtomicObjectFactory;
 
@@ -30,11 +31,16 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
     private WorkspaceRMI workspace;
     private UserRMI user;
+    private HashMap<String, UUID> mailUser;
     private final AtomicObjectFactory factory;
+    private long itemIdCounter, itemVersionIdCounter;
 
     public InfinispanDAO(AtomicObjectFactory factory) {
 
+        this.itemIdCounter = 0;
+        this.itemVersionIdCounter = 0;
         this.factory = factory;
+        mailUser = (HashMap<String, UUID>)factory.getInstanceOf(HashMap.class, "mailUser", false, null, false);
 
     }
 
@@ -250,6 +256,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
         }
 
         if (!exist) {
+            item.setId(this.itemIdCounter++);
             add(item);
         }
 
@@ -269,16 +276,15 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
     }
 
-    private ItemMetadataRMI getItemMetadataFromItem(ItemRMI item) {
+    private ItemMetadata getItemMetadataFromItem(ItemRMI item) {
 
         return getItemMetadataFromItem(item, item.getLatestVersionNumber(), false, false, false);
 
     }
 
-    private ItemMetadataRMI getItemMetadataFromItem(ItemRMI item, Long version, Boolean includeList, Boolean includeDeleted, Boolean includeChunks) {
+    private ItemMetadata getItemMetadataFromItem(ItemRMI item, Long version, Boolean includeList, Boolean includeDeleted, Boolean includeChunks) {
 
-        ItemMetadataRMI itemMetadata = null;
-        Long test = 5L;
+        ItemMetadata itemMetadata = null;
 
         List<ItemVersionRMI> versions = item.getVersions();
         for (ItemVersionRMI itemVersion : versions) {
@@ -296,14 +302,14 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
     }
 
-    private ItemMetadataRMI addChildrenFromItemMetadata(ItemMetadataRMI itemMetadata, Boolean includeDeleted) {
+    private ItemMetadata addChildrenFromItemMetadata(ItemMetadata itemMetadata, Boolean includeDeleted) {
 
         List<ItemRMI> items = workspace.getItems();
 
         for (ItemRMI thisItem : items) {
             if (itemMetadata.getId().equals(thisItem.getParentId()) && ((includeDeleted && itemMetadata.getStatus().equals("DELETED")) || !itemMetadata.getStatus().equals("DELETED"))) {
                 ItemVersionRMI thisItemVersion = thisItem.getLatestVersion();
-                ItemMetadataRMI child = createItemMetadataFromItemAndItemVersion(thisItem, thisItemVersion);
+                ItemMetadata child = createItemMetadataFromItemAndItemVersion(thisItem, thisItemVersion);
                 itemMetadata.addChild(child);
             }
         }
@@ -312,13 +318,13 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
     }
 
-    private ItemMetadataRMI createItemMetadataFromItemAndItemVersion(ItemRMI item, ItemVersionRMI itemVersion) {
+    private ItemMetadata createItemMetadataFromItemAndItemVersion(ItemRMI item, ItemVersionRMI itemVersion) {
 
         return createItemMetadataFromItemAndItemVersion(item, itemVersion, false);
 
     }
 
-    private ItemMetadataRMI createItemMetadataFromItemAndItemVersion(ItemRMI item, ItemVersionRMI itemVersion, Boolean includeChunks) {
+    private ItemMetadata createItemMetadataFromItemAndItemVersion(ItemRMI item, ItemVersionRMI itemVersion, Boolean includeChunks) {
 
         ArrayList<String> chunks = new ArrayList<String>();
         if (includeChunks) {
@@ -329,15 +335,15 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
             chunks = null;
         }
 
-        return new ItemMetadataRMI(item.getId(), itemVersion.getVersion(), itemVersion.getDevice().getId(), item.getParentId(), item.getClientParentFileVersion(), itemVersion.getStatus(), itemVersion.getModifiedAt(), itemVersion.getChecksum(), itemVersion.getSize(), item.isFolder(), item.getFilename(), item.getMimetype(), chunks);
+        return new ItemMetadata(item.getId(), itemVersion.getVersion(), itemVersion.getDevice().getId(), item.getParentId(), item.getClientParentFileVersion(), itemVersion.getStatus(), itemVersion.getModifiedAt(), itemVersion.getChecksum(), itemVersion.getSize(), item.isFolder(), item.getFilename(), item.getMimetype(), chunks);
 
     }
 
     @Override
-    public List<ItemMetadataRMI> getItemsByWorkspaceId(UUID workspaceId) throws RemoteException {
+    public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId) throws RemoteException {
 
-        List<ItemMetadataRMI> result = new ArrayList<ItemMetadataRMI>();
-        ItemMetadataRMI itemMetadata;
+        List<ItemMetadata> result = new ArrayList<ItemMetadata>();
+        ItemMetadata itemMetadata;
 
         workspace = getById(workspaceId);
 
@@ -355,10 +361,10 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     }
 
     @Override
-    public List<ItemMetadataRMI> getItemsById(Long id) throws RemoteException {
+    public List<ItemMetadata> getItemsById(Long id) throws RemoteException {
 
-        List<ItemMetadataRMI> result = new ArrayList<ItemMetadataRMI>();
-        ItemMetadataRMI itemMetadata;
+        List<ItemMetadata> result = new ArrayList<ItemMetadata>();
+        ItemMetadata itemMetadata;
 
         List<ItemRMI> list = workspace.getItems();
 
@@ -376,11 +382,11 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     }
 
     @Override
-    public ItemMetadataRMI findById(Long id, Boolean includeList, Long version, Boolean includeDeleted, Boolean includeChunks) throws RemoteException {
+    public ItemMetadata findById(Long id, Boolean includeList, Long version, Boolean includeDeleted, Boolean includeChunks) throws RemoteException {
 
         List<ItemRMI> items = workspace.getItems();
 
-        ItemMetadataRMI itemMetadata = null;
+        ItemMetadata itemMetadata = null;
         for (ItemRMI item : items) {
             if (item.getId().equals(id)) {
                 itemMetadata = getItemMetadataFromItem(item, version, includeList, includeDeleted, includeChunks);
@@ -393,7 +399,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     }
 
     @Override
-    public ItemMetadataRMI findByUserId(UUID serverUserId, Boolean includeDeleted) throws RemoteException {
+    public ItemMetadata findByUserId(UUID serverUserId, Boolean includeDeleted) throws RemoteException {
         //Senseless
 
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
@@ -401,10 +407,10 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     }
 
     @Override
-    public ItemMetadataRMI findItemVersionsById(Long id) throws RemoteException {
+    public ItemMetadata findItemVersionsById(Long id) throws RemoteException {
 
         List<ItemRMI> items = workspace.getItems();
-        ItemMetadataRMI itemMetadata = null;
+        ItemMetadata itemMetadata = null;
         ItemRMI item = null;
 
         for (ItemRMI currentItem : items) {
@@ -430,7 +436,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         for (ItemVersionRMI itemVersion : item.getVersions()) {
             if (!itemVersion.getVersion().equals(item.getLatestVersionNumber())) {
-                ItemMetadataRMI version = createItemMetadataFromItemAndItemVersion(item, itemVersion);
+                ItemMetadata version = createItemMetadataFromItemAndItemVersion(item, itemVersion);
                 if (version != null) {
                     itemMetadata.addChild(version);
                 }
@@ -455,7 +461,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     //************************************
     //************************************
     @Override
-    public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version) throws RemoteException {
+    public ItemMetadata findByItemIdAndVersion(Long id, Long version) throws RemoteException {
 
         return findById(id, Boolean.FALSE, version, Boolean.FALSE, Boolean.FALSE);
 
@@ -468,6 +474,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         for (ItemRMI item : items) {
             if (item.getId().equals(itemVersion.getItemId())) {
+                itemVersion.setId(itemVersionIdCounter++);
                 item.addVersion(itemVersion);
                 item.setLatestVersionNumber(itemVersion.getVersion());
                 break;
@@ -573,10 +580,8 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
     @Override
     public UserRMI getByEmail(String email) throws RemoteException {
-        //Senseless
-
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-
+        UUID userId = mailUser.get(email);
+        return this.findById(userId);
     }
 
     @Override
@@ -604,6 +609,8 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         factory.disposeInstanceOf(UserRMI.class, usr.getId().toString(), true);
 
+        mailUser.put(usr.getEmail(), usr.getId());
+        factory.disposeInstanceOf(HashMap.class, "mailUser", true);
     }
 
     @Override

@@ -7,10 +7,10 @@ import java.util.List;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.handler.Handler;
@@ -20,8 +20,8 @@ import com.stacksync.syncservice.util.Config;
 
 public class TestCommit {
 
-	public static List<ItemMetadataRMI> getObjectMetadata(JsonArray allFiles) {
-		List<ItemMetadataRMI> metadataList = new ArrayList<ItemMetadataRMI>();
+	public static List<ItemMetadata> getObjectMetadata(JsonArray allFiles) {
+		List<ItemMetadata> metadataList = new ArrayList<ItemMetadata>();
 
 		for (int i = 0; i < allFiles.size(); i++) {
 			JsonObject file = allFiles.get(i).getAsJsonObject();
@@ -61,7 +61,7 @@ public class TestCommit {
 				chunks.add(jChunks.get(j).getAsString());
 			}
 			
-			ItemMetadataRMI object = new ItemMetadataRMI(fileId, version, Constants.DEVICE_ID, parentFileId, parentFileVersion, status, lastModified,
+			ItemMetadata object = new ItemMetadata(fileId, version, Constants.DEVICE_ID, parentFileId, parentFileVersion, status, lastModified,
 					checksum, fileSize, folder, name, mimetype, chunks);
 
 			metadataList.add(object);
@@ -81,7 +81,7 @@ public class TestCommit {
 		long startTotal = System.currentTimeMillis();
 
 		JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
-		List<ItemMetadataRMI> objects = getObjectMetadata(rawObjects);
+		List<ItemMetadata> objects = getObjectMetadata(rawObjects);
 
 		UserRMI user = new UserRMI();
 		user.setId(Constants.USER);

@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.test.handler;
 
+import com.stacksync.commons.models.ItemMetadata;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
@@ -13,7 +14,6 @@ import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.handler.APIHandler;
 import com.stacksync.syncservice.handler.SQLAPIHandler;
@@ -64,7 +64,7 @@ public class GetWorkspaceInfoTest {
 	@Test
 	public void registerNewDevice() throws Exception {
 		
-		ItemMetadataRMI file = new ItemMetadataRMI();
+		ItemMetadata file = new ItemMetadata();
 		file.setId(null);
 		
 		APIGetWorkspaceInfoResponse response = handler.getWorkspaceInfo(user1, file);

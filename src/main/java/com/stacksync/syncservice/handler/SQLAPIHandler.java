@@ -9,10 +9,10 @@ import org.apache.log4j.Logger;
 
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
+import com.stacksync.commons.models.CommitInfo;
+import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.infinispan.models.ChunkRMI;
-import com.stacksync.syncservice.db.infinispan.models.CommitInfoRMI;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
@@ -54,7 +54,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	public APIGetMetadata getMetadata(UserRMI user, Long fileId,
 			Boolean includeChunks, Long version, Boolean isFolder) {
 
-		ItemMetadataRMI responseObject = null;
+                ItemMetadata responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;
 		String description = "";
@@ -103,7 +103,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	public APIGetMetadata getFolderContent(UserRMI user, Long folderId,
 			Boolean includeDeleted) {
 
-		ItemMetadataRMI responseObject = null;
+		ItemMetadata responseObject = null;
 		Integer errorCode = 0;
 		Boolean success = false;
 		String description = "";
@@ -147,7 +147,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APICommitResponse createFile(UserRMI user, ItemMetadataRMI fileToSave) {
+	public APICommitResponse createFile(UserRMI user, ItemMetadata fileToSave) {
 
 		// Check the owner
 		try {
@@ -174,7 +174,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		boolean includeChunks = false;
 
 		// check that the given parent ID exists
-		ItemMetadataRMI parent = null;
+		ItemMetadata parent = null;
 		if (fileToSave.getParentId() != null) {
 			try {
 				parent = itemDao.findById(fileToSave.getParentId(),
@@ -217,7 +217,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		// check if there is already a file with the same name
 		boolean repeated = false;
-		for (ItemMetadataRMI child : parent.getChildren()) {
+		for (ItemMetadata child : parent.getChildren()) {
 			if (child.getFilename().equals(fileToSave.getFilename())) {
 				repeated = true;
 				break;
@@ -244,7 +244,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APICommitResponse updateData(UserRMI user, ItemMetadataRMI fileToUpdate) {
+	public APICommitResponse updateData(UserRMI user, ItemMetadata fileToUpdate) {
 
 		// Check the owner
 		try {
@@ -271,7 +271,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		boolean includeChunks = false;
 
 		// check that the given file ID exists
-		ItemMetadataRMI file = null;
+		ItemMetadata file = null;
 		try {
 			file = itemDao.findById(fileToUpdate.getId(), includeList, version,
 					includeDeleted, includeChunks);
@@ -302,7 +302,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		file.setStatus(Status.CHANGED.toString());
 
 		// Commit the file
-		List<ItemMetadataRMI> items = new ArrayList<ItemMetadataRMI>();
+		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 		items.add(file);
 
 		WorkspaceRMI workspace = new WorkspaceRMI(file.getWorkspaceId());
@@ -321,7 +321,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APICommitResponse updateMetadata(UserRMI user, ItemMetadataRMI fileToUpdate) {
+	public APICommitResponse updateMetadata(UserRMI user, ItemMetadata fileToUpdate) {
 
 		// Check the owner
 		try {
@@ -348,7 +348,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		boolean includeChunks = true;
 
 		// check that the given file ID exists
-		ItemMetadataRMI file = null;
+		ItemMetadata file = null;
 		try {
 			file = itemDao.findById(fileToUpdate.getId(), includeList, version,
 					includeDeleted, includeChunks);
@@ -357,7 +357,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
             }
 
 		// check that the given parent ID exists
-		ItemMetadataRMI parent = null;
+		ItemMetadata parent = null;
 		if (fileToUpdate.getParentId() != null) {
 			try {
 				parent = itemDao.findById(fileToUpdate.getParentId(),
@@ -399,7 +399,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		// check if there is already a file with the same name
 		boolean repeated = false;
-		for (ItemMetadataRMI child : parent.getChildren()) {
+		for (ItemMetadata child : parent.getChildren()) {
 			if (child.getFilename().equals(fileToUpdate.getFilename())) {
 				repeated = true;
 			}
@@ -417,7 +417,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		file.setStatus(Status.RENAMED.toString());
 
 		// Commit the file
-		List<ItemMetadataRMI> items = new ArrayList<ItemMetadataRMI>();
+		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 		items.add(file);
 
 		WorkspaceRMI workspace = new WorkspaceRMI(file.getWorkspaceId());
@@ -436,7 +436,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APICreateFolderResponse createFolder(UserRMI user, ItemMetadataRMI item) {
+	public APICreateFolderResponse createFolder(UserRMI user, ItemMetadata item) {
 
 		// Check the owner
 		try {
@@ -448,7 +448,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		// get metadata of the parent item
 		APIGetMetadata parentResponse = this.getFolderContent(user,
 				item.getParentId(), false);
-		ItemMetadataRMI parentMetadata = parentResponse.getItemMetadata();
+		ItemMetadata parentMetadata = parentResponse.getItemMetadata();
 
 		// if it is the root, get the default workspace
 		if (parentMetadata.isRoot()) {
@@ -471,11 +471,11 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 
 		String folderName = item.getFilename();
-		List<ItemMetadataRMI> files = parentMetadata.getChildren();
+		List<ItemMetadata> files = parentMetadata.getChildren();
 
 		// check if there exists a folder with the same name
-		ItemMetadataRMI object = null;
-		for (ItemMetadataRMI file : files) {
+		ItemMetadata object = null;
+		for (ItemMetadata file : files) {
 			if (file.getFilename().equals(folderName)
 					&& !file.getStatus().equals("DELETED")) {
 				object = file;
@@ -489,7 +489,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			return response;
 		}
 
-		boolean succeded;
+		boolean succeded = false;
             try {
                 succeded = this.createNewFolder(user, item, parentMetadata);
             } catch (Exception ex) {
@@ -508,15 +508,15 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIRestoreMetadata restoreMetadata(UserRMI user, ItemMetadataRMI item) {
+	public APIRestoreMetadata restoreMetadata(UserRMI user, ItemMetadata item) {
 		try {
 
 			ItemRMI serverItem = itemDao.findById(item.getId());
-			ItemMetadataRMI lastObjectVersion = itemDao.findById(item.getId(),
+			ItemMetadata lastObjectVersion = itemDao.findById(item.getId(),
 					false, null, false, false);
 			if (serverItem != null && lastObjectVersion != null) {
 
-				ItemMetadataRMI metadata = itemVersionDao.findByItemIdAndVersion(
+				ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(
 						serverItem.getId(), item.getVersion());
 
 				ItemVersionRMI restoredObject = new ItemVersionRMI(metadata);
@@ -547,7 +547,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 					item.setChunks(chunks);
 					item.setModifiedAt(restoredObject.getModifiedAt());
 					item.setDeviceId(restoredObject.getDevice().getId());
-					item.setFilename(restoredObject.getItem().getFilename());
+					//item.setFilename(restoredObject.getItem().getFilename());
 					item.setSize(restoredObject.getSize());
 
 					item.setIsFolder(serverItem.isFolder());
@@ -583,8 +583,8 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIDeleteResponse deleteItem(UserRMI user, ItemMetadataRMI item) {
-		List<ItemMetadataRMI> filesToDelete = null;
+	public APIDeleteResponse deleteItem(UserRMI user, ItemMetadata item) {
+		List<ItemMetadata> filesToDelete = null;
 
 		// Check the owner
 		try {
@@ -652,8 +652,8 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APIGetVersions getVersions(UserRMI user, ItemMetadataRMI item) {
-		ItemMetadataRMI serverItem = null;
+	public APIGetVersions getVersions(UserRMI user, ItemMetadata item) {
+		ItemMetadata serverItem = null;
 
 		// Check the owner
 		try {
@@ -738,7 +738,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	@Override
 	public APIGetFolderMembersResponse getFolderMembers(UserRMI user, ItemRMI item) {
 
-		APIGetFolderMembersResponse response;
+		/*APIGetFolderMembersResponse response;
 
 		// Check the owner
 		try {
@@ -765,11 +765,13 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		response = new APIGetFolderMembersResponse(members, true, 0, "");
 
 		return response;
+                        */
+            return null;
 	}
 
 	@Override
 	public APIGetWorkspaceInfoResponse getWorkspaceInfo(UserRMI user,
-			ItemMetadataRMI item) {
+			ItemMetadata item) {
 
 		// Check the owner
 		try {
@@ -837,21 +839,21 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		return hasPermission;
 	}
 
-	private void saveNewItemAPI(UserRMI user, ItemMetadataRMI itemToSave,
-			ItemMetadataRMI parent) throws DAOException, Exception {
+	private void saveNewItemAPI(UserRMI user, ItemMetadata itemToSave,
+			ItemMetadata parent) throws DAOException, Exception {
 
 		itemToSave.setWorkspaceId(parent.getWorkspaceId());
 		WorkspaceRMI workspace = new WorkspaceRMI(parent.getWorkspaceId());
 
-		List<ItemMetadataRMI> objects = new ArrayList<ItemMetadataRMI>();
+		List<ItemMetadata> objects = new ArrayList<ItemMetadata>();
 		objects.add(itemToSave);
 
 		this.doCommit(user, workspace, apiDevice, objects);
 
 	}
 
-	private boolean createNewFolder(UserRMI user, ItemMetadataRMI item,
-			ItemMetadataRMI parent) throws Exception {
+	private boolean createNewFolder(UserRMI user, ItemMetadata item,
+			ItemMetadata parent) throws Exception {
 
 		// Create metadata
 
@@ -870,13 +872,13 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		item.setDeviceId(Constants.API_DEVICE_ID);
 		item.setChecksum(0L);
 
-		List<ItemMetadataRMI> items = new ArrayList<ItemMetadataRMI>();
+		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 		items.add(item);
 
 		WorkspaceRMI workspace = new WorkspaceRMI(item.getWorkspaceId());
 
 		try {
-			List<CommitInfoRMI> commitInfo = this.doCommit(user, workspace,
+			List<CommitInfo> commitInfo = this.doCommit(user, workspace,
 					apiDevice, items);
 			return commitInfo.get(0).isCommitSucceed();
 		} catch (DAOException e) {
@@ -904,11 +906,11 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	private APIDeleteResponse deleteItemsAPI(UserRMI user, WorkspaceRMI workspace,
-			List<ItemMetadataRMI> filesToDelete) throws DAOException, Exception {
+			List<ItemMetadata> filesToDelete) throws DAOException, Exception {
 
-		List<ItemMetadataRMI> items = new ArrayList<ItemMetadataRMI>();
+		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 
-		for (ItemMetadataRMI fileToDelete : filesToDelete) {
+		for (ItemMetadata fileToDelete : filesToDelete) {
 
 			if (fileToDelete.getStatus().equals("DELETED")) {
 				continue;
@@ -927,9 +929,9 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 
 		Boolean success = false;
-		ItemMetadataRMI fileToDelete = null;
+		ItemMetadata fileToDelete = null;
 
-		List<CommitInfoRMI> commitResponse = this.doCommit(user, workspace,
+		List<CommitInfo> commitResponse = this.doCommit(user, workspace,
 				apiDevice, items);
 
 		if (!commitResponse.isEmpty()) {

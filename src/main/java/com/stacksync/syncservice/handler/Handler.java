@@ -3,12 +3,13 @@ package com.stacksync.syncservice.handler;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
+import com.stacksync.commons.models.CommitInfo;
+import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOFactory;
@@ -18,9 +19,7 @@ import com.stacksync.syncservice.db.infinispan.InfinispanItemVersionDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.ChunkRMI;
-import com.stacksync.syncservice.db.infinispan.models.CommitInfoRMI;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
@@ -30,11 +29,13 @@ import com.stacksync.syncservice.exceptions.CommitExistantVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import com.stacksync.syncservice.exceptions.InternalServerError;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.storage.StorageFactory;
 import com.stacksync.syncservice.storage.StorageManager;
 import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
+import java.rmi.RemoteException;
 
 public class Handler {
 
@@ -60,7 +61,7 @@ public class Handler {
 
 		String dataSource = Config.getDatasource();
 
-		DAOFactory factory = new DAOFactory(dataSource);
+		DAOFactory factory = DAOFactory.getInstance();
 
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		deviceDao = factory.getDeviceDAO(connection);
@@ -70,23 +71,31 @@ public class Handler {
 		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
 	}
 
-	public List<CommitInfoRMI> doCommit(UserRMI user, WorkspaceRMI workspace,
-			DeviceRMI device, List<ItemMetadataRMI> items) throws Exception {
+	public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
+			DeviceRMI device, List<ItemMetadata> items) throws Exception {
 
 		HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
 
-		workspace = workspaceDAO.getById(workspace.getId());
-		// TODO: check if the workspace belongs to the user or its been given
-		// access
+            try {
+                workspace = workspaceDAO.getById(workspace.getId());
+                //userDao.findById(user.getId());
+                // TODO: check if the workspace belongs to the user or its been given
+                // access
 
 		device = deviceDao.get(device.getId());
+                
+            } catch (RemoteException ex) {
+                logger.error("Remote Exception getting workspace or device: "+ex);
+                throw new DAOException(ex);
+            }
+            
 		// TODO: check if the device belongs to the user
 
-		List<CommitInfoRMI> responseObjects = new ArrayList<CommitInfoRMI>();
+		List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
 
-		for (ItemMetadataRMI item : items) {
+		for (ItemMetadata item : items) {
 
-			ItemMetadataRMI objectResponse = null;
+			ItemMetadata objectResponse = null;
 			boolean committed;
 
 			try {
@@ -118,9 +127,13 @@ public class Handler {
 			} catch (CommitWrongVersionNoParent e) {
                             logger.info("Commit wrong version no parent");
 				committed = false;
-			}
+			} catch (Exception ex) {
+                            logger.error("Undeclared exception thrown");
+                            // FIXME: This Exception has to be removed. (RemoteException...)
+                            committed = false;
+                        }
 
-			responseObjects.add(new CommitInfoRMI(item.getVersion(), committed,
+			responseObjects.add(new CommitInfo(item.getVersion(), committed,
 					objectResponse));
 		}
 
@@ -131,7 +144,7 @@ public class Handler {
 			boolean isEncrypted) throws ShareProposalNotCreatedException,
 			UserNotFoundException {
 
-		// Check the owner
+		/*// Check the owner
 		try {
 			user = userDao.findById(user.getId());
 		} catch (Exception e) {
@@ -282,13 +295,14 @@ public class Handler {
 			}
 		}
 
-		return workspace;
+		return workspace;*/
+            return null;
 	}
 
 	public UnshareData doUnshareFolder(UserRMI user, List<String> emails, ItemRMI item, boolean isEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
 		
-		UnshareData response;
+		/*UnshareData response;
 		// Check the owner
 		try {
 			user = userDao.findById(user.getId());
@@ -443,7 +457,8 @@ public class Handler {
 			response = new UnshareData(usersToRemove, sourceWorkspace, false);
 
 		}
-		return response;
+		return response;*/
+            return null;
 	}
 
 	public List<UserWorkspaceRMI> doGetWorkspaceMembers(UserRMI user,
@@ -475,7 +490,7 @@ public class Handler {
 	 * Private functions
 	 */
 
-	private void commitObject(ItemMetadataRMI item, WorkspaceRMI workspace,
+	private void commitObject(ItemMetadata item, WorkspaceRMI workspace,
 			DeviceRMI device) throws CommitWrongVersionNoParent,
 			CommitWrongVersion, CommitExistantVersion, Exception {
 
@@ -508,7 +523,7 @@ public class Handler {
 		}
 	}
 
-	private void saveNewObject(ItemMetadataRMI metadata, WorkspaceRMI workspace,
+	private void saveNewObject(ItemMetadata metadata, WorkspaceRMI workspace,
 			DeviceRMI device) throws Exception {
 		// Create workspace and parent instances
 		Long parentId = metadata.getParentId();
@@ -530,7 +545,7 @@ public class Handler {
 			item.setClientParentFileVersion(metadata.getParentVersion());
 
 			item.setLatestVersionNumber(metadata.getVersion());
-			item.setWorkspace(workspace);
+			//item.setWorkspace(workspace);
 			item.setParent(parent);
 
 			itemDao.put(item);
@@ -563,7 +578,7 @@ public class Handler {
 		}
 	}
 
-	private void saveNewVersion(ItemMetadataRMI metadata, ItemRMI serverItem,
+	private void saveNewVersion(ItemMetadata metadata, ItemRMI serverItem,
 			WorkspaceRMI workspace, DeviceRMI device) throws Exception {
 
 		beginTransaction();
@@ -638,10 +653,10 @@ public class Handler {
 	}
 
 	private void saveExistentVersion(ItemRMI serverObject,
-			ItemMetadataRMI clientMetadata) throws CommitWrongVersion,
+			ItemMetadata clientMetadata) throws CommitWrongVersion,
 			CommitExistantVersion, Exception {
 
-		ItemMetadataRMI serverMetadata = this.getServerObjectVersion(serverObject,
+		ItemMetadata serverMetadata = this.getServerObjectVersion(serverObject,
 				clientMetadata.getVersion());
 
 		if (!clientMetadata.equals(serverMetadata)) {
@@ -657,16 +672,16 @@ public class Handler {
 		}
 	}
 
-	private ItemMetadataRMI getCurrentServerVersion(ItemRMI serverObject)
+	private ItemMetadata getCurrentServerVersion(ItemRMI serverObject)
 			throws Exception {
 		return getServerObjectVersion(serverObject,
 				serverObject.getLatestVersionNumber());
 	}
 
-	private ItemMetadataRMI getServerObjectVersion(ItemRMI serverObject,
+	private ItemMetadata getServerObjectVersion(ItemRMI serverObject,
 			long requestedVersion) throws Exception {
 
-		ItemMetadataRMI metadata = itemVersionDao.findByItemIdAndVersion(
+		ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(
 				serverObject.getId(), requestedVersion);
 
 		return metadata;

@@ -4,8 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.infinispan.models.CommitInfoRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserWorkspaceRMI;
 
@@ -42,7 +42,7 @@ public abstract class APIResponse {
 		return item;
 	}
 	
-	public ItemMetadataRMI getMetadata(){
+	public ItemMetadata getMetadata(){
 		return item.getMetadata();
 	}
 	
@@ -55,14 +55,14 @@ public abstract class APIResponse {
 			jResponse.addProperty("error", getErrorCode());
 			jResponse.addProperty("description", getDescription());
 		} else {
-			ItemMetadataRMI file = getItem().getMetadata();
+			ItemMetadata file = getItem().getMetadata();
 			jResponse = this.parseItemMetadata(file);
 		}
 
 		return jResponse.toString();
 	}
 	
-	private JsonObject parseItemMetadata(ItemMetadataRMI metadata) {
+	private JsonObject parseItemMetadata(ItemMetadata metadata) {
 		JsonObject jMetadata = parseMetadata(metadata);
 
 		if (metadata.getParentId() == null) {
@@ -91,7 +91,7 @@ public abstract class APIResponse {
 		return jMetadata;
 	}
 	
-	protected JsonObject parseObjectMetadataForAPI(ItemMetadataRMI metadata) {
+	protected JsonObject parseObjectMetadataForAPI(ItemMetadata metadata) {
 		JsonObject jMetadata = parseMetadata(metadata);
 
 		if (metadata.isFolder()) {
@@ -110,7 +110,7 @@ public abstract class APIResponse {
 		return jMetadata;
 	}
 	
-	protected JsonObject parseMetadata(ItemMetadataRMI metadata) {
+	protected JsonObject parseMetadata(ItemMetadata metadata) {
 		JsonObject jMetadata = new JsonObject();
 
 		if (metadata == null) {

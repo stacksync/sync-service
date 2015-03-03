@@ -24,7 +24,7 @@ public class APIShareFolderResponse extends APIResponse {
 
 	@Override
 	public String toString() {
-		JsonObject jResponse = new JsonObject();
+		/*JsonObject jResponse = new JsonObject();
 
 		if (getSuccess()) {
 
@@ -42,6 +42,7 @@ public class APIShareFolderResponse extends APIResponse {
 			jResponse.addProperty("description", getDescription());
 		}
 
-		return jResponse.toString();
+		return jResponse.toString();*/
+            return null;
 	}
 }

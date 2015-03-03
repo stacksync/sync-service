@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.test.dao;
 
+import com.stacksync.commons.models.ItemMetadata;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -22,7 +23,6 @@ import com.stacksync.syncservice.db.infinispan.InfinispanItemDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanItemVersionDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
@@ -230,7 +230,7 @@ public class PostgresqlDAOTest {
 		workspace.setLatestRevision(0);
 
 		ItemRMI object = new ItemRMI();
-		object.setWorkspace(workspace);
+		//object.setWorkspace(workspace);
 		object.setLatestVersionNumber(1L);
 		object.setParent(null);
 		object.setId(1331432L);
@@ -262,11 +262,11 @@ public class PostgresqlDAOTest {
 	@Test
 	public void testGetObjectMetadataByWorkspaceName() throws DAOException, RemoteException {
 
-		List<ItemMetadataRMI> objects = objectDao.getItemsByWorkspaceId(UUID.randomUUID());
+		List<ItemMetadata> objects = objectDao.getItemsByWorkspaceId(UUID.randomUUID());
 
 		if (objects != null && !objects.isEmpty()) {
 
-			for (ItemMetadataRMI object : objects) {
+			for (ItemMetadata object : objects) {
 				System.out.println(object.toString());
 			}
 
@@ -285,13 +285,13 @@ public class PostgresqlDAOTest {
 		Long version = 1L;
 		boolean list = true;
 
-		ItemMetadataRMI object = objectDao.findById(fileId, list, version, includeDeleted, includeChunks);
+		ItemMetadata object = objectDao.findById(fileId, list, version, includeDeleted, includeChunks);
 
 		if (object != null) {
 			System.out.println(object.toString());
 
 			if (object.getChildren() != null) {
-				for (ItemMetadataRMI child : object.getChildren()) {
+				for (ItemMetadata child : object.getChildren()) {
 					System.out.println(child.toString());
 				}
 			}
@@ -310,13 +310,13 @@ public class PostgresqlDAOTest {
 		Long version = 1L;
 		boolean list = true;
 
-		ItemMetadataRMI object = objectDao.findById(fileId, list, version, includeDeleted, includeChunks);
+		ItemMetadata object = objectDao.findById(fileId, list, version, includeDeleted, includeChunks);
 
 		if (object != null) {
 			System.out.println(object.toString());
 
 			if (object.getChildren() != null) {
-				for (ItemMetadataRMI child : object.getChildren()) {
+				for (ItemMetadata child : object.getChildren()) {
 					System.out.println(child.toString());
 				}
 			}
@@ -332,13 +332,13 @@ public class PostgresqlDAOTest {
 		UUID userId = UUID.randomUUID();
 		boolean includeDeleted = false;
 
-		ItemMetadataRMI object = objectDao.findByUserId(userId, includeDeleted);
+		ItemMetadata object = objectDao.findByUserId(userId, includeDeleted);
 
 		if (object != null) {
 			System.out.println(object.toString());
 
 			if (object.getChildren() != null) {
-				for (ItemMetadataRMI child : object.getChildren()) {
+				for (ItemMetadata child : object.getChildren()) {
 					System.out.println(child.toString());
 				}
 			}
