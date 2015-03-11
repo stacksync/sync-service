@@ -859,7 +859,7 @@ public class Handler {
 		user.setSwiftAccount(Config.getSwiftAccount());
 		user.setName(randomName);
 		user.setQuotaLimit(0);
-		user.setQuotaUsed(0);
+		user.setQuotaUsedReal(0);
 		user.setSwiftUser(randomName);
 		String pass;
 		try {

@@ -21,4 +21,6 @@ public interface UserDAO {
 	public void update(User user) throws DAOException;
 
 	public void delete(UUID id) throws DAOException;
+		
+	public void updateAvailableQuota(User user) throws DAOException;
 }
