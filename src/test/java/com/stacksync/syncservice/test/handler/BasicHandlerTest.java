@@ -51,7 +51,7 @@ public class BasicHandlerTest {
 			deviceDao = factory.getDeviceDAO(connection);
 			
 
-			User user = new User(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+			User user = new User(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100L, 0L, 0L);
 			userDao.add(user);
 
 			Workspace workspace = new Workspace(null, 1, user, false, false);

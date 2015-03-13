@@ -46,7 +46,7 @@ public class UpdateDataTest {
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		userDao = factory.getUserDao(connection);
 
-		user1 = new User(UUID.fromString("159a1286-33df-4453-bf80-cff4af0d97b0"), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+		user1 = new User(UUID.fromString("225130d4-c817-4df0-b4e2-13271b494ae5"), "tester_2", "tester_2", "AUTH_5e446d39e4294b57831da7ce3dd0d2c2", "test@stacksync.org", 100000L,0L, 0L);
 		
 		/*
 		userDao.add(user1);
@@ -65,10 +65,10 @@ public class UpdateDataTest {
 	public void registerNewDevice() throws Exception {
 		
 		ItemMetadata file = new ItemMetadata();
-		file.setId(118L);
+		file.setId(509L);
 		file.setMimetype("image/jpeg");
 		file.setChecksum(0000000000L);
-		file.setSize(9999L);
+		file.setSize(900L);
 		file.setChunks(Arrays.asList("11111", "22222", "333333"));
 		
 		APICommitResponse response = handler.updateData(user1, file);

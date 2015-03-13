@@ -68,8 +68,9 @@ public class PostgresqlDAOTest {
 		user.setName(nextString());
 		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
+		user.setQuotaLimit(2048L);
+		user.setQuotaUsedLogical(1403L);
+		user.setQuotaUsedReal(1024L);
 
 		userDao.add(user);
 
@@ -90,9 +91,9 @@ public class PostgresqlDAOTest {
 		user.setName(nextString());
 		user.setId(userId);
 		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
-
+		user.setQuotaLimit(2048L);
+		user.setQuotaUsedLogical(1403L);
+		user.setQuotaUsedReal(1024L);
 		userDao.add(user);
 
 		if (user.getId() == null) {
@@ -102,8 +103,9 @@ public class PostgresqlDAOTest {
 			user2.setName(nextString());
 			user2.setId(userId);
 			user2.setEmail(nextString());
-			user2.setQuotaLimit(2048);
-			user2.setQuotaUsed(1403);
+			user2.setQuotaLimit(2048L);
+			user2.setQuotaUsedLogical(1403L);
+			user2.setQuotaUsedReal(1024L);
 
 			try {
 				userDao.add(user2);
@@ -121,8 +123,9 @@ public class PostgresqlDAOTest {
 		user.setName(nextString());
 		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
+		user.setQuotaLimit(2048L);
+		user.setQuotaUsedLogical(1403L);
+		user.setQuotaUsedReal(1024L);
 
 		userDao.add(user);
 
@@ -140,8 +143,9 @@ public class PostgresqlDAOTest {
 			user.setName(newName);
 			user.setId(newUserId);
 			user.setEmail(newEmail);
-			user.setQuotaLimit(newQuotaLimit);
-			user.setQuotaUsed(newQuotaUsed);
+			user.setQuotaLimit(2048L);
+			user.setQuotaUsedLogical(1403L);
+			user.setQuotaUsedReal(1024L);
 
 			try {
 				userDao.add(user);
@@ -178,8 +182,9 @@ public class PostgresqlDAOTest {
 		user.setName(nextString());
 		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
+		user.setQuotaLimit(2048L);
+		user.setQuotaUsedLogical(1403L);
+		user.setQuotaUsedReal(1024L);
 
 		userDao.add(user);
 
@@ -229,8 +234,9 @@ public class PostgresqlDAOTest {
 		user.setName(nextString());
 		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
+		user.setQuotaLimit(2048L);
+		user.setQuotaUsedLogical(1403L);
+		user.setQuotaUsedReal(1024L);
 		userDao.add(user);
 
 		Workspace workspace = new Workspace();
@@ -252,8 +258,9 @@ public class PostgresqlDAOTest {
 		user.setName(nextString());
 		user.setId(UUID.randomUUID());
 		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
+		user.setQuotaLimit(2048L);
+		user.setQuotaUsedLogical(1403L);
+		user.setQuotaUsedReal(1024L);
 		userDao.add(user);
 
 		Workspace workspace = new Workspace();

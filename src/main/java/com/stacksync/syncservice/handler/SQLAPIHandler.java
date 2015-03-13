@@ -228,6 +228,10 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		try {
 			saveNewItemAPI(user, fileToSave, parent);
+			//update quota
+			user.setQuotaUsedLogical(user.getQuotaUsedLogical() + fileToSave.getSize());
+			userDao.updateAvailableQuota(user);
+			
 			responseAPI = new APICommitResponse(fileToSave, true, 0, "");
 
 		} catch (Exception e) {
@@ -287,7 +291,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			return new APICommitResponse(fileToUpdate, false, 403,
 					"You are not allowed to modify this file");
 		}
-
+				
 		// update file attributes
 
 		file.setMimetype(fileToUpdate.getMimetype());
@@ -305,6 +309,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		Workspace workspace = new Workspace(file.getWorkspaceId());
 
 		try {
+			//The quota will be updated into doCommit function
 			this.doCommit(user, workspace, apiDevice, items);
 		} catch (DAOException e) {
 			return new APICommitResponse(fileToUpdate, false, e.getError()
@@ -947,5 +952,6 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 				success, 0, "");
 		return response;
 	}
+
 
 }

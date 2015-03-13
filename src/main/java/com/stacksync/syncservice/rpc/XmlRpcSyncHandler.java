@@ -512,6 +512,7 @@ public class XmlRpcSyncHandler {
 		return response.toString();
 
 	}
+	
 
 	private APIGetMetadata getParentMetadata(UUID userId, Long parentId) {
 		Boolean includeDeleted = true;

@@ -47,13 +47,13 @@ public class UpdateDeviceTest {
 			workspaceDAO = factory.getWorkspaceDao(connection);
 			userDao = factory.getUserDao(connection);
 
-			user1 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+			user1 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100L, 0L, 0L);
 
 			userDao.add(user1);
 			Workspace workspace1 = new Workspace(null, 1, user1, false, false);
 			workspaceDAO.add(workspace1);
 
-			user2 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+			user2 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100L, 0L, 0L);
 
 			userDao.add(user2);
 			Workspace workspace2 = new Workspace(null, 1, user2, false, false);

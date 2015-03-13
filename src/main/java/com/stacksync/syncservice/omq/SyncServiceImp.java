@@ -229,7 +229,8 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		accountInfo.setName(user.getName());
 		accountInfo.setEmail(user.getEmail());
 		accountInfo.setQuotaLimit(user.getQuotaLimit());
-		accountInfo.setQuotaUsed(user.getQuotaUsed());
+		//TODO: Add real quota used to account info? 
+		accountInfo.setQuotaUsed(user.getQuotaUsedLogical());
 		accountInfo.setSwiftUser(user.getSwiftUser());
 		accountInfo.setSwiftTenant(Config.getSwiftTenant());
 		accountInfo.setSwiftAuthUrl(Config.getSwiftAuthUrl());

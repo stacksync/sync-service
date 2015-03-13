@@ -42,8 +42,9 @@ CREATE TABLE public.user1 (
     swift_user varchar(100) NOT NULL UNIQUE,
     swift_account varchar(100) NOT NULL,
     email character varying(100) NOT NULL,
-    quota_limit integer NOT NULL,
-    quota_used integer DEFAULT 0 NOT NULL,
+    quota_limit bigint NOT NULL,
+    quota_used_logical bigint DEFAULT 0 NOT NULL,
+    quota_used_real bigint DEFAULT 0 NOT NULL,
     created_at timestamp DEFAULT now()
 );
 
