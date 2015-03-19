@@ -35,7 +35,7 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 		List<ItemMetadata> responseObjects = new ArrayList<ItemMetadata>();
 
 		try {
-			responseObjects = itemDao.getItemsByWorkspaceId(workspace.getId());
+			responseObjects = itemDao.getItemsByWorkspaceId(user.getId(), workspace.getId());
 		} catch (DAOException e) {
 			logger.error(e.toString(), e);
 		}
