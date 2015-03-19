@@ -4,7 +4,7 @@
 
 -- Proxy
 
-CREATE OR REPLACE FUNCTION get_workspace_by_id(uid uuid, did uuid)
+CREATE OR REPLACE FUNCTION get_device_by_id(uid uuid, did uuid)
 RETURNS TABLE(id uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text, created_at timestamp) AS $$
     CLUSTER 'usercluster';
     RUN ON hashtext(uid::text);

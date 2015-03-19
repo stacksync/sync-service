@@ -10,7 +10,7 @@ import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface WorkspaceDAO {
 
-	public Workspace getById(UUID id) throws DAOException;
+	public Workspace getById(UUID userId, UUID id) throws DAOException;
 
 	public List<Workspace> getByUserId(UUID userId) throws DAOException;
 	
@@ -26,7 +26,7 @@ public interface WorkspaceDAO {
 	
 	public void deleteUser(User user, Workspace workspace) throws DAOException;
 
-	public void delete(UUID id) throws DAOException;
+	public void delete(UUID userID, UUID workspaceID) throws DAOException;
 	
 	public List<UserWorkspace> getMembersById(UUID workspaceId) throws DAOException;
 

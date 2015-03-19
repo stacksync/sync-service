@@ -27,7 +27,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		ResultSet resultSet = null;
 		User user = null;
 
-		String query = "SELECT id, name, email, swift_user, swift_account, quota_limit, quota_used " + " FROM \"user1\" WHERE id = ?::uuid";
+		String query = "SELECT * FROM find_user_by_id(?::uuid)";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { userID });
@@ -39,28 +39,28 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			logger.error(e);
 			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
 		}
-		
-		if (user == null){
+
+		if (user == null) {
 			throw new DAOException(DAOError.USER_NOT_FOUND);
 		}
 
 		return user;
 	}
-	
+
 	@Override
 	public User getByEmail(String email) throws DAOException {
 
 		ResultSet resultSet = null;
 		User user = null;
 
-		String query = "SELECT * " + " FROM \"user1\" WHERE email = lower(?)";
+		String query = "SELECT * FROM get_user_by_email(lower(?))";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { email });
-			
+
 			if (resultSet.next()) {
 				user = mapUser(resultSet);
-			}else{
+			} else {
 				throw new NoResultReturnedDAOException(DAOError.USER_NOT_FOUND);
 			}
 		} catch (SQLException e) {
@@ -76,7 +76,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		ResultSet resultSet = null;
 		List<User> list = new ArrayList<User>();
 
-		String query = "SELECT * FROM user1";
+		String query = "SELECT * FROM find_all_users()";
 		try {
 			resultSet = executeQuery(query, null);
 
@@ -96,13 +96,18 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			throw new IllegalArgumentException("User attributes not set");
 		}
 
-		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsed() };
+		// This will insert a new user in one of the shards:
+		// "RUN ON hashtext(id::text);"
+		UUID userID = UUID.randomUUID();
 
-		String query = "INSERT INTO user1 (email, name, swift_user, swift_account, quota_limit, quota_used) VALUES (?, ?, ?, ?, ?)";
+		Object[] values = { userID, user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(),
+				user.getQuotaUsed() };
+
+		String query = "SELECT add_user(?::uuid, ?, ?, ?, ?, ?, ?)";
 
 		try {
-			UUID userId = (UUID) executeUpdate(query, values);
-			user.setId(userId);
+			executeQuery(query, values);
+			user.setId(userID);
 		} catch (DAOException e) {
 			logger.error(e);
 			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
@@ -115,9 +120,10 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			throw new IllegalArgumentException("User attributes not set");
 		}
 
-		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsed(), user.getId() };
+		Object[] values = { user.getId(), user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(),
+				user.getQuotaLimit(), user.getQuotaUsed() };
 
-		String query = "UPDATE user1 SET email = ?, name = ?, swift_user = ?, swift_account = ?, quota_limit = ?, quota_used = ? WHERE id = ?::uuid";
+		String query = "SELECT update_user(?::uuid, ?, ?, ?, ?, ?, ?)";
 
 		try {
 			executeUpdate(query, values);
@@ -131,9 +137,9 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 	public void delete(UUID userID) throws DAOException {
 		Object[] values = { userID };
 
-		String query = "DELETE FROM user1 WHERE id = ?";
+		String query = "SELECT delete_user(?::uuid)";
 
-		executeUpdate(query, values);
+		executeQuery(query, values);
 	}
 
 	private User mapUser(ResultSet resultSet) throws SQLException {
@@ -153,11 +159,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		ArrayList<User> users = new ArrayList<User>();
 		Object[] values = { itemId };
 
-		String query = "SELECT u.* " 
-				+ " FROM item i " 
-				+ " INNER JOIN workspace_user wu ON i.workspace_id = wu.workspace_id "
-				+ " INNER JOIN user1 u ON wu.user_id = u.id " 
-				+ " WHERE i.id = ?";
+		String query = "SELECT * FROM find_user_by_item_id(?)";
 
 		ResultSet result = null;
 

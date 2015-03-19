@@ -5,21 +5,20 @@
 -- Proxy
 
 CREATE OR REPLACE FUNCTION get_workspace_by_id(uid uuid, wid uuid)
-RETURNS TABLE(id uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text, created_at timestamp) AS $$
+RETURNS TABLE(id uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text, user_id uuid, workspace_name text, parent_item_id bigint) AS $$
     CLUSTER 'usercluster';
     RUN ON hashtext(uid::text);
-	SELECT * FROM workspace w INNER JOIN workspace_user wu ON wu.workspace_id = w.id WHERE w.id = wid;
+	SELECT w.id, w.latest_revision, w.owner_id, w.is_shared, w.is_encrypted, w.swift_container, w.swift_url, wu.user_id, wu.workspace_name, wu.parent_item_id FROM workspace w INNER JOIN workspace_user wu ON wu.workspace_id = w.id WHERE w.id = wid;
 $$ LANGUAGE plproxy;
-
 ------------------------------
 -- Get by user id
 ------------------------------
 
 CREATE OR REPLACE FUNCTION get_workspace_by_userid(uid uuid)
-RETURNS TABLE(id uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text, created_at timestamp) AS $$
+RETURNS TABLE(id uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text, user_id uuid, workspace_name text, parent_item_id bigint) AS $$
     CLUSTER 'usercluster';
     RUN ON hashtext(uid::text);
-	SELECT w.*, wu.* FROM workspace w INNER JOIN workspace_user wu ON wu.workspace_id = w.id WHERE wu.user_id=uid;
+	SELECT w.id, w.latest_revision, w.owner_id, w.is_shared, w.is_encrypted, w.swift_container, w.swift_url, wu.user_id, wu.workspace_name, wu.parent_item_id FROM workspace w INNER JOIN workspace_user wu ON wu.workspace_id = w.id WHERE wu.user_id=uid;
 $$ LANGUAGE plproxy;
 
 
@@ -27,11 +26,12 @@ $$ LANGUAGE plproxy;
 -- Get default workspace by user id
 ------------------------------
 
-CREATE OR REPLACE FUNCTION get_default_workspace_by_userid(uid uuid, wid uuid)
-RETURNS TABLE(id uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text, created_at timestamp) AS $$
+CREATE OR REPLACE FUNCTION get_default_workspace_by_userid(uid uuid)
+RETURNS TABLE(id uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text, user_id uuid, workspace_name text, parent_item_id bigint) AS $$
     CLUSTER 'usercluster';
     RUN ON hashtext(uid::text);
-	SELECT w.*, wu.* FROM workspace w INNER JOIN workspace_user wu ON wu.workspace_id = w.id WHERE w.owner_id=wid AND w.is_shared = false LIMIT 1
+	SELECT w.id, w.latest_revision, w.owner_id, w.is_shared, w.is_encrypted, w.swift_container, w.swift_url, wu.user_id, wu.workspace_name, wu.parent_item_id FROM workspace w INNER JOIN workspace_user wu ON wu.workspace_id = w.id WHERE w.owner_id=uid AND w.is_shared = false LIMIT 1;
+
 $$ LANGUAGE plproxy;
 
 ------------------------------
@@ -40,20 +40,20 @@ $$ LANGUAGE plproxy;
 
 -- Proxy
 
-CREATE OR REPLACE FUNCTION add_workspace(uid uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text, created_at timestamp)
+CREATE OR REPLACE FUNCTION add_workspace(uid uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text)
 RETURNS uuid AS $$
     CLUSTER 'usercluster';
     RUN ON hashtext(uid::text) ;
 $$ LANGUAGE plproxy;
 
 -- Part
-CREATE OR REPLACE FUNCTION add_workspace(uid uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text, created_at timestamp)
+CREATE OR REPLACE FUNCTION add_workspace(uid uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text)
 RETURNS uuid AS $$
 DECLARE
 	wid uuid;
 BEGIN
 	wid := (select uuid_generate_v1());		
-	INSERT INTO workspace (id, latest_revision, owner_id, is_shared, is_encrypted, swift_container, swift_url) VALUES ($2, $3, $4, $5, $6, $7);
+	INSERT INTO workspace (id, latest_revision, owner_id, is_shared, is_encrypted, swift_container, swift_url) VALUES (wid, $2, $3, $4, $5, $6, $7);
 	return wid;
 END;
 $$ LANGUAGE plpgsql;

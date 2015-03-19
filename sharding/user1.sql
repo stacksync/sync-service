@@ -104,7 +104,7 @@ $$ LANGUAGE SQL;
 CREATE OR REPLACE FUNCTION find_user_by_item_id(id bigint)
 RETURNS TABLE(id uuid, email text, name text, swift_user text, swift_account text, quota_limit integer, quota_used integer, created_at timestamp) AS $$
     CLUSTER 'usercluster';
-    RUN ON hashtext(id) ;
+    RUN ON ALL;
 $$ LANGUAGE plproxy;
 
 -- Part
