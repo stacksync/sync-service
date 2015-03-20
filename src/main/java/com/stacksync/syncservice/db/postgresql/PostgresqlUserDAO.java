@@ -78,7 +78,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 
 		String query = "SELECT * FROM find_all_users()";
 		try {
-			resultSet = executeQuery(query, null);
+			resultSet = executeQuery(query, new Object[] {});
 
 			while (resultSet.next()) {
 				list.add(mapUser(resultSet));
@@ -92,16 +92,18 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 
 	@Override
 	public void add(User user) throws DAOException {
-		if (!user.isValid()) {
-			throw new IllegalArgumentException("User attributes not set");
-		}
-
 		// This will insert a new user in one of the shards:
 		// "RUN ON hashtext(id::text);"
 		UUID userID = UUID.randomUUID();
 
 		Object[] values = { userID, user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(),
 				user.getQuotaUsed() };
+
+		for (Object o : values) {
+			if (o == null) {
+				throw new IllegalArgumentException("User attributes not set");
+			}
+		}
 
 		String query = "SELECT add_user(?::uuid, ?, ?, ?, ?, ?, ?)";
 
@@ -126,7 +128,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		String query = "SELECT update_user(?::uuid, ?, ?, ?, ?, ?, ?)";
 
 		try {
-			executeUpdate(query, values);
+			executeQuery(query, values);
 		} catch (DAOException e) {
 			logger.error(e);
 			throw new DAOException(e);

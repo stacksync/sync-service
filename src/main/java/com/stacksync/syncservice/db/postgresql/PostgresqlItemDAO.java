@@ -33,7 +33,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		String query = "SELECT * FROM get_item_by_id(?::uuid, ?)";
 
 		try {
-			resultSet = executeQuery(query, new Object[] { item1ID });
+			resultSet = executeQuery(query, new Object[] { userID, item1ID });
 
 			if (resultSet.next()) {
 				item = DAOUtil.getItemFromResultSet(resultSet);
@@ -139,6 +139,16 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		return items;
 	}
 
+	/*
+	 * 
+	 * 
+	 * FUNCTIONS BELOW ARE FOR API
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
+	
 	@Override
 	public List<ItemMetadata> getItemsById(UUID userID, Long id) throws DAOException {
 		Object[] values = {userID, id };
@@ -332,6 +342,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		return hasRows;
 	}
 
+	//TODO this function is only used in shared folders
 	@Override
 	public List<String> migrateItem(Long itemId, UUID workspaceId) throws DAOException {
 

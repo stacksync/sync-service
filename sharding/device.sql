@@ -5,10 +5,10 @@
 -- Proxy
 
 CREATE OR REPLACE FUNCTION get_device_by_id(uid uuid, did uuid)
-RETURNS TABLE(id uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text, created_at timestamp) AS $$
-    CLUSTER 'usercluster';
-    RUN ON hashtext(uid::text);
-	SELECT * FROM device WHERE id = did;
+RETURNS TABLE(id uuid, name text, user_id uuid, os text, created_at timestamp, last_access_at timestamp, last_ip inet, app_version text) AS $$
+	CLUSTER 'usercluster';
+	RUN ON hashtext(uid::text);
+    SELECT * FROM device WHERE id = did;
 $$ LANGUAGE plproxy;
 
 ------------------------------

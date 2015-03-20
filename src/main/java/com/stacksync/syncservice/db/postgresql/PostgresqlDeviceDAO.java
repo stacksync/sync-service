@@ -32,7 +32,7 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 		ResultSet resultSet = null;
 		Device device = null;
 
-		String query = "SELECT * FROM get_item_by_id(?::uuid, ?)";
+		String query = "SELECT * FROM get_device_by_id(?::uuid, ?::uuid)";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { userID, deviceID });
@@ -55,7 +55,7 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 
 		Object[] values = { device.getUser().getId(), device.getName(), device.getOs(), device.getLastIp(), device.getAppVersion() };
 
-		String query = "SELECT add_item(?::uuid, ?, ?, ?)";
+		String query = "SELECT add_device(?::uuid, ?, ?, ?::inet, ?)";
 
 		ResultSet resultSet = executeQuery(query, values);
 
@@ -83,7 +83,7 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 
 		Object[] values = { device.getUser().getId(), device.getId(), device.getLastIp(), device.getAppVersion() };
 
-		String query = "SELECT update_item(?::uuid, ?::uuid, ?, ?)";
+		String query = "SELECT update_device(?::uuid, ?::uuid, ?::inet, ?)";
 
 		try {
 			executeQuery(query, values);
@@ -107,6 +107,7 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 		Device device = new Device();
 		device.setId(UUID.fromString(resultSet.getString("id")));
 		device.setName(resultSet.getString("name"));
+		device.setAppVersion(resultSet.getString("app_version"));
 
 		User user = new User();
 		user.setId(UUID.fromString(resultSet.getString("user_id")));
