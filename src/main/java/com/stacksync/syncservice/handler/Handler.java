@@ -90,8 +90,9 @@ public class Handler {
 
 			ItemMetadata objectResponse = null;
 			boolean committed;
-
+			
 			try {
+				user = userDao.findById(user.getId());
 				if (item.getParentId() != null) {
 					Long parentId = tempIds.get(item.getParentId());
 					if (parentId != null) {
@@ -494,15 +495,11 @@ public class Handler {
 		if (serverItem == null) {
 			if (item.getVersion() == 1) {
 				long newQuotaUsedLogical = item.getSize() + user.getQuotaUsedLogical();
-				if (newQuotaUsedLogical > user.getQuotaLimit()) {
-					throw new CommitWrongVersion(); // TODO: define an specific
-													// exception
-				} else {
-					this.saveNewObject(item, workspace, device);
-					// Update quota used
-					user.setQuotaUsedLogical(newQuotaUsedLogical);
-					userDao.updateAvailableQuota(user);
-				}
+				this.saveNewObject(item, workspace, device);
+				
+				// Update quota used
+				user.setQuotaUsedLogical(newQuotaUsedLogical);
+				userDao.updateAvailableQuota(user);
 			} else {
 				throw new CommitWrongVersionNoParent();
 			}
@@ -519,22 +516,21 @@ public class Handler {
 		} else {
 			// Check if version is correct
 			if (serverVersion + 1 == clientVersion) {
-				// TODO: Is it necessary the next query to obtain the metadata
-				// item?
 				ItemMetadata serverItemMetadata = itemDao.findById(item.getId(), false, serverItem.getLatestVersion(),
 						false, false);
-				long newQuotaUsedLogical = user.getQuotaUsedLogical() + (item.getSize() - serverItemMetadata.getSize());
-
-				if (newQuotaUsedLogical > user.getQuotaLimit()) {
-					throw new CommitWrongVersion("Quota limit passed.", serverItem);
-					// TODO: define specific exception when user pass the limit quota
-				}else{
-					this.saveNewVersion(item, serverItem, workspace, device);
-					logger.info("New Quota:" + newQuotaUsedLogical);
-					user.setQuotaUsedLogical(newQuotaUsedLogical);
-					userDao.updateAvailableQuota(user);
+				if (item.getStatus().equals(Status.DELETED.toString())){
+					item.setSize(0L);
 				}
-
+				long newQuotaUsedLogical = user.getQuotaUsedLogical() + (item.getSize() - serverItemMetadata.getSize());
+				
+				if (newQuotaUsedLogical < 0) {
+					newQuotaUsedLogical = 0L;
+				}
+				
+				this.saveNewVersion(item, serverItem, workspace, device);
+				logger.debug("New Quota:" + newQuotaUsedLogical);
+				user.setQuotaUsedLogical(newQuotaUsedLogical);
+				userDao.updateAvailableQuota(user);
 			} else {
 				throw new CommitWrongVersion("Invalid version.", serverItem);
 			}

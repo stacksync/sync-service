@@ -228,12 +228,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
 		try {
 			saveNewItemAPI(user, fileToSave, parent);
-			//update quota
-			user.setQuotaUsedLogical(user.getQuotaUsedLogical() + fileToSave.getSize());
-			userDao.updateAvailableQuota(user);
-			
 			responseAPI = new APICommitResponse(fileToSave, true, 0, "");
-
 		} catch (Exception e) {
 			logger.error(e);
 			responseAPI = new APICommitResponse(fileToSave, false, 500,
