@@ -20,6 +20,7 @@ import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.DeviceDAO;
@@ -72,7 +73,7 @@ public class Handler {
 		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
 	}
 
-	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items)
+	public CommitNotification doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items)
 			throws DAOException {
 
 		HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
@@ -83,7 +84,9 @@ public class Handler {
 
 		device = deviceDao.get(device.getId());
 		// TODO: check if the device belongs to the user
-
+                
+                user = userDao.findById(user.getId());
+                
 		List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
 
 		for (ItemMetadata item : items) {
@@ -92,7 +95,6 @@ public class Handler {
 			boolean committed;
 			
 			try {
-				user = userDao.findById(user.getId());
 				if (item.getParentId() != null) {
 					Long parentId = tempIds.get(item.getParentId());
 					if (parentId != null) {
@@ -135,7 +137,7 @@ public class Handler {
 			responseObjects.add(new CommitInfo(item.getVersion(), committed, objectResponse));
 		}
 
-		return responseObjects;
+		return new CommitNotification(null, responseObjects, user.getQuotaLimit(), user.getQuotaUsedLogical());
 	}
 
 	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted)

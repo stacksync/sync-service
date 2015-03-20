@@ -103,9 +103,9 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 			Device device = new Device(request.getDeviceId());
 			Workspace workspace = new Workspace(request.getWorkspaceId());
 
-			List<CommitInfo> committedItems = getHandler().doCommit(user, workspace, device, request.getItems());
-
-			CommitNotification result = new CommitNotification(request.getRequestId(), committedItems);
+			CommitNotification result = getHandler().doCommit(user, workspace, device, request.getItems());
+                        result.setRequestId(request.getRequestId());
+                        
 			UUID id = workspace.getId();
 
 			RemoteWorkspace commitNotifier = broker.lookupMulti(id.toString(), RemoteWorkspace.class);

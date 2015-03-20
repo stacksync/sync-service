@@ -16,11 +16,12 @@ import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
+import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 public interface SyncHandler {
 
-	public List<CommitInfo> doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items)
+	public CommitNotification doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items)
 			throws DAOException;
 	
 	public List<ItemMetadata> doGetChanges(User user, Workspace workspace);
