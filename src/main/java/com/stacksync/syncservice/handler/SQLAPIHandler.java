@@ -306,12 +306,12 @@ public class SQLAPIHandler extends Handler implements APIHandler {
         APICommitResponse responseAPI;
         try {
             CommitNotification commitResult = this.doCommit(user, workspace, apiDevice, items);
-            responseAPI = new APICommitResponse(fileToUpdate, true, 0, "");
+            responseAPI = new APICommitResponse(file, true, 0, "");
             responseAPI.setQuotaLimit(commitResult.getLimitQuota());
             responseAPI.setQuotaUsed(commitResult.getUsedQuota());
         } catch (Exception e) {
             logger.error(e);
-            responseAPI = new APICommitResponse(fileToUpdate, false, 500, e.toString());
+            responseAPI = new APICommitResponse(file, false, 500, e.toString());
         }
 
         return responseAPI;
