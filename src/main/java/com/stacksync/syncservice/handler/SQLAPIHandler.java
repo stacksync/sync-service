@@ -303,15 +303,17 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
         Workspace workspace = new Workspace(file.getWorkspaceId());
 
+        APICommitResponse responseAPI;
         try {
-            //The quota will be updated into doCommit function
-            this.doCommit(user, workspace, apiDevice, items);
-        } catch (DAOException e) {
-            return new APICommitResponse(fileToUpdate, false, e.getError()
-                    .getCode(), e.getMessage());
+            CommitNotification commitResult = this.doCommit(user, workspace, apiDevice, items);
+            responseAPI = new APICommitResponse(fileToUpdate, true, 0, "");
+            responseAPI.setQuotaLimit(commitResult.getLimitQuota());
+            responseAPI.setQuotaUsed(commitResult.getUsedQuota());
+        } catch (Exception e) {
+            logger.error(e);
+            responseAPI = new APICommitResponse(fileToUpdate, false, 500, e.toString());
         }
 
-        APICommitResponse responseAPI = new APICommitResponse(file, true, 0, "");
         return responseAPI;
     }
 
@@ -419,15 +421,18 @@ public class SQLAPIHandler extends Handler implements APIHandler {
         items.add(file);
 
         Workspace workspace = new Workspace(file.getWorkspaceId());
-
+        
+        APICommitResponse responseAPI;
         try {
-            this.doCommit(user, workspace, apiDevice, items);
-        } catch (DAOException e) {
-            return new APICommitResponse(fileToUpdate, false, e.getError()
-                    .getCode(), e.getMessage());
+            CommitNotification commitResult = this.doCommit(user, workspace, apiDevice, items);
+            responseAPI = new APICommitResponse(fileToUpdate, true, 0, "");
+            responseAPI.setQuotaLimit(commitResult.getLimitQuota());
+            responseAPI.setQuotaUsed(commitResult.getUsedQuota());
+        } catch (Exception e) {
+            logger.error(e);
+            responseAPI = new APICommitResponse(fileToUpdate, false, 500, e.toString());
         }
 
-        APICommitResponse responseAPI = new APICommitResponse(file, true, 0, "");
         return responseAPI;
     }
 
