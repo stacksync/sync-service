@@ -67,7 +67,7 @@ public class UpdateMetadataTest {
 		file.setFilename("chunks-2.png");
 		file.setParentId(null);
 		
-		APICommitResponse response = handler.updateMetadata(user1, file);
+		APICommitResponse response = handler.updateMetadata(user1, file, false);
 		System.out.println(response.toString());
 	}
 

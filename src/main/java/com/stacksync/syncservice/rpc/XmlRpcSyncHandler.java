@@ -290,7 +290,7 @@ public class XmlRpcSyncHandler {
 
     }
 
-    public String updateMetadata(String strUserId, String strFileId, String strNewFileName, String strNewParentId) {
+    public String updateMetadata(String strUserId, String strFileId, String strNewFileName, String strNewParentId, String strNameUpdated, String strParentUpdated) {
 
         logger.debug("XMLRPC -> put_metadata_file -->[User:" + strUserId + ", FileName:" + strNewFileName
                 + ", parentId: " + strNewParentId + "]");
@@ -314,10 +314,18 @@ public class XmlRpcSyncHandler {
 
         ItemMetadata file = new ItemMetadata();
         file.setId(fileId);
-        file.setFilename(strNewFileName);
-        file.setParentId(parentId);
+        
+        Boolean newName = Boolean.parseBoolean(strNameUpdated);
+        if (newName){
+            file.setFilename(strNewFileName);
+        }
+        
+        Boolean parentUpdated = Boolean.parseBoolean(strParentUpdated);
+        if (parentUpdated) {
+            file.setParentId(parentId);
+        }
 
-        APICommitResponse response = this.apiHandler.updateMetadata(user, file);
+        APICommitResponse response = this.apiHandler.updateMetadata(user, file, parentUpdated);
 
         if (response.getSuccess()) {
             this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);

@@ -318,7 +318,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
     }
 
     @Override
-    public APICommitResponse updateMetadata(User user, ItemMetadata fileToUpdate) {
+    public APICommitResponse updateMetadata(User user, ItemMetadata fileToUpdate, Boolean parentUpdated) {
 
         // Check the owner
         try {
@@ -363,21 +363,17 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 
                 // check if parent is a folder
                 if (!parent.isFolder()) {
-                    return new APICommitResponse(fileToUpdate, false, 400,
-                            "Parent must be a folder, not a file.");
+                    return new APICommitResponse(fileToUpdate, false, 400, "Parent must be a folder, not a file.");
                 }
 
             } catch (DAOException e) {
-                return new APICommitResponse(fileToUpdate, false, 404,
-                        "Parent folder not found");
+                return new APICommitResponse(fileToUpdate, false, 404, "Parent folder not found");
             }
         } else {
             try {
-                parent = this.itemDao
-                        .findByUserId(user.getId(), includeDeleted);
+                parent = this.itemDao.findByUserId(user.getId(), includeDeleted);
             } catch (DAOException e) {
-                return new APICommitResponse(fileToUpdate, false, e.getError()
-                        .getCode(), e.getMessage());
+                return new APICommitResponse(fileToUpdate, false, e.getError().getCode(), e.getMessage());
             }
         }
 
@@ -410,8 +406,13 @@ public class SQLAPIHandler extends Handler implements APIHandler {
         }
 
         // update file attributes
-        file.setFilename(fileToUpdate.getFilename());
-        file.setParentId(fileToUpdate.getParentId());
+        if (fileToUpdate.getFilename() != null) {
+            file.setFilename(fileToUpdate.getFilename());
+        }
+        if (parentUpdated) {
+            file.setParentId(parent.getId());
+            file.setParentVersion(parent.getVersion());
+        }
         file.setVersion(file.getVersion() + 1L);
         file.setModifiedAt(new Date());
         file.setStatus(Status.RENAMED.toString());
@@ -425,12 +426,12 @@ public class SQLAPIHandler extends Handler implements APIHandler {
         APICommitResponse responseAPI;
         try {
             CommitNotification commitResult = this.doCommit(user, workspace, apiDevice, items);
-            responseAPI = new APICommitResponse(fileToUpdate, true, 0, "");
+            responseAPI = new APICommitResponse(file, true, 0, "");
             responseAPI.setQuotaLimit(commitResult.getLimitQuota());
             responseAPI.setQuotaUsed(commitResult.getUsedQuota());
         } catch (Exception e) {
             logger.error(e);
-            responseAPI = new APICommitResponse(fileToUpdate, false, 500, e.toString());
+            responseAPI = new APICommitResponse(file, false, 500, e.toString());
         }
 
         return responseAPI;
