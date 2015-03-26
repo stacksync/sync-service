@@ -484,7 +484,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 						for (Chunk chunk : restoredObject.getChunks()) {
 							chunks.add(chunk.getClientChunkName());
 						}
-						this.createChunks(chunks, restoredObject);
+						this.createChunks(user, chunks, restoredObject);
 					}
 
 					serverItem.setLatestVersion(restoredObject.getVersion());
@@ -804,7 +804,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 	}
 
-	private void createChunks(List<String> chunksString, ItemVersion objectVersion) throws IllegalArgumentException, DAOException {
+	private void createChunks(User user, List<String> chunksString, ItemVersion objectVersion) throws IllegalArgumentException, DAOException {
 
 		if (chunksString.size() > 0) {
 			List<Chunk> chunks = new ArrayList<Chunk>();
@@ -815,7 +815,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 				i++;
 			}
 
-			itemVersionDao.insertChunks(chunks, objectVersion.getId());
+			itemVersionDao.insertChunks(user, chunks, objectVersion.getId());
 		}
 	}
 

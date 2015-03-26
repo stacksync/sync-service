@@ -30,7 +30,7 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 	public ItemMetadata findByItemIdAndVersion(UUID userID, Long id, Long version) throws DAOException {
 		Object[] values = { userID, id, version };
 
-		String query = "SELECT * FROM find_by_itemid_and_version(?::uuid, ?, ?)";
+		String query = "SELECT * FROM find_by_item_id_and_version(?::uuid, ?, ?)";
 
 		ResultSet result = null;
 		ItemMetadata metadata = null;
@@ -43,7 +43,7 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 
 				metadata = DAOUtil.getItemMetadataFromResultSet(result);
 			} else {
-				// TODO error, no ha encontrado nada el perroo
+				// TODO error, no ha encontrado nada el perroo -> wtf?
 				// throw workspace not found??
 			}
 
@@ -65,7 +65,7 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 				itemVersion.getChecksum(), itemVersion.getStatus(), itemVersion.getSize(),
 				new java.sql.Timestamp(itemVersion.getModifiedAt().getTime()) };
 
-		String query = "SELECT add_item_version(?::uuid, ?, ?, ?, ?, ?, ?, ?, now() )";
+		String query = "SELECT add_item_version(?::uuid, ?, ?, ?, ?, ?, ?, ?)";
 
 		ResultSet resultSet = executeQuery(query, values);
 
@@ -109,46 +109,76 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
-	//TODO FINISH THIS FUNCTION
+
+	// @Override
+	// public void insertChunks(List<Chunk> chunks, long itemVersionId) throws
+	// DAOException {
+	// if (chunks.isEmpty()) {
+	// throw new IllegalArgumentException("No chunks received");
+	// }
+	//
+	// List<Object> values = new ArrayList<Object>();
+	//
+	// StringBuilder build = new StringBuilder("INSERT INTO item_version_chunk "
+	// + " (item_version_id, client_chunk_name, chunk_order) VALUES ");
+	//
+	// for (int i = 0; i < chunks.size(); i++) {
+	// build.append("(?, ?, ?)");
+	// if (i < chunks.size() - 1) {
+	// build.append(", ");
+	// } else {
+	// build.append(";");
+	// }
+	//
+	// values.add(itemVersionId); // item_version_id
+	// values.add(chunks.get(i).getClientChunkName()); // client_chunk_name
+	// values.add(i + 1); // chunk_order
+	// }
+	//
+	// try {
+	// executeUpdate(build.toString(), values.toArray());
+	//
+	// } catch (DAOException ex) {
+	// throw new DAOException(ex);
+	// }
+	// }
+
 	@Override
-	public void insertChunks(List<Chunk> chunks, long itemVersionId) throws DAOException {
+	public void insertChunks(User user, List<Chunk> chunks, long itemVersionId) throws DAOException {
 		if (chunks.isEmpty()) {
 			throw new IllegalArgumentException("No chunks received");
 		}
 
-		List<Object> values = new ArrayList<Object>();
-
-		StringBuilder build = new StringBuilder("INSERT INTO item_version_chunk "
-				+ " (item_version_id, client_chunk_name, chunk_order) VALUES ");
+		String str = "INSERT INTO item_version_chunk (item_version_id, client_chunk_name, chunk_order) VALUES ";
 
 		for (int i = 0; i < chunks.size(); i++) {
-			build.append("(?, ?, ?)");
-			if (i < chunks.size() - 1) {
-				build.append(", ");
-			} else {
-				build.append(";");
-			}
+			String chunkName = chunks.get(i).getClientChunkName();
+			str += "(" + itemVersionId + ", '" + chunkName + "', " + (i + 1) + ")";
 
-			values.add(itemVersionId); // item_version_id
-			values.add(chunks.get(i).getClientChunkName()); // client_chunk_name
-			values.add(i + 1); // chunk_order
+			if (i < chunks.size() - 1) {
+				str += ", ";
+			}
+			// else {
+			// str += ";";
+			// }
 		}
 
+		Object[] values = { user.getId(), str };
+		
+		String query = "SELECT * FROM dynamic_query(?::uuid, ?)";
+		
 		try {
-			executeUpdate(build.toString(), values.toArray());
-
+			executeQuery(query, values);
 		} catch (DAOException ex) {
 			throw new DAOException(ex);
 		}
 	}
 
 	@Override
-	public List<Chunk> findChunks(Long itemVersionId) throws DAOException {
-		Object[] values = { itemVersionId };
+	public List<Chunk> findChunks(UUID userID, Long itemVersionId) throws DAOException {
+		Object[] values = { userID, itemVersionId };
 
-		String query = "SELECT ivc.* " + " FROM item_version_chunk ivc " + " WHERE ivc.item_version_id=? "
-				+ " ORDER BY ivc.chunk_order ASC";
+		String query = "SELECT * FROM find_chunks(?::uuid, ?)";
 
 		ResultSet result = null;
 		List<Chunk> chunks = new ArrayList<Chunk>();

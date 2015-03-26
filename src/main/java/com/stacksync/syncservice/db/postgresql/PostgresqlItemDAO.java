@@ -100,7 +100,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		Object[] values = { user.getId(), item.getWorkspace().getId(), item.getLatestVersion(), parentId, item.getFilename(),
 				item.getMimetype(), item.isFolder(), item.getClientParentFileVersion(), item.getId() };
 
-		String query = "SELECT update_item(uid uuid, wid uuid, latest_version bigint, parent_id bigint, filename text, mimetype text, is_folder boolean, client_parent_file_version bigint, item_id bigint)";
+		String query = "SELECT update_item(?::uuid, ?::uuid, ?, ?, ?, ?, ?, ?, ?)";
 
 		executeQuery(query, values);
 

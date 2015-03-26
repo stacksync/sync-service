@@ -11,7 +11,6 @@ import java.security.SecureRandom;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.List;
 import java.util.UUID;
 
 import org.junit.AfterClass;
@@ -20,7 +19,6 @@ import org.junit.Test;
 
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.DAOFactory;
@@ -126,13 +124,14 @@ public class PostgresqlItemDao {
 
 		assertEquals(name, i.getFilename());
 
-		List<ItemMetadata> list = itemDao.getItemsByWorkspaceId(userID, workspace.getId());
-		for (ItemMetadata im : list) {
-			if (item.getId().equals(im.getId())) {
-				return;
-			}
+		// Since there are no itemVersions in this test, getItems by workspace
+		// id will return an empty list.
+
+		try {
+			itemDao.getItemsByWorkspaceId(userID, workspace.getId());
+		} catch (DAOException e) {
+			assertTrue(false);
 		}
-		assertTrue(false);
 
 	}
 

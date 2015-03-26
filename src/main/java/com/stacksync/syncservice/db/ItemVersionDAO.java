@@ -17,9 +17,9 @@ public interface ItemVersionDAO {
 
 	public void insertChunk(Long itemVersionId, Long chunkId, Integer order) throws DAOException;
 
-	public void insertChunks(List<Chunk> chunks, long itemVersionId) throws DAOException;
+	public void insertChunks(User user, List<Chunk> chunks, long itemVersionId) throws DAOException;
 
-	public List<Chunk> findChunks(Long itemVersionId) throws DAOException;
+	public List<Chunk> findChunks(UUID userID, Long itemVersionId) throws DAOException;
 
 	public void update(ItemVersion itemVersion) throws DAOException;
 

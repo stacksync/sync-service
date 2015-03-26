@@ -559,7 +559,7 @@ public class Handler {
 			// If no folder, create new chunks
 			if (!metadata.isFolder()) {
 				List<String> chunks = metadata.getChunks();
-				this.createChunks(chunks, objectVersion);
+				this.createChunks(user, chunks, objectVersion);
 			}
 
 			commitTransaction();
@@ -590,7 +590,7 @@ public class Handler {
 			// If no folder, create new chunks
 			if (!metadata.isFolder()) {
 				List<String> chunks = metadata.getChunks();
-				this.createChunks(chunks, itemVersion);
+				this.createChunks(user, chunks, itemVersion);
 			}
 
 			// TODO To Test!!
@@ -622,7 +622,7 @@ public class Handler {
 		}
 	}
 
-	private void createChunks(List<String> chunksString, ItemVersion objectVersion) throws IllegalArgumentException, DAOException {
+	private void createChunks(User user, List<String> chunksString, ItemVersion objectVersion) throws IllegalArgumentException, DAOException {
 		if (chunksString != null) {
 			if (chunksString.size() > 0) {
 				List<Chunk> chunks = new ArrayList<Chunk>();
@@ -633,7 +633,7 @@ public class Handler {
 					i++;
 				}
 
-				itemVersionDao.insertChunks(chunks, objectVersion.getId());
+				itemVersionDao.insertChunks(user, chunks, objectVersion.getId());
 			}
 		}
 	}
