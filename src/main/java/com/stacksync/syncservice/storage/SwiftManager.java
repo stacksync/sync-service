@@ -256,8 +256,6 @@ public class SwiftManager extends StorageManager {
 			login();
 		}
 		
-		chunkName = "chk-" + chunkName;
-
 		HttpClient httpClient = new DefaultHttpClient();
 
 		String url = this.storageUrl + "/" + destinationWorkspace.getSwiftContainer() + "/"

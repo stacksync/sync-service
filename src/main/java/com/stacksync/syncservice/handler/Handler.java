@@ -85,7 +85,7 @@ public class Handler {
 		device = deviceDao.get(device.getId());
 		// TODO: check if the device belongs to the user
                 
-                user = userDao.findById(user.getId());
+        user = userDao.findById(user.getId());
                 
 		List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
 
@@ -110,8 +110,15 @@ public class Handler {
 						item.setId(newId);
 					}
 				}
+				if (workspace.isShared()){
+					User owner = userDao.findById(workspace.getOwner().getId());
+					this.commitObject(owner, item, workspace, device);
+				}else{
+					this.commitObject(user, item, workspace, device);
 
+				}
 				this.commitObject(user, item, workspace, device);
+
 
 				if (item.getTempId() != null) {
 					tempIds.put(item.getTempId(), item.getId());
@@ -132,6 +139,10 @@ public class Handler {
 				Item serverObject = e.getItem();
 				objectResponse = this.getCurrentServerVersion(serverObject);
 				committed = true;
+			}
+			catch (DAOException e){
+				logger.info("Owner of shared workspace not found:" + e);
+				committed = false;
 			}
 
 			responseObjects.add(new CommitInfo(item.getVersion(), committed, objectResponse));
