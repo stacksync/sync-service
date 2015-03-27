@@ -117,8 +117,6 @@ public class Handler {
 					this.commitObject(user, item, workspace, device);
 
 				}
-				this.commitObject(user, item, workspace, device);
-
 
 				if (item.getTempId() != null) {
 					tempIds.put(item.getTempId(), item.getId());
