@@ -178,25 +178,27 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 
 		return users;
 	}
-	
+
 	@Override
 	public void updateAvailableQuota(User user) throws DAOException {
-
+		// TODO Auto-generated method stub
 		if (user.getId() == null || !user.isValid()) {
-	            throw new IllegalArgumentException("User attributes not set");
-	        }
+            throw new IllegalArgumentException("User attributes not set");
+        }
 
-	        Object[] values = {user.getQuotaUsedLogical(), user.getId()};
+        Object[] values = {user.getQuotaUsedLogical(), user.getId()};
 
-	        String query = "UPDATE user1 SET quota_used_logical = ?  WHERE id = ?::uuid";
+        String query = "UPDATE user1 SET quota_used_logical = ?  WHERE id = ?::uuid";
 
-	        try {
-	            executeUpdate(query, values);
-	        } catch (DAOException e) {
-	            logger.error(e);
-	            throw new DAOException(e);
-	        }
+        try {
+            executeUpdate(query, values);
+        } catch (DAOException e) {
+            logger.error(e);
+            throw new DAOException(e);
+        }
 		
 	}
+	
+
 
 }
