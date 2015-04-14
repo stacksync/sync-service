@@ -173,7 +173,7 @@ CREATE UNIQUE INDEX itemid_version_unique ON public.item_version (item_id, versi
 
 CREATE TABLE public.item_version_chunk (
     item_version_id bigint NOT NULL,
-	client_chunk_name character varying(40) NOT NULL,
+    client_chunk_name character varying(80) NOT NULL,
     chunk_order integer NOT NULL
 );
 

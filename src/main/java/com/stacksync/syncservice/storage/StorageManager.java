@@ -6,7 +6,7 @@ import com.stacksync.commons.models.Workspace;
 public abstract class StorageManager {
 	
 	public enum StorageType {
-	    SWIFT, FTP 
+	    SWIFT, SWIFT_SSL, FTP 
 	}
 	
 	public abstract void login() throws Exception; 

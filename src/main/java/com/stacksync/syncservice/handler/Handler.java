@@ -70,7 +70,13 @@ public class Handler {
 		userDao = factory.getUserDao(connection);
 		itemDao = factory.getItemDAO(connection);
 		itemVersionDao = factory.getItemVersionDAO(connection);
-		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
+                StorageType type;
+                if (Config.getSwiftKeystoneProtocol().equals("http")){
+                    type = StorageType.SWIFT;
+                } else {
+                    type = StorageType.SWIFT_SSL;
+                }
+		storageManager = StorageFactory.getStorageManager(type);
 	}
 
 	public CommitNotification doCommit(User user, Workspace workspace, Device device, List<ItemMetadata> items)
