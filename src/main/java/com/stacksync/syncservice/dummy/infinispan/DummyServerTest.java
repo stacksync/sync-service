@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.stacksync.syncservice.test.dummy;
+package com.stacksync.syncservice.dummy.infinispan;
 
 import com.stacksync.syncservice.db.Connection;
 import java.util.UUID;
@@ -16,15 +16,22 @@ public class DummyServerTest {
 
     /**
      *
-     * @param args threads, commitsMinute, minutes
+     * @param args commitsMinute, numUsers, minutes
      * @throws Exception
      */
     public static void main(String[] args) throws Exception {
         String configPath = "config.properties";
-        int numThreads = 1;
-        int commitsPerMinute = 120;
-        int numUsers = 1;
-        int minutes = 5;
+
+        if (args.length != 3) {
+
+            System.err.println("Usage: commitsPerMinute numUsers minutes");
+            System.exit(0);
+        }
+
+        int commitsPerMinute = Integer.parseInt(args[0]);
+        int numUsers = Integer.parseInt(args[1]);
+        int minutes = Integer.parseInt(args[2]);
+        int numThreads = 2;
 
         // Load properties
         Config.loadProperties(configPath);
@@ -36,29 +43,28 @@ public class DummyServerTest {
         Connection conn = pool.getConnection();
         conn.close();
 
-        ServerDummy2[] dummies = new ServerDummy2[numThreads];
-        UUID[] uuids = new UUID[numThreads];
+        ServerDummy[] dummies = new ServerDummy[numThreads];
 
         for (int i = 0; i < numThreads; i++) {
             // Crear un nou thread
-            uuids[i] = UUID.randomUUID();
-            dummies[i] = new ServerDummy2(pool, numUsers, commitsPerMinute, minutes);
+            dummies[i] = new ServerDummy(pool, numUsers, commitsPerMinute, minutes);
         }
 
         // executar a la senyal
         // TODO provar només amb un únic thread
         for (int i = 0; i < numThreads; i++) {
-            ServerDummy2 dummy = dummies[i];
+            ServerDummy dummy = dummies[i];
             dummy.start();
         }
 
         // Wait all the threads
-        for (ServerDummy2 dummy : dummies) {
+        for (ServerDummy dummy : dummies) {
             dummy.join();
             dummy.getConnection().close();
         }
 
         System.out.println("END - Commits made: " + minutes * commitsPerMinute * numThreads);
 
+        System.exit(0);
     }
 }

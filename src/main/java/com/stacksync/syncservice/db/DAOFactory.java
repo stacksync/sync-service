@@ -11,58 +11,58 @@ import org.infinispan.atomic.AtomicObjectFactory;
 
 public class DAOFactory {
 
-	private String type;
-        private InfinispanDAO infinispanGenericDAO;
+    private String type;
+    private InfinispanDAO infinispanGenericDAO;
 
-	public DAOFactory(String type) {
-		this.type = type;
-	}
-        
-        private void createInfinispanDAO(InfinispanConnection connection) {
-            AtomicObjectFactory factory = connection.getFactory();
-            this.infinispanGenericDAO = new InfinispanDAO(factory);
+    public DAOFactory(String type) {
+        this.type = type;
+    }
+
+    private void createInfinispanDAO(InfinispanConnection connection) {
+        AtomicObjectFactory factory = connection.getFactory();
+        this.infinispanGenericDAO = new InfinispanDAO(factory);
+    }
+
+    public InfinispanWorkspaceDAO getWorkspaceDao(Connection connection) {
+        if (this.infinispanGenericDAO == null) {
+            createInfinispanDAO((InfinispanConnection) connection);
         }
+        return this.infinispanGenericDAO;
+    }
 
-	public InfinispanWorkspaceDAO getWorkspaceDao(Connection connection) {
-            if (this.infinispanGenericDAO == null) {
-                    createInfinispanDAO((InfinispanConnection) connection);
-                }
-                return this.infinispanGenericDAO;
-	}
+    public InfinispanUserDAO getUserDao(Connection connection) {
+        if (this.infinispanGenericDAO == null) {
+            createInfinispanDAO((InfinispanConnection) connection);
+        }
+        return this.infinispanGenericDAO;
+    }
 
-	public InfinispanUserDAO getUserDao(Connection connection) {
-		if (this.infinispanGenericDAO == null) {
-                    createInfinispanDAO((InfinispanConnection) connection);
-                }
-                return this.infinispanGenericDAO;
-	}
+    public InfinispanItemDAO getItemDAO(Connection connection) {
+        if (this.infinispanGenericDAO == null) {
+            createInfinispanDAO((InfinispanConnection) connection);
+        }
+        return this.infinispanGenericDAO;
+    }
 
-	public InfinispanItemDAO getItemDAO(Connection connection) {
-		if (this.infinispanGenericDAO == null) {
-                    createInfinispanDAO((InfinispanConnection) connection);
-                }
-                return this.infinispanGenericDAO;
-	}
+    public InfinispanItemVersionDAO getItemVersionDAO(Connection connection) {
+        if (this.infinispanGenericDAO == null) {
+            createInfinispanDAO((InfinispanConnection) connection);
+        }
+        return this.infinispanGenericDAO;
+    }
 
-	public InfinispanItemVersionDAO getItemVersionDAO(Connection connection) {
-		if (this.infinispanGenericDAO == null) {
-                    createInfinispanDAO((InfinispanConnection) connection);
-                }
-                return this.infinispanGenericDAO;
-	}
+    public InfinispanDeviceDAO getDeviceDAO(Connection connection) {
+        if (this.infinispanGenericDAO == null) {
+            createInfinispanDAO((InfinispanConnection) connection);
+        }
+        return this.infinispanGenericDAO;
+    }
 
-	public InfinispanDeviceDAO getDeviceDAO(Connection connection) {
-		if (this.infinispanGenericDAO == null) {
-                    createInfinispanDAO((InfinispanConnection) connection);
-                }
-                return this.infinispanGenericDAO;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public String getType() {
-		return type;
-	}
-
-	public void setType(String type) {
-		this.type = type;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 }

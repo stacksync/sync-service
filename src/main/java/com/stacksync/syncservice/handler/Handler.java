@@ -36,6 +36,7 @@ import com.stacksync.syncservice.storage.StorageManager;
 import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
 import java.rmi.RemoteException;
+import java.util.UUID;
 
 public class Handler {
 
@@ -70,6 +71,10 @@ public class Handler {
 		itemVersionDao = factory.getItemVersionDAO(connection);
 		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
 	}
+        
+        public WorkspaceRMI getWorkspace(UUID id) throws RemoteException {
+            return workspaceDAO.getById(id);
+        }
 
 	public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
 			DeviceRMI device, List<ItemMetadata> items) throws Exception {
@@ -83,7 +88,6 @@ public class Handler {
                 // access
 
 		device = deviceDao.get(device.getId());
-                System.out.println("Device: "+device);
                 
             } catch (RemoteException ex) {
                 logger.error("Remote Exception getting workspace or device: "+ex);

@@ -101,7 +101,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		logger.debug(request);
 
 		try {
-
+                    logger.info("Start:"+request.getRequestId());
 			UserRMI user = new UserRMI();
 			user.setId(request.getUserId());
 			DeviceRMI device = new DeviceRMI(request.getDeviceId());
@@ -116,6 +116,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 			commitNotifier.notifyCommit(result);
 
 			logger.debug("Consumer: Response sent to workspace \"" + workspace + "\"");
+                        logger.info("End:"+request.getRequestId());
 
 		} catch (Exception e) {
 			logger.error(e);

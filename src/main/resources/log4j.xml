@@ -7,7 +7,7 @@
         <param name="Threshold" value="ERROR" />
         <param name="target" value="System.err"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss]} %-5p %c{1}:%L - %m  %n" />
+            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss,fff]} %-5p %c{1}:%L - %m  %n" />
         </layout>
     </appender>
     
@@ -15,7 +15,7 @@
         <param name="Threshold" value="DEBUG" />
         <param name="target" value="System.out"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss]} %-5p %c{1}:%L - %m %n" />
+            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss,fff]} %-5p %c{1}:%L - %m %n" />
         </layout>
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
             <param name="LevelMin" value="DEBUG" />
@@ -38,15 +38,24 @@
         </triggeringPolicy> 
         
         <layout class="com.stacksync.syncservice.util.NoStackTracePatternLayout">
-            <param value="%d{[yyyy-MM-dd HH:mm:ss]} %-5p %c{1}:%L - %m%n" name="ConversionPattern"/>
+            <param value="%d{[yyyy-MM-dd HH:mm:ss,fff]} %-5p %c{1}:%L - %m%n" name="ConversionPattern"/>
         </layout>        
     </appender>
-
-  <root> 
-    <priority value ="debug" /> 
-    <appender-ref ref="stderr" />
-    <appender-ref ref="stdout" />
-    <!--  <appender-ref ref="A2" /> -->  
-  </root>
+    
+    <appender name="file" class="org.apache.log4j.FileAppender">
+        <param name="file" value="./stacksync-server.log" />
+        <param name="append" value="false" />
+        <param name="threshold" value="debug" />
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss,fff]} %-5p %c{1}:%L - %m %n" />
+        </layout>
+    </appender>
+    <root> 
+        <priority value ="info" /> 
+        <appender-ref ref="stderr" />
+        <appender-ref ref="stdout" />
+        <appender-ref ref="file" />
+        <!--  <appender-ref ref="A2" /> --> 
+    </root>
   
 </log4j:configuration>
