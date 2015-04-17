@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 
+import com.stacksync.commons.models.ExternalFolderMetadata;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.DAOError;
@@ -18,8 +19,7 @@ import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler.Status;
 
 public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
-	private static final Logger logger = Logger
-			.getLogger(PostgresqlItemDAO.class.getName());
+	private static final Logger logger = Logger.getLogger(PostgresqlItemDAO.class.getName());
 
 	public PostgresqlItemDAO(Connection connection) {
 		super(connection);
@@ -33,7 +33,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		String query = "SELECT * FROM item WHERE id = ?";
 
 		try {
-			resultSet = executeQuery(query, new Object[] { item1ID });
+			resultSet = executeQuery(query, new Object[]{item1ID});
 
 			if (resultSet.next()) {
 				item = DAOUtil.getItemFromResultSet(resultSet);
@@ -53,17 +53,14 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 			throw new IllegalArgumentException("Item attributes not set");
 		}
 
-		Object[] values = { item.getWorkspace().getId(),
-				item.getLatestVersion(), item.getParentId(),
-				item.getFilename(), item.getMimetype(), item.isFolder(),
-				item.getClientParentFileVersion() };
+		Object[] values = {item.getWorkspace().getId(), item.getLatestVersion(), item.getParentId(),
+				item.getFilename(), item.getMimetype(), item.isFolder(), item.getClientParentFileVersion()};
 
 		String query = "INSERT INTO item ( workspace_id, latest_version, parent_id,"
-				+ " filename, mimetype, is_folder,"
-				+ " client_parent_file_version ) "
+				+ " filename, mimetype, is_folder," + " client_parent_file_version ) "
 				+ "VALUES ( ?::uuid, ?, ?, ?, ?, ?, ? )";
 
-		Long id = (Long)executeUpdate(query, values);
+		Long id = (Long) executeUpdate(query, values);
 
 		if (id != null) {
 			item.setId(id);
@@ -92,15 +89,12 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 			parentId = null;
 		}
 
-		Object[] values = { item.getWorkspace().getId(),
-				item.getLatestVersion(), parentId, item.getFilename(),
-				item.getMimetype(), item.isFolder(),
-				item.getClientParentFileVersion(), item.getId() };
+		Object[] values = {item.getWorkspace().getId(), item.getLatestVersion(), parentId, item.getFilename(),
+				item.getMimetype(), item.isFolder(), item.getClientParentFileVersion(), item.getId()};
 
-		String query = "UPDATE item SET " + "workspace_id = ?::uuid, "
-				+ "latest_version = ?, " + "parent_id = ?, " + "filename = ?, "
-				+ "mimetype = ?, " + "is_folder = ?, "
-				+ "client_parent_file_version = ? " + "WHERE id = ?";
+		String query = "UPDATE item SET " + "workspace_id = ?::uuid, " + "latest_version = ?, " + "parent_id = ?, "
+				+ "filename = ?, " + "mimetype = ?, " + "is_folder = ?, " + "client_parent_file_version = ? "
+				+ "WHERE id = ?";
 
 		executeUpdate(query, values);
 
@@ -113,38 +107,26 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId)
-			throws DAOException {
+	public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId) throws DAOException {
 
-		Object[] values = { workspaceId, workspaceId };
+		Object[] values = {workspaceId, workspaceId};
 
-		String query = "WITH RECURSIVE q AS "
-				+ "( "
+		String query = "WITH RECURSIVE q AS " + "( "
 				+ " SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, "
-				+ " i.filename, iv.id AS version_id, iv.version, i.is_folder, "
-				+ " i.workspace_id, "
-				+ " iv.size, iv.status, i.mimetype, "
-				+ " iv.checksum, iv.device_id, iv.modified_at, "
-				+ " ARRAY[i.id] AS level_array "
-				+ " FROM workspace w  "
+				+ " i.filename, iv.id AS version_id, iv.version, i.is_folder, " + " i.workspace_id, "
+				+ " iv.size, iv.status, i.mimetype, " + " iv.checksum, iv.device_id, iv.modified_at, "
+				+ " ARRAY[i.id] AS level_array " + " FROM workspace w  "
 				+ " INNER JOIN item i ON w.id = i.workspace_id "
 				+ " INNER JOIN item_version iv ON i.id = iv.item_id AND i.latest_version = iv.version "
-				+ " WHERE w.id = ?::uuid AND i.parent_id IS NULL "
-				+ " UNION ALL  "
+				+ " WHERE w.id = ?::uuid AND i.parent_id IS NULL " + " UNION ALL  "
 				+ " SELECT i2.id AS item_id, i2.parent_id, i2.client_parent_file_version, "
-				+ " i2.filename, iv2.id AS version_id, iv2.version, i2.is_folder,  "
-				+ " i2.workspace_id, "
-				+ " iv2.size, iv2.status, i2.mimetype, "
-				+ " iv2.checksum, iv2.device_id, iv2.modified_at,  "
-				+ " q.level_array || i2.id "
-				+ " FROM q  "
-				+ " JOIN item i2 ON i2.parent_id = q.item_id "
+				+ " i2.filename, iv2.id AS version_id, iv2.version, i2.is_folder,  " + " i2.workspace_id, "
+				+ " iv2.size, iv2.status, i2.mimetype, " + " iv2.checksum, iv2.device_id, iv2.modified_at,  "
+				+ " q.level_array || i2.id " + " FROM q  " + " JOIN item i2 ON i2.parent_id = q.item_id "
 				+ " INNER JOIN item_version iv2 ON i2.id = iv2.item_id AND i2.latest_version = iv2.version "
-				+ " WHERE i2.workspace_id=?::uuid "
-				+ " )  "
+				+ " WHERE i2.workspace_id=?::uuid " + " )  "
 				+ " SELECT array_upper(level_array, 1) as level, q.*, get_chunks(q.version_id) AS chunks "
-				+ " FROM q  " 
-				+ " ORDER BY level_array ASC";
+				+ " FROM q  " + " ORDER BY level_array ASC";
 
 		ResultSet result = null;
 		List<ItemMetadata> items;
@@ -154,8 +136,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 			items = new ArrayList<ItemMetadata>();
 
 			while (result.next()) {
-				ItemMetadata item = DAOUtil
-						.getItemMetadataFromResultSet(result);
+				ItemMetadata item = DAOUtil.getItemMetadataFromResultSet(result);
 				items.add(item);
 			}
 
@@ -169,34 +150,21 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 
 	@Override
 	public List<ItemMetadata> getItemsById(Long id) throws DAOException {
-		Object[] values = { id };
-		
-		String query = "WITH    RECURSIVE "
-				+ " q AS  "
-				+ " (  "
+		Object[] values = {id};
+
+		String query = "WITH    RECURSIVE " + " q AS  " + " (  "
 				+ " SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, "
-				+ " 	i.filename, iv.id AS version_id, iv.version, i.is_folder, "
-				+ " 	i.workspace_id, "
-				+ " 	iv.size, iv.status, i.mimetype, "
-				+ " 	iv.checksum, iv.device_id, iv.modified_at, "
-				+ " 	ARRAY[i.id] AS level_array "
-				+ " FROM    item i "
+				+ " 	i.filename, iv.id AS version_id, iv.version, i.is_folder, " + " 	i.workspace_id, "
+				+ " 	iv.size, iv.status, i.mimetype, " + " 	iv.checksum, iv.device_id, iv.modified_at, "
+				+ " 	ARRAY[i.id] AS level_array " + " FROM    item i "
 				+ " INNER JOIN item_version iv ON i.id = iv.item_id AND i.latest_version = iv.version "
-				+ " WHERE   i.id = ? "
-				+ " UNION ALL "
+				+ " WHERE   i.id = ? " + " UNION ALL "
 				+ " SELECT i2.id AS item_id, i2.parent_id, i2.client_parent_file_version, "
-				+ " 	i2.filename, iv2.id AS version_id, iv2.version, i2.is_folder,  "
-				+ " 	i2.workspace_id, "
-				+ " 	iv2.size, iv2.status, i2.mimetype, "
-				+ " 	iv2.checksum, iv2.device_id, iv2.modified_at,  "
-				+ " 	q.level_array || i2.id "
-				+ " FROM    q "
-				+ " JOIN    item i2 ON i2.parent_id = q.item_id "
-				+ " INNER JOIN item_version iv2 ON i2.id = iv2.item_id AND i2.latest_version = iv2.version "
-				+ "	) " 
-				+ " SELECT  array_upper(level_array, 1) as level, q.* "
-				+ " FROM    q " 
-				+ " ORDER BY  " 
+				+ " 	i2.filename, iv2.id AS version_id, iv2.version, i2.is_folder,  " + " 	i2.workspace_id, "
+				+ " 	iv2.size, iv2.status, i2.mimetype, " + " 	iv2.checksum, iv2.device_id, iv2.modified_at,  "
+				+ " 	q.level_array || i2.id " + " FROM    q " + " JOIN    item i2 ON i2.parent_id = q.item_id "
+				+ " INNER JOIN item_version iv2 ON i2.id = iv2.item_id AND i2.latest_version = iv2.version " + "	) "
+				+ " SELECT  array_upper(level_array, 1) as level, q.* " + " FROM    q " + " ORDER BY  "
 				+ "       level_array ASC";
 
 		ResultSet result = null;
@@ -210,8 +178,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 			}
 
 			while (result.next()) {
-				ItemMetadata itemMetadata = DAOUtil
-						.getItemMetadataFromResultSet(result);
+				ItemMetadata itemMetadata = DAOUtil.getItemMetadataFromResultSet(result);
 				list.add(itemMetadata);
 			}
 
@@ -224,42 +191,32 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public ItemMetadata findById(Long id, Boolean includeList,
-			Long version, Boolean includeDeleted, Boolean includeChunks)
-			throws DAOException {
+	public ItemMetadata findById(Long id, Boolean includeList, Long version, Boolean includeDeleted,
+			Boolean includeChunks) throws DAOException {
 		int maxLevel = includeList ? 2 : 1;
-		String targetVersion = (version == null) ? "i.latest_version" : version
-				.toString();
+		String targetVersion = (version == null) ? "i.latest_version" : version.toString();
 		String chunks = (includeChunks) ? ", get_chunks(%s.id) AS chunks" : "";
 		// TODO: check include_deleted
-		Object[] values = { id, maxLevel };
+		Object[] values = {id, maxLevel};
 
-		String query = String
-				.format("WITH    RECURSIVE "
-						+ " q AS  "
-						+ " (  "
-						+ " SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, " 
+		String query = String.format(
+				"WITH    RECURSIVE " + " q AS  " + " (  "
+						+ " SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, "
 						+ "     i.filename, iv.version, i.is_folder, "
 						+ "     iv.device_id, i.workspace_id, iv.size, iv.status, i.mimetype, "
-						+ "     iv.checksum, iv.modified_at, "
-						+ "     ARRAY[i.id] AS level_array "
-						+ String.format(chunks, "iv")
-						+ " FROM    item i "
+						+ "     iv.checksum, iv.modified_at, " + "     ARRAY[i.id] AS level_array "
+						+ String.format(chunks, "iv") + " FROM    item i "
 						+ " INNER JOIN item_version iv ON i.id = iv.item_id AND %s = iv.version "
-						+ " WHERE   i.id = ? "
-						+ " UNION ALL "
+						+ " WHERE   i.id = ? " + " UNION ALL "
 						+ " SELECT i2.id AS item_id, i2.parent_id, i2.client_parent_file_version, "
 						+ "     i2.filename, iv2.version, i2.is_folder, "
 						+ "     iv2.device_id, i2.workspace_id, iv2.size, iv2.status, i2.mimetype, "
-						+ "     iv2.checksum, iv2.modified_at, "
-						+ "     q.level_array || i2.id "
-						+ String.format(chunks, "iv2")
-						+ " FROM    q "
+						+ "     iv2.checksum, iv2.modified_at, " + "     q.level_array || i2.id "
+						+ String.format(chunks, "iv2") + " FROM    q "
 						+ " JOIN    item i2 ON i2.parent_id = q.item_id "
 						+ " INNER JOIN item_version iv2 ON i2.id = iv2.item_id AND i2.latest_version = iv2.version "
 						+ " WHERE   array_upper(level_array, 1) < ? " + "	) "
-						+ " SELECT  array_upper(level_array, 1) as level, q.* "
-						+ " FROM    q " + " ORDER BY  "
+						+ " SELECT  array_upper(level_array, 1) as level, q.* " + " FROM    q " + " ORDER BY  "
 						+ "       level_array ASC", targetVersion);
 
 		ResultSet result = null;
@@ -273,18 +230,15 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 			}
 
 			while (result.next()) {
-				ItemMetadata itemMetadata = DAOUtil
-						.getItemMetadataFromResultSet(result);
+				ItemMetadata itemMetadata = DAOUtil.getItemMetadataFromResultSet(result);
 
 				if (itemMetadata.getLevel() == 1) {
 					item = itemMetadata;
 				} else {
 					// item should not be null at this point, but who knows...
 
-					if (item != null
-							&& item.getId().equals(itemMetadata.getParentId())) {
-						if (itemMetadata.getStatus().compareTo(
-								Status.DELETED.toString()) == 0) {
+					if (item != null && item.getId().equals(itemMetadata.getParentId())) {
+						if (itemMetadata.getStatus().compareTo(Status.DELETED.toString()) == 0) {
 							if (includeDeleted) {
 								item.addChild(itemMetadata);
 							}
@@ -304,35 +258,27 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public ItemMetadata findByUserId(UUID userId,
-			Boolean includeDeleted) throws DAOException {
+	public ItemMetadata findByUserId(UUID userId, Boolean includeDeleted) throws DAOException {
 		// TODO: check include_deleted
-		Object[] values = { userId };
+		Object[] values = {userId};
 
-		String query = "WITH RECURSIVE q AS "
-				+ " ( "
+		String query = "WITH RECURSIVE q AS " + " ( "
 				+ "    SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, "
 				+ "     i.filename, iv.device_id, i.workspace_id, iv.version, i.is_folder, "
-				+ "     iv.size, iv.status, i.mimetype, "
-				+ "     iv.checksum, iv.modified_at, "
-				+ "     ARRAY[i.id] AS level_array, '/' AS path "
-				+ "     FROM user1 u  "
+				+ "     iv.size, iv.status, i.mimetype, " + "     iv.checksum, iv.modified_at, "
+				+ "     ARRAY[i.id] AS level_array, '/' AS path " + "     FROM user1 u  "
 				+ "     INNER JOIN workspace_user wu ON u.id = wu.user_id  "
 				+ "     INNER JOIN item i ON wu.workspace_id = i.workspace_id  "
 				+ "     INNER JOIN item_version iv ON i.id = iv.item_id AND i.latest_version = iv.version  "
-				+ "     WHERE u.id = ?::uuid AND i.parent_id IS NULL  "
-				+ "     UNION ALL  "
+				+ "     WHERE u.id = ?::uuid AND i.parent_id IS NULL  " + "     UNION ALL  "
 				+ "     SELECT i2.id AS item_id, i2.parent_id, i2.client_parent_file_version,  "
 				+ "     i2.filename, iv2.device_id, i2.workspace_id, iv2.version, i2.is_folder,  "
-				+ "     iv2.size, iv2.status, i2.mimetype,   "
-				+ "     iv2.checksum, iv2.modified_at,  "
-				+ "     q.level_array || i2.id, q.path || q.filename::TEXT || '/'  "
-				+ "     FROM q  "
+				+ "     iv2.size, iv2.status, i2.mimetype,   " + "     iv2.checksum, iv2.modified_at,  "
+				+ "     q.level_array || i2.id, q.path || q.filename::TEXT || '/'  " + "     FROM q  "
 				+ "     JOIN item i2 ON i2.parent_id = q.item_id  "
 				+ "     INNER JOIN item_version iv2 ON i2.id = iv2.item_id AND i2.latest_version = iv2.version  "
 				+ "     WHERE array_upper(level_array, 1) < 1 " + " )  "
-				+ " SELECT array_upper(level_array, 1) as level, q.*  "
-				+ " FROM q  " + " ORDER BY level_array ASC";
+				+ " SELECT array_upper(level_array, 1) as level, q.*  " + " FROM q  " + " ORDER BY level_array ASC";
 
 		ResultSet result = null;
 
@@ -346,11 +292,9 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 			result = executeQuery(query, values);
 
 			while (result.next()) {
-				ItemMetadata itemMetadata = DAOUtil
-						.getItemMetadataFromResultSet(result);
+				ItemMetadata itemMetadata = DAOUtil.getItemMetadataFromResultSet(result);
 
-				if (itemMetadata.getStatus().compareTo(
-						Status.DELETED.toString()) == 0) {
+				if (itemMetadata.getStatus().compareTo(Status.DELETED.toString()) == 0) {
 					if (includeDeleted) {
 						rootMetadata.addChild(itemMetadata);
 					}
@@ -370,8 +314,8 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	@Override
 	public ItemMetadata findItemVersionsById(Long fileId) throws DAOException {
 		// TODO: check include_deleted
-		Object[] values = { fileId };
-		
+		Object[] values = {fileId};
+
 		String query = "SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, i.filename, i.is_folder, i.mimetype, i.workspace_id, "
 				+ " iv.version, iv.size, iv.status, iv.checksum, iv.device_id, "
 				+ " iv.modified_at, '1' AS level, '' AS path FROM item i "
@@ -386,8 +330,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 			result = executeQuery(query, values);
 
 			while (result.next()) {
-				ItemMetadata itemMetadata = DAOUtil
-						.getItemMetadataFromResultSet(result);
+				ItemMetadata itemMetadata = DAOUtil.getItemMetadataFromResultSet(result);
 
 				if (rootMetadata.getChildren().isEmpty()) {
 					rootMetadata = itemMetadata;
@@ -416,60 +359,73 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		}
 		return hasRows;
 	}
-	
+
 	@Override
-	public List<String> migrateItem(Long itemId, UUID workspaceId) throws DAOException{
-		
-		Object[] values = { itemId, workspaceId.toString() };
-		
-		String query = "WITH    RECURSIVE "
-			+ " q AS "  
-			+ " ( "
-			+ " SELECT i.* "
-			+ " FROM    item i "
-			+ " WHERE   i.id = ? " 
-			+ " UNION ALL "
-			+ " SELECT i2.* "
-			+ " FROM    q "
-			+ " JOIN    item i2 ON i2.parent_id = q.id " 
-			+ " ) "
-			+ " UPDATE item i3 SET workspace_id = ?::uuid "
-			+ " FROM q "
-			+ " WHERE q.id = i3.id";
-		
+	public List<String> migrateItem(Long itemId, UUID workspaceId) throws DAOException {
+
+		Object[] values = {itemId, workspaceId.toString()};
+
+		String query = "WITH    RECURSIVE " + " q AS " + " ( " + " SELECT i.* " + " FROM    item i "
+				+ " WHERE   i.id = ? " + " UNION ALL " + " SELECT i2.* " + " FROM    q "
+				+ " JOIN    item i2 ON i2.parent_id = q.id " + " ) " + " UPDATE item i3 SET workspace_id = ?::uuid "
+				+ " FROM q " + " WHERE q.id = i3.id";
+
 		executeUpdate(query, values);
-		
+
 		List<String> chunksToMigrate;
-		
-		try{
+
+		try {
 			chunksToMigrate = getChunksToMigrate(itemId);
-		}catch (SQLException e){
+		} catch (SQLException e) {
 			throw new DAOException(e);
 		}
-		
+
 		return chunksToMigrate;
-		
-	}
-	
-	private List<String> getChunksToMigrate(Long itemId) throws DAOException, SQLException {
-		
-		Object[] values = { itemId };
-		
-		String query = "SELECT get_unique_chunks_to_migrate(?) AS chunks";
-		
-		ResultSet result = executeQuery(query, values);
-		List<String> chunksList;
-		
-		if (result.next()){
-			chunksList = DAOUtil.getArrayFromResultSet(result, "chunks");
-		}
-		else{
-			chunksList = new ArrayList<String>();
-		}
-	
-		
-		return chunksList;
-		
+
 	}
 
+	private List<String> getChunksToMigrate(Long itemId) throws DAOException, SQLException {
+
+		Object[] values = {itemId};
+
+		String query = "SELECT get_unique_chunks_to_migrate(?) AS chunks";
+
+		ResultSet result = executeQuery(query, values);
+		List<String> chunksList;
+
+		if (result.next()) {
+			chunksList = DAOUtil.getArrayFromResultSet(result, "chunks");
+		} else {
+			chunksList = new ArrayList<String>();
+		}
+
+		return chunksList;
+
+	}
+
+	public List<ExternalFolderMetadata> getExternalFolders(UUID serverUserId) throws DAOException {
+		Object[] values = {serverUserId};
+		List<ExternalFolderMetadata> externalFolders = new ArrayList<ExternalFolderMetadata>();
+
+		String query = "SELECT c.access_token_key, c.access_token_secret, p.folder_name, p.resource_url"
+				+ "FROM cloudspaces_sharing_proposal as p"
+				+ "INNER JOIN user1 as u ON u.email = p.recipient"
+				+ "INNER JOIN \"cloudspaces_oauth1.0_credentials\" as c"
+				+ "ON p.recipient = c.user"
+				+ "where u.id = ?";
+		
+		try {
+			ResultSet result = executeQuery(query, values);
+
+			while (result.next()) {
+				externalFolders.add(DAOUtil.getExternalFolderMetadata(result));
+			}
+
+		} catch (SQLException e) {
+			logger.error(e);
+			throw new DAOException(DAOError.INTERNAL_SERVER_ERROR);
+		}
+
+		return externalFolders;
+	}
 }

@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.stacksync.commons.models.CommitInfo;
+import com.stacksync.commons.models.ExternalFolderMetadata;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
@@ -132,6 +133,21 @@ public abstract class APIResponse {
 		jMetadata.addProperty("size", metadata.getSize());
 		jMetadata.addProperty("mimetype", metadata.getMimetype());
 
+		return jMetadata;
+	}
+	
+	protected JsonObject parseExternalMetadata(ExternalFolderMetadata metadata){
+		JsonObject jMetadata = new JsonObject();
+		
+		if (metadata == null){
+			return jMetadata;
+		}
+		
+		jMetadata.addProperty("name", metadata.getFolderName());
+		jMetadata.addProperty("access_token_key", metadata.getOauthTokenKey());
+		jMetadata.addProperty("access_token_secret", metadata.getOauthTokenSecret());
+		jMetadata.addProperty("resource_url", metadata.getUrl());
+		
 		return jMetadata;
 	}
 	

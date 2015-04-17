@@ -27,7 +27,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		ResultSet resultSet = null;
 		User user = null;
 
-		String query = "SELECT id, name, email, swift_user, swift_account, quota_limit, quota_used " + " FROM \"user1\" WHERE id = ?::uuid";
+		String query = "SELECT id, name, email, swift_user, swift_account, quota_limit, quota_used_logical, quota_used_real " + " FROM \"user1\" WHERE id = ?::uuid";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { userID });
@@ -96,9 +96,9 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			throw new IllegalArgumentException("User attributes not set");
 		}
 
-		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsed() };
+		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsedLogical(), user.getQuotaUsedReal() };
 
-		String query = "INSERT INTO user1 (email, name, swift_user, swift_account, quota_limit, quota_used) VALUES (?, ?, ?, ?, ?, ?)";
+		String query = "INSERT INTO user1 (email, name, swift_user, swift_account, quota_limit, quota_used_logical, quota_used_real) VALUES (?, ?, ?, ?, ?, ?)";
 
 		try {
 			UUID userId = (UUID) executeUpdate(query, values);
@@ -115,9 +115,9 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			throw new IllegalArgumentException("User attributes not set");
 		}
 
-		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsed(), user.getId() };
+		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsedLogical(), user.getQuotaUsedReal(), user.getId() };
 
-		String query = "UPDATE user1 SET email = ?, name = ?, swift_user = ?, swift_account = ?, quota_limit = ?, quota_used = ? WHERE id = ?::uuid";
+		String query = "UPDATE user1 SET email = ?, name = ?, swift_user = ?, swift_account = ?, quota_limit = ?, quota_used_logical = ?, quota_used_real = ? WHERE id = ?::uuid";
 
 		try {
 			executeUpdate(query, values);
@@ -126,7 +126,8 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			throw new DAOException(e);
 		}
 	}
-
+	
+	
 	@Override
 	public void delete(UUID userID) throws DAOException {
 		Object[] values = { userID };
@@ -143,8 +144,9 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		user.setName(resultSet.getString("name"));
 		user.setSwiftUser(resultSet.getString("swift_user"));
 		user.setSwiftAccount(resultSet.getString("swift_account"));
-		user.setQuotaLimit(resultSet.getInt("quota_limit"));
-		user.setQuotaUsed(resultSet.getInt("quota_used"));
+		user.setQuotaLimit(resultSet.getLong("quota_limit"));
+		user.setQuotaUsedLogical(resultSet.getLong("quota_used_logical"));
+		user.setQuotaUsedReal(resultSet.getLong("quota_used_real"));
 		return user;
 	}
 
@@ -176,5 +178,27 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 
 		return users;
 	}
+
+	@Override
+	public void updateAvailableQuota(User user) throws DAOException {
+		// TODO Auto-generated method stub
+		if (user.getId() == null || !user.isValid()) {
+            throw new IllegalArgumentException("User attributes not set");
+        }
+
+        Object[] values = {user.getQuotaUsedLogical(), user.getId()};
+
+        String query = "UPDATE user1 SET quota_used_logical = ?  WHERE id = ?::uuid";
+
+        try {
+            executeUpdate(query, values);
+        } catch (DAOException e) {
+            logger.error(e);
+            throw new DAOException(e);
+        }
+		
+	}
+	
+
 
 }

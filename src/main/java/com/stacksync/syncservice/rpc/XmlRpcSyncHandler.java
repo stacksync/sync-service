@@ -292,44 +292,52 @@ public class XmlRpcSyncHandler {
 
 	}
 
-	public String updateMetadata(String strUserId, String strFileId, String strNewFileName, String strNewParentId) {
+	   public String updateMetadata(String strUserId, String strFileId, String strNewFileName, String strNewParentId, String strNameUpdated, String strParentUpdated) {
 
-		logger.debug("XMLRPC -> put_metadata_file -->[User:" + strUserId + ", FileName:" + strNewFileName
-				+ ", parentId: " + strNewParentId + "]");
+	        logger.debug("XMLRPC -> put_metadata_file -->[User:" + strUserId + ", FileName:" + strNewFileName
+	                + ", parentId: " + strNewParentId + "]");
 
-		Long parentId = null;
-		try {
-			parentId = Long.parseLong(strNewParentId);
-		} catch (NumberFormatException ex) {
-		}
+	        Long parentId = null;
+	        try {
+	            parentId = Long.parseLong(strNewParentId);
+	        } catch (NumberFormatException ex) {
+	        }
 
-		Long fileId = null;
-		try {
-			fileId = Long.parseLong(strFileId);
-		} catch (NumberFormatException ex) {
-		}
+	        Long fileId = null;
+	        try {
+	            fileId = Long.parseLong(strFileId);
+	        } catch (NumberFormatException ex) {
+	        }
 
-		UUID userId = UUID.fromString(strUserId);
+	        UUID userId = UUID.fromString(strUserId);
 
-		User user = new User();
-		user.setId(userId);
+	        User user = new User();
+	        user.setId(userId);
 
-		ItemMetadata file = new ItemMetadata();
-		file.setId(fileId);
-		file.setFilename(strNewFileName);
-		file.setParentId(parentId);
+	        ItemMetadata file = new ItemMetadata();
+	        file.setId(fileId);
+	        
+	        Boolean newName = Boolean.parseBoolean(strNameUpdated);
+	        if (newName){
+	            file.setFilename(strNewFileName);
+	        }
+	        
+	        Boolean parentUpdated = Boolean.parseBoolean(strParentUpdated);
+	        if (parentUpdated) {
+	            file.setParentId(parentId);
+	        }
 
-		APICommitResponse response = this.apiHandler.updateMetadata(user, file);
+	        APICommitResponse response = this.apiHandler.updateMetadata(user, file, parentUpdated);
 
-		if (response.getSuccess()) {
-			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
-		}
+	        if (response.getSuccess()) {
+	            this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
+	        }
 
-		String strResponse = this.parser.createResponse(response);
+	        String strResponse = this.parser.createResponse(response);
 
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
-	}
+	        logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+	        return strResponse;
+	    }
 
 	public String deleteItem(String strUserId, String strFileId, String strIsFolder) {
 		Long fileId = null;

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.stacksync.commons.models.Chunk;
+import com.stacksync.commons.models.ExternalFolderMetadata;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.SharingProposal;
@@ -351,6 +352,15 @@ public final class DAOUtil {
 		
 		return proposal;
 		
+	}
+	
+	public static ExternalFolderMetadata getExternalFolderMetadata(ResultSet result) throws SQLException{
+		ExternalFolderMetadata externalFolder = new ExternalFolderMetadata();
+		externalFolder.setFolderName(result.getString("folder_name"));
+		externalFolder.setOauthTokenKey(result.getString("access_token_key"));
+		externalFolder.setOauthTokenSecret(result.getString("access_token_secret"));
+		externalFolder.setUrl(result.getString("resource_url"));
+		return externalFolder;
 	}
 	
 }

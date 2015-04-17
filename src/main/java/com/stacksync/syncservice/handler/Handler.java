@@ -30,6 +30,7 @@ import com.stacksync.syncservice.db.ItemDAO;
 import com.stacksync.syncservice.db.ItemVersionDAO;
 import com.stacksync.syncservice.db.SharingProposalDAO;
 import com.stacksync.syncservice.db.UserDAO;
+import com.stacksync.syncservice.db.UserExternalDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.CommitExistantVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersion;
@@ -52,6 +53,7 @@ public class Handler {
 	protected Connection connection;
 	protected WorkspaceDAO workspaceDAO;
 	protected UserDAO userDao;
+	protected UserExternalDAO userExternalDao;
 	protected DeviceDAO deviceDao;
 	protected ItemDAO itemDao;
 	protected ItemVersionDAO itemVersionDao;
@@ -73,6 +75,7 @@ public class Handler {
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		deviceDao = factory.getDeviceDAO(connection);
 		userDao = factory.getUserDao(connection);
+		userExternalDao = factory.getUserExternalDAO(connection);
 		itemDao = factory.getItemDAO(connection);
 		sharingProposalDao = factory.getSharingProposalDao(connection);
 		itemVersionDao = factory.getItemVersionDAO(connection);
@@ -266,21 +269,32 @@ public class Handler {
 			throw new ShareProposalNotCreatedException("No folder found with the given ID.");
 		}
 		
-		//create new user
-		//TODO: check if external user (email) already exists
-		
-		List<Object> newUserResponse = createNewUser(proposal.getRecipient());
-		User user = (User)newUserResponse.get(0);
-		String pass = (String)newUserResponse.get(1);
+		//Check if this external user already exist
+		User user;
 		List<User> users = new ArrayList<User>();
 		try {
-			users.add(userDao.getByEmail(proposal.getRecipient()));
-		} catch (NoResultReturnedDAOException e) {
-			logger.warn(e); 
-			throw new UserNotFoundException(e);
+			user = userDao.getByEmail(proposal.getRecipient());
+			users.add(user);
 		} catch (DAOException e) {
-			logger.error(e);
-			throw new ShareProposalNotCreatedException(e);
+			logger.warn(String.format("Email '%s' does not correspond with any user. ", proposal.getRecipient()), e);
+			user = null;
+		}
+		String pass = "";
+		//create new user
+		if (user == null){
+			List<Object> newUserResponse = createNewUser(proposal.getRecipient());
+			user = (User)newUserResponse.get(0);
+			pass = (String)newUserResponse.get(1);
+			
+			try {
+				users.add(userDao.getByEmail(proposal.getRecipient()));
+			} catch (NoResultReturnedDAOException e) {
+				logger.warn(e); 
+				throw new UserNotFoundException(e);
+			} catch (DAOException e) {
+				logger.error(e);
+				throw new ShareProposalNotCreatedException(e);
+			}
 		}
 
 		// Get the source workspace
@@ -855,11 +869,9 @@ public class Handler {
 		User user = new User();
 		SecureRandom secureRandom = new SecureRandom();
 		String randomName = new BigInteger(130, secureRandom).toString(32);
+		user.setId(UUID.randomUUID());
 		user.setEmail(email);
-		user.setSwiftAccount(Config.getSwiftAccount());
 		user.setName(randomName);
-		user.setQuotaLimit(0);
-		user.setQuotaUsed(0);
 		user.setSwiftUser(randomName);
 		String pass;
 		try {

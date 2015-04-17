@@ -12,6 +12,7 @@ import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.models.Chunk;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Device;
+import com.stacksync.commons.models.ExternalFolderMetadata;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
@@ -52,6 +53,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	public APIGetMetadata getMetadata(User user, Long fileId, Boolean includeChunks, Long version, Boolean isFolder) {
 
 		ItemMetadata responseObject = null;
+		List<ExternalFolderMetadata> externalFolders = null;
 		Integer errorCode = 0;
 		Boolean success = false;
 		String description = "";
@@ -61,6 +63,8 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			if (fileId == null) {
 				// retrieve metadata from the root folder
 				responseObject = this.itemDao.findByUserId(user.getId(), false);
+				externalFolders = this.itemDao.getExternalFolders(user.getId());
+				//TODO: retrieve metadata from interop folders
 			} else {
 
 				// check if user has permission on this file
@@ -89,7 +93,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			logger.error(e.toString(), e);
 		}
 
-		APIGetMetadata response = new APIGetMetadata(responseObject, success, errorCode, description);
+		APIGetMetadata response = new APIGetMetadata(responseObject, success, errorCode, description, externalFolders);
 		return response;
 	}
 
@@ -129,7 +133,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			logger.error(e.toString(), e);
 		}
 
-		APIGetMetadata response = new APIGetMetadata(responseObject, success, errorCode, description);
+		APIGetMetadata response = new APIGetMetadata(responseObject, success, errorCode, description, null);
 		return response;
 	}
 
@@ -294,7 +298,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	}
 
 	@Override
-	public APICommitResponse updateMetadata(User user, ItemMetadata fileToUpdate) {
+    public APICommitResponse updateMetadata(User user, ItemMetadata fileToUpdate, Boolean parentUpdated) {
 
 		// Check the owner
 		try {
@@ -377,12 +381,18 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 		}
 
 		// update file attributes
-		file.setFilename(fileToUpdate.getFilename());
-		file.setParentId(fileToUpdate.getParentId());
+		   if (fileToUpdate.getFilename() != null) {
+	            file.setFilename(fileToUpdate.getFilename());
+	        }
+	        if (parentUpdated) {
+	            file.setParentId(parent.getId());
+	            file.setParentVersion(parent.getVersion());
+	        }
 		file.setVersion(file.getVersion() + 1L);
 		file.setModifiedAt(new Date());
 		file.setStatus(Status.RENAMED.toString());
 
+		
 		// Commit the file
 		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 		items.add(file);

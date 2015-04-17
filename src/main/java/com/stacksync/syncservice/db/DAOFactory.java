@@ -7,7 +7,9 @@ import com.stacksync.syncservice.db.postgresql.PostgresqlItemDAO;
 import com.stacksync.syncservice.db.postgresql.PostgresqlItemVersionDao;
 import com.stacksync.syncservice.db.postgresql.PostgresqlSharingProposalDAO;
 import com.stacksync.syncservice.db.postgresql.PostgresqlUserDAO;
+import com.stacksync.syncservice.db.postgresql.PostgresqlUserExternalDAO;
 import com.stacksync.syncservice.db.postgresql.PostgresqlWorkspaceDAO;
+
 
 public class DAOFactory {
 
@@ -23,6 +25,9 @@ public class DAOFactory {
 
 	public UserDAO getUserDao(Connection connection) {
 		return new PostgresqlUserDAO(connection);
+	}
+	public UserExternalDAO getUserExternalDAO(Connection connection){
+		return new PostgresqlUserExternalDAO(connection);
 	}
 
 	public ItemDAO getItemDAO(Connection connection) {

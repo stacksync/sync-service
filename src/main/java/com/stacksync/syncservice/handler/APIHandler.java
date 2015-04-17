@@ -26,7 +26,7 @@ public interface APIHandler {
 	
 	public APICommitResponse updateData(User user, ItemMetadata fileToUpdate);
 	
-	public APICommitResponse updateMetadata(User user, ItemMetadata fileToUpdate);
+	public APICommitResponse updateMetadata(User user, ItemMetadata fileToUpdate, Boolean parentUpdated);
 
 	public APICreateFolderResponse createFolder(User user, ItemMetadata item);
 
