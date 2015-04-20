@@ -6,8 +6,6 @@
 package com.stacksync.syncservice.dummy.infinispan;
 
 import com.stacksync.syncservice.db.ConnectionPool;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
-import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import java.sql.SQLException;
 import java.util.Random;
@@ -16,7 +14,6 @@ import java.util.UUID;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import java.rmi.RemoteException;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -93,7 +90,6 @@ public class ServerDummy extends AServerDummy {
             try {
                 WorkspaceRMI workspace = this.handler.getWorkspace(id);
                 //WorkspaceRMI workspace = workspaceDAO.getById(id);
-                List<ItemRMI> items = workspace.getItems();
                 workspaceItems += workspace.getItems().size();
             } catch (RemoteException ex) {
                 Logger.getLogger(ServerDummy.class.getName()).log(Level.SEVERE, null, ex);

@@ -1,6 +1,8 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import com.stacksync.commons.models.ItemMetadata;
 import java.io.Serializable;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,10 +56,10 @@ public class ItemRMI implements Serializable {
     public void setLatestVersionNumber(Long latestVersion) {
         this.latestVersion = latestVersion;
     }
-    
+
     public ItemVersionRMI getLatestVersion() {
         for (ItemVersionRMI version : versions) {
-            if (version.getVersion().equals(latestVersion)){
+            if (version.getVersion().equals(latestVersion)) {
                 return version;
             }
         }
@@ -169,5 +171,5 @@ public class ItemRMI implements Serializable {
 
         return result;
     }
-
+    
 }

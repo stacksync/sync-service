@@ -1,7 +1,10 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import com.stacksync.commons.models.ItemMetadata;
 import java.io.Serializable;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,11 +21,14 @@ public class WorkspaceRMI implements Serializable {
     private String swiftUrl;
     private boolean isShared;
     private boolean isEncrypted;
-    private List<ItemRMI> items;
+    private HashMap<Long, ItemRMI> items;
     private List<UUID> users;
+    private long itemIdCounter, itemVersionIdCounter;
 
     public WorkspaceRMI() {
         this(null);
+        this.itemIdCounter = 0;
+        this.itemVersionIdCounter = 0;
     }
 
     public WorkspaceRMI(UUID id) {
@@ -35,7 +41,7 @@ public class WorkspaceRMI implements Serializable {
         this.owner = owner;
         this.isShared = isShared;
         this.isEncrypted = isEncrypted;
-        this.items = new ArrayList<ItemRMI>();
+        this.items = new HashMap<Long, ItemRMI>();
         this.users = new ArrayList<UUID>();
     }
 
@@ -121,20 +127,16 @@ public class WorkspaceRMI implements Serializable {
         this.parentItem = parentItem;
     }
 
-    public List<ItemRMI> getItems() {
+    public HashMap<Long, ItemRMI> getItems() {
         return items;
     }
 
-    public void setItems(List<ItemRMI> items) {
+    public void setItems(HashMap<Long, ItemRMI> items) {
         this.items = items;
     }
 
     public void addItem(ItemRMI item) {
-        this.items.add(item);
-    }
-
-    public void removeObject(ItemRMI object) {
-        this.items.remove(object);
+        this.items.put(item.getId(), item);
     }
 
     public List<UUID> getUsers() {

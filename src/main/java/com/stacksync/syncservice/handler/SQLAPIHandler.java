@@ -901,7 +901,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 				i++;
 			}
 
-			itemVersionDao.insertChunks(chunks, objectVersion.getId());
+			itemVersionDao.insertChunks(objectVersion.getItemId(), chunks, objectVersion.getId());
 		}
 	}
 

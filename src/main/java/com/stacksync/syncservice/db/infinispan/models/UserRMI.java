@@ -2,6 +2,7 @@ package com.stacksync.syncservice.db.infinispan.models;
 
 import java.io.Serializable;
 import java.rmi.Remote;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -118,7 +119,7 @@ public class UserRMI implements Serializable, Remote {
 
     public void addDevice(DeviceRMI device) {
         this.devices.add(device);
-    }
+        }
 
     public void removeDevice(DeviceRMI device) {
         this.devices.remove(device);
@@ -192,6 +193,42 @@ public class UserRMI implements Serializable, Remote {
     public boolean isValid() {
         return !(this.swiftUser == null || this.email == null || this.name == null || this.quotaLimit == null
                 || this.quotaUsed == null);
+    }
+
+    //************************************
+    //************************************
+    //************** DEVICE **************
+    //************************************
+    //************************************
+    public DeviceRMI getDevice(UUID id) throws RemoteException {
+
+        for (DeviceRMI device : devices) {
+            if (device.getId().equals(id)) {
+                return device;
+            }
+        }
+        return null;
+    }
+
+    public void updateDevice(DeviceRMI device) throws RemoteException {
+
+        for (DeviceRMI currentDevice : devices) {
+            if (currentDevice.getId().equals(device.getId())) {
+                devices.remove(currentDevice);
+                devices.add(device);
+                break;
+            }
+        }
+    }
+
+    public void deleteDevice(UUID id) throws RemoteException {
+
+        for (DeviceRMI currentDevice : devices) {
+            if (currentDevice.getId().equals(id)) {
+                devices.remove(currentDevice);
+                break;
+            }
+        }
     }
 
 }

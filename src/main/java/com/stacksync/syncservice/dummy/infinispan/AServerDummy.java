@@ -5,6 +5,7 @@
  */
 package com.stacksync.syncservice.dummy.infinispan;
 
+import com.stacksync.commons.models.CommitInfo;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -83,7 +84,7 @@ public abstract class AServerDummy extends Thread {
         items.add(createItemMetadata(ran, min, max, uuid));
 
         logger.info("hander_doCommit_start,commitID=" + id);
-        handler.doCommit(user, workspace, device, items);
+        List<CommitInfo> commitInfo = handler.doCommit(user, workspace, device, items);
         logger.info("hander_doCommit_end,commitID=" + id);
     }
 
@@ -121,7 +122,7 @@ public abstract class AServerDummy extends Thread {
         ItemMetadata itemMetadata = new ItemMetadata(id, version, deviceId, parentId, parentVersion, status, modifiedAt, checksum, size,
                 isFolder, filename, mimetype, chunks);
         itemMetadata.setChunks(chunks);
-        itemMetadata.setTempId((long) ran.nextInt(10));
+        itemMetadata.setTempId((long) ran.nextLong());
 
         return itemMetadata;
     }

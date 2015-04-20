@@ -70,7 +70,7 @@ public class DatabaseHelper {
 				long startChunkTotal = System.currentTimeMillis();
 
 				if (!version.getChunks().isEmpty()) {
-					oversionDao.insertChunks(version.getChunks(), version.getId());
+					oversionDao.insertChunks(version.getItemId(), version.getChunks(), version.getId());
 				}
 
 				totalTimeChunk += System.currentTimeMillis() - startChunkTotal;

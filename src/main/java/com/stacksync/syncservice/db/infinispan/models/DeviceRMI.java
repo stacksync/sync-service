@@ -1,7 +1,9 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.UUID;
 

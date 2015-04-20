@@ -20,6 +20,7 @@ import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserWorkspaceRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import java.util.HashMap;
+import java.util.Random;
 
 import org.infinispan.atomic.AtomicObjectFactory;
 
@@ -33,14 +34,13 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     private UserRMI user;
     private HashMap<String, UUID> mailUser;
     private final AtomicObjectFactory factory;
-    private long itemIdCounter, itemVersionIdCounter;
+    private Random random;
 
     public InfinispanDAO(AtomicObjectFactory factory) {
 
-        this.itemIdCounter = 0;
-        this.itemVersionIdCounter = 0;
+        this.random = new Random();
         this.factory = factory;
-        mailUser = (HashMap<String, UUID>)factory.getInstanceOf(HashMap.class, "mailUser", false, null, false);
+        mailUser = (HashMap<String, UUID>) factory.getInstanceOf(HashMap.class, "mailUser", false, null, false);
 
     }
 
@@ -108,7 +108,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         workspace = (WorkspaceRMI) factory.getInstanceOf(WorkspaceRMI.class, wspace.getId().toString(), false, null, false);
         workspace.setWorkspace(wspace);
-        factory.disposeInstanceOf(WorkspaceRMI.class, wspace.getId().toString(), true);
+        //factory.disposeInstanceOf(WorkspaceRMI.class, wspace.getId().toString(), true);
 
     }
 
@@ -119,12 +119,11 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         List<UUID> list = user.getWorkspaces();
 
-        for (UUID w : list) {
-            if (w.equals(wspace.getId())) {
-                factory.disposeInstanceOf(WorkspaceRMI.class, w.toString(), true);
-            }
-        }
-
+        /*for (UUID w : list) {
+         if (w.equals(wspace.getId())) {
+         factory.disposeInstanceOf(WorkspaceRMI.class, w.toString(), true);
+         }
+         }*/
     }
 
     @Override
@@ -137,11 +136,10 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
         for (UUID u : list) {
             user = (UserRMI) factory.getInstanceOf(UserRMI.class, u.toString(), false, null, false);
             user.removeWorkspace(id);
-            factory.disposeInstanceOf(UserRMI.class, u.toString(), true);
+            //factory.disposeInstanceOf(UserRMI.class, u.toString(), true);
         }
 
-        factory.disposeInstanceOf(WorkspaceRMI.class, id.toString(), false);
-
+        //factory.disposeInstanceOf(WorkspaceRMI.class, id.toString(), false);
     }
 
     @Override
@@ -153,9 +151,8 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
         user.addWorkspace(workspace.getId());
         workspace.addUser(user.getId());
 
-        factory.disposeInstanceOf(UserRMI.class, usr.getId().toString(), true);
-        factory.disposeInstanceOf(UserRMI.class, wspace.getId().toString(), true);
-
+        //factory.disposeInstanceOf(UserRMI.class, usr.getId().toString(), true);
+        //factory.disposeInstanceOf(UserRMI.class, wspace.getId().toString(), true);
     }
 
     @Override
@@ -167,9 +164,8 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
         workspace.removeUser(usr.getId());
         user.removeWorkspace(wspace.getId());
 
-        factory.disposeInstanceOf(UserRMI.class, usr.getId().toString(), true);
-        factory.disposeInstanceOf(UserRMI.class, wspace.getId().toString(), true);
-
+        //factory.disposeInstanceOf(UserRMI.class, usr.getId().toString(), true);
+        //factory.disposeInstanceOf(UserRMI.class, wspace.getId().toString(), true);
     }
 
     @Override
@@ -204,16 +200,8 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public ItemRMI findById(Long id) throws RemoteException {
 
-        List<ItemRMI> items = workspace.getItems();
-
-        for (ItemRMI i : items) {
-            if (i.getId().equals(id)) {
-                return i;
-            }
-        }
-
-        return null;
-
+        HashMap<Long, ItemRMI> items = workspace.getItems();
+        return items.get(id);
     }
 
     @Override
@@ -226,38 +214,20 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public void update(ItemRMI item) throws RemoteException {
 
-        List<ItemRMI> items = workspace.getItems();
+        HashMap<Long, ItemRMI> items = workspace.getItems();
+        items.put(item.getId(), item);
 
-        for (ItemRMI i : items) {
-            if (i.getId().equals(item.getId())) {
-                items.remove(i);
-                items.add(item);
-                break;
-            }
-        }
-
-        workspace.setItems(items);
-        factory.disposeInstanceOf(WorkspaceRMI.class, workspace.getId().toString(), true);
-
+        //factory.disposeInstanceOf(WorkspaceRMI.class, workspace.getId().toString(), true);
     }
 
     @Override
     public void put(ItemRMI item) throws RemoteException {
 
-        boolean exist = false;
-        List<ItemRMI> items = workspace.getItems();
-
-        for (ItemRMI i : items) {
-            if (i.getId().equals(item.getId())) {
-                update(item);
-                exist = true;
-                break;
-            }
-        }
-
-        if (!exist) {
-            item.setId(this.itemIdCounter++);
+        if (item.getId() == null) {
+            item.setId(this.random.nextLong());
             add(item);
+        } else {
+            update(item);
         }
 
     }
@@ -265,15 +235,8 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public void delete(Long id) throws RemoteException {
 
-        List<ItemRMI> items = workspace.getItems();
-
-        for (ItemRMI i : items) {
-            if (i.getId().equals(id)) {
-                items.remove(i);
-                break;
-            }
-        }
-
+        HashMap<Long, ItemRMI> items = workspace.getItems();
+        items.remove(id);
     }
 
     private ItemMetadata getItemMetadataFromItem(ItemRMI item) {
@@ -304,14 +267,13 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
     private ItemMetadata addChildrenFromItemMetadata(ItemMetadata itemMetadata, Boolean includeDeleted) {
 
-        List<ItemRMI> items = workspace.getItems();
+        HashMap<Long, ItemRMI> items = workspace.getItems();
+        ItemRMI item = items.get(itemMetadata.getId());
 
-        for (ItemRMI thisItem : items) {
-            if (itemMetadata.getId().equals(thisItem.getParentId()) && ((includeDeleted && itemMetadata.getStatus().equals("DELETED")) || !itemMetadata.getStatus().equals("DELETED"))) {
-                ItemVersionRMI thisItemVersion = thisItem.getLatestVersion();
-                ItemMetadata child = createItemMetadataFromItemAndItemVersion(thisItem, thisItemVersion);
-                itemMetadata.addChild(child);
-            }
+        if (item != null && ((includeDeleted && itemMetadata.getStatus().equals("DELETED")) || !itemMetadata.getStatus().equals("DELETED"))) {
+            ItemVersionRMI thisItemVersion = item.getLatestVersion();
+            ItemMetadata child = createItemMetadataFromItemAndItemVersion(item, thisItemVersion);
+            itemMetadata.addChild(child);
         }
 
         return itemMetadata;
@@ -347,9 +309,9 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         workspace = getById(workspaceId);
 
-        List<ItemRMI> list = workspace.getItems();
-
-        for (ItemRMI item : list) {
+        HashMap<Long, ItemRMI> items = workspace.getItems();
+        for (Long id : items.keySet()) {
+            ItemRMI item = items.get(id);
             itemMetadata = getItemMetadataFromItem(item);
             if (itemMetadata != null) {
                 result.add(itemMetadata);
@@ -364,18 +326,19 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     public List<ItemMetadata> getItemsById(Long id) throws RemoteException {
 
         List<ItemMetadata> result = new ArrayList<ItemMetadata>();
-        ItemMetadata itemMetadata;
+        // TODO FIX ME
+        /*ItemMetadata itemMetadata;
 
-        List<ItemRMI> list = workspace.getItems();
+         List<ItemRMI> list = workspace.getItems();
 
-        for (ItemRMI item : list) {
-            if (item.getId().equals(id) || (item.getParentId() != null && item.getParentId().equals(id))) {
-                itemMetadata = getItemMetadataFromItem(item);
-                if (itemMetadata != null) {
-                    result.add(itemMetadata);
-                }
-            }
-        }
+         for (ItemRMI item : list) {
+         if (item.getId().equals(id) || (item.getParentId() != null && item.getParentId().equals(id))) {
+         itemMetadata = getItemMetadataFromItem(item);
+         if (itemMetadata != null) {
+         result.add(itemMetadata);
+         }
+         }
+         }*/
 
         return result;
 
@@ -384,14 +347,11 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public ItemMetadata findById(Long id, Boolean includeList, Long version, Boolean includeDeleted, Boolean includeChunks) throws RemoteException {
 
-        List<ItemRMI> items = workspace.getItems();
-
+        HashMap<Long, ItemRMI> items = workspace.getItems();
+        ItemRMI item = items.get(id);
         ItemMetadata itemMetadata = null;
-        for (ItemRMI item : items) {
-            if (item.getId().equals(id)) {
-                itemMetadata = getItemMetadataFromItem(item, version, includeList, includeDeleted, includeChunks);
-                break;
-            }
+        if (item != null) {
+            itemMetadata = getItemMetadataFromItem(item, version, includeList, includeDeleted, includeChunks);
         }
 
         return itemMetadata;
@@ -409,15 +369,9 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public ItemMetadata findItemVersionsById(Long id) throws RemoteException {
 
-        List<ItemRMI> items = workspace.getItems();
+        HashMap<Long, ItemRMI> items = workspace.getItems();
+        ItemRMI item = items.get(id);
         ItemMetadata itemMetadata = null;
-        ItemRMI item = null;
-
-        for (ItemRMI currentItem : items) {
-            if (currentItem.getId().equals(id)) {
-                item = currentItem;
-            }
-        }
 
         if (item == null) {
             return null;
@@ -470,15 +424,12 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public void add(ItemVersionRMI itemVersion) throws RemoteException {
 
-        List<ItemRMI> items = workspace.getItems();
-
-        for (ItemRMI item : items) {
-            if (item.getId().equals(itemVersion.getItemId())) {
-                itemVersion.setId(itemVersionIdCounter++);
-                item.addVersion(itemVersion);
-                item.setLatestVersionNumber(itemVersion.getVersion());
-                break;
-            }
+        HashMap<Long, ItemRMI> items = workspace.getItems();
+        ItemRMI item = items.get(itemVersion.getItemId());
+        if (item != null) {
+            itemVersion.setId(this.random.nextLong());
+            item.addVersion(itemVersion);
+            item.setLatestVersionNumber(itemVersion.getVersion());
         }
 
     }
@@ -492,17 +443,16 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     }
 
     @Override
-    public void insertChunks(List<ChunkRMI> chunks, long itemVersionId) throws RemoteException {
+    public void insertChunks(long id, List<ChunkRMI> chunks, long itemVersionId) throws RemoteException {
 
-        List<ItemRMI> items = workspace.getItems();
+        HashMap<Long, ItemRMI> items = workspace.getItems();
+        ItemRMI item = items.get(id);
         List<ItemVersionRMI> versions;
 
-        for (ItemRMI item : items) {
-            versions = item.getVersions();
-            for (ItemVersionRMI version : versions) {
-                if (version.getId().equals(itemVersionId)) {
-                    version.setChunks(chunks);
-                }
+        versions = item.getVersions();
+        for (ItemVersionRMI version : versions) {
+            if (version.getId().equals(itemVersionId)) {
+                version.setChunks(chunks);
             }
         }
 
@@ -511,7 +461,8 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public List<ChunkRMI> findChunks(Long itemVersionId) throws RemoteException {
 
-        List<ItemRMI> items = workspace.getItems();
+        // TODO FIX ME
+        /*List<ItemRMI> items = workspace.getItems();
         List<ItemVersionRMI> versions;
 
         for (ItemRMI item : items) {
@@ -522,7 +473,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
                 }
             }
         }
-
+        */
         return null;
 
     }
@@ -530,7 +481,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public void update(ItemVersionRMI itemVersion) throws RemoteException {
 
-        List<ItemRMI> items = workspace.getItems();
+        /*List<ItemRMI> items = workspace.getItems();
 
         for (ItemRMI item : items) {
             if (item.getId().equals(itemVersion.getItemId())) {
@@ -544,14 +495,14 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
                 }
                 break;
             }
-        }
+        }*/
 
     }
 
     @Override
     public void delete(ItemVersionRMI itemVersion) throws RemoteException {
 
-        List<ItemRMI> items = workspace.getItems();
+        /*List<ItemRMI> items = workspace.getItems();
 
         for (ItemRMI item : items) {
             if (item.getId().equals(itemVersion.getItemId())) {
@@ -561,7 +512,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
                 }
                 break;
             }
-        }
+        }*/
 
     }
 
@@ -607,10 +558,9 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
         user = (UserRMI) factory.getInstanceOf(UserRMI.class, usr.getId().toString(), false, null, false);
         user.setUser(usr);
 
-        factory.disposeInstanceOf(UserRMI.class, usr.getId().toString(), true);
-        
+        //factory.disposeInstanceOf(UserRMI.class, usr.getId().toString(), true);
         mailUser.put(usr.getEmail(), usr.getId());
-        factory.disposeInstanceOf(HashMap.class, "mailUser", true);
+        //factory.disposeInstanceOf(HashMap.class, "mailUser", true);
     }
 
     @Override
@@ -619,7 +569,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         user = (UserRMI) factory.getInstanceOf(UserRMI.class, usr.getId().toString(), false, null, false);
         user.setUser(usr);
-        factory.disposeInstanceOf(UserRMI.class, usr.getId().toString(), true);
+        //factory.disposeInstanceOf(UserRMI.class, usr.getId().toString(), true);
 
     }
 
@@ -633,11 +583,10 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
         for (UUID w : list) {
             workspace = (WorkspaceRMI) factory.getInstanceOf(WorkspaceRMI.class, w.toString(), false, null, false);
             workspace.removeUser(id);
-            factory.disposeInstanceOf(WorkspaceRMI.class, w.toString(), true);
+            //factory.disposeInstanceOf(WorkspaceRMI.class, w.toString(), true);
         }
 
-        factory.disposeInstanceOf(UserRMI.class, id.toString(), false);
-
+        //factory.disposeInstanceOf(UserRMI.class, id.toString(), false);
     }
 
     //************************************
@@ -669,8 +618,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
             user.addDevice(device);
         }
 
-        factory.disposeInstanceOf(UserRMI.class, user.getId().toString(), true);
-
+        //factory.disposeInstanceOf(UserRMI.class, user.getId().toString(), true);
     }
 
     @Override
@@ -688,8 +636,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         user.setDevices(devices);
 
-        factory.disposeInstanceOf(UserRMI.class, user.getId().toString(), true);
-
+        //factory.disposeInstanceOf(UserRMI.class, user.getId().toString(), true);
     }
 
     @Override
@@ -706,7 +653,6 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         user.setDevices(devices);
 
-        factory.disposeInstanceOf(UserRMI.class, user.getId().toString(), true);
-
+        //factory.disposeInstanceOf(UserRMI.class, user.getId().toString(), true);
     }
 }

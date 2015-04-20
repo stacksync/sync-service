@@ -158,7 +158,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.stacksync.syncservice.main.ServerTest</mainClass>
+                            <mainClass>com.stacksync.syncservice.dummy.infinispan.DummyServerTest</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

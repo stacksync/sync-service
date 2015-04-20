@@ -652,7 +652,7 @@ public class Handler {
 					i++;
 				}
 
-				itemVersionDao.insertChunks(chunks, objectVersion.getId());
+				itemVersionDao.insertChunks(objectVersion.getItemId(), chunks, objectVersion.getId());
 			}
 		}
 	}
