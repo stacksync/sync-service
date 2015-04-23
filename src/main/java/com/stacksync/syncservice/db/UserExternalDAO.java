@@ -7,5 +7,8 @@ public interface UserExternalDAO {
 
 
 	public void add(User user) throws DAOException;
+	public User getByEmail(String email) throws DAOException;
+
+	
 
 }

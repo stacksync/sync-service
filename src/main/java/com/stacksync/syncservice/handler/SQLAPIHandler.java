@@ -100,6 +100,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 	public APIGetMetadata getFolderContent(User user, Long folderId, Boolean includeDeleted) {
 
 		ItemMetadata responseObject = null;
+		List<ExternalFolderMetadata> externalFolders = null;
 		Integer errorCode = 0;
 		Boolean success = false;
 		String description = "";
@@ -109,6 +110,8 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			if (folderId == null) {
 				// retrieve metadata from the root folder
 				responseObject = this.itemDao.findByUserId(user.getId(), includeDeleted);
+				externalFolders = this.itemDao.getExternalFolders(user.getId());
+	
 			} else {
 
 				// check if user has permission on this file
@@ -133,7 +136,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
 			logger.error(e.toString(), e);
 		}
 
-		APIGetMetadata response = new APIGetMetadata(responseObject, success, errorCode, description, null);
+		APIGetMetadata response = new APIGetMetadata(responseObject, success, errorCode, description, externalFolders);
 		return response;
 	}
 

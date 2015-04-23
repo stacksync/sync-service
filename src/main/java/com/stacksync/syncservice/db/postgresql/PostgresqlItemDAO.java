@@ -407,13 +407,12 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		Object[] values = {serverUserId};
 		List<ExternalFolderMetadata> externalFolders = new ArrayList<ExternalFolderMetadata>();
 
-		String query = "SELECT c.access_token_key, c.access_token_secret, p.folder_name, p.resource_url"
-				+ "FROM cloudspaces_sharing_proposal as p"
-				+ "INNER JOIN user1 as u ON u.email = p.recipient"
-				+ "INNER JOIN \"cloudspaces_oauth1.0_credentials\" as c"
-				+ "ON p.recipient = c.user"
-				+ "where u.id = ?";
-		
+		String query = "SELECT c.access_token_key, c.access_token_secret, p.folder_name, p.resource_url "
+				+ "FROM cloudspaces_sharing_proposal p "
+				+ "INNER JOIN \"user1\" u ON u.email = p.recipient "
+				+ "INNER JOIN \"cloudspaces_oauth1.0_credentials\" c "
+				+ "ON p.recipient = c.user where u.id = ?::uuid";
+	
 		try {
 			ResultSet result = executeQuery(query, values);
 

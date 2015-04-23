@@ -42,9 +42,11 @@ public class APIGetMetadata extends APIResponse {
 					JsonObject entryJson = parseObjectMetadataForAPI(entry);
 					contents.add(entryJson);
 				}
-				for (ExternalFolderMetadata externalFolder : externalFolderMetadata){
-					JsonObject entryJson = parseExternalMetadata(externalFolder);
-					contents.add(entryJson);
+				if (externalFolderMetadata != null){
+					for (ExternalFolderMetadata externalFolder : externalFolderMetadata){
+						JsonObject entryJson = parseExternalMetadata(externalFolder);
+						contents.add(entryJson);
+					}
 				}
 
 				jResponse.add("contents", contents);

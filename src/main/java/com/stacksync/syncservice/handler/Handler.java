@@ -44,7 +44,6 @@ import com.stacksync.syncservice.storage.StorageFactory;
 import com.stacksync.syncservice.storage.StorageManager;
 import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
-import com.stacksync.syncservice.util.Constants;
 
 public class Handler {
 
@@ -75,7 +74,6 @@ public class Handler {
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		deviceDao = factory.getDeviceDAO(connection);
 		userDao = factory.getUserDao(connection);
-		userExternalDao = factory.getUserExternalDAO(connection);
 		itemDao = factory.getItemDAO(connection);
 		sharingProposalDao = factory.getSharingProposalDao(connection);
 		itemVersionDao = factory.getItemVersionDAO(connection);
@@ -186,8 +184,12 @@ public class Handler {
 			User addressee;
 			try {
 				addressee = userDao.getByEmail(email);
-				if (!addressee.getId().equals(user.getId())) {
-					addressees.add(addressee);
+				if (addressee.getIsLocal() == false) {
+					externalAddressees.add(email);	
+				} else {
+					if (!addressee.getId().equals(user.getId())) {
+						addressees.add(addressee);
+					}
 				}
 
 			} catch (IllegalArgumentException e) {
@@ -213,9 +215,9 @@ public class Handler {
 			// if share with stacksync users. Else we do not create the new
 			// workspace until Accepted the proposal.
 			// Create the new workspace
-			
+
 			workspace = newSharedWorkspace(user, sourceWorkspace, item, addressees, isEncrypted);
-			
+
 		}
 
 		// Add the addressees to the workspace
@@ -239,7 +241,7 @@ public class Handler {
 		}
 		if (!externalAddressees.isEmpty()) {
 
-			createProposals(externalAddressees, sourceWorkspace.getOwner().getId() ,item);
+			createProposals(externalAddressees, sourceWorkspace.getOwner().getId(), item);
 
 		}
 
@@ -249,9 +251,9 @@ public class Handler {
 			UserNotFoundException {
 		boolean isNewWorkspace = false;
 		// get proposal
-		
+
 		Item item;
-		
+
 		try {
 			proposal = sharingProposalDao.findByKey(proposal.getKey());
 			item = itemDao.findById(proposal.getFolder());
@@ -259,18 +261,18 @@ public class Handler {
 		} catch (DAOException e) {
 			logger.error(e);
 			throw new ShareProposalNotCreatedException(e);
-		} catch(NullPointerException e){
+		} catch (NullPointerException e) {
 			logger.error(e);
 			throw new ShareProposalNotCreatedException("No proposal found with the given Key.");
 
 		}
-		
+
 		if (item == null || !item.isFolder()) {
 			throw new ShareProposalNotCreatedException("No folder found with the given ID.");
 		}
-		
-		//Check if this external user already exist
-		User user;
+
+		// Check if this external user already exist
+		User user = null;
 		List<User> users = new ArrayList<User>();
 		try {
 			user = userDao.getByEmail(proposal.getRecipient());
@@ -280,16 +282,17 @@ public class Handler {
 			user = null;
 		}
 		String pass = "";
-		//create new user
-		if (user == null){
+		// create new user
+		//TODO: Review this part
+		if (user == null || user.getIsLocal() == true) {
 			List<Object> newUserResponse = createNewUser(proposal.getRecipient());
-			user = (User)newUserResponse.get(0);
-			pass = (String)newUserResponse.get(1);
-			
+			user = (User) newUserResponse.get(0);
+			pass = (String) newUserResponse.get(1);
+
 			try {
 				users.add(userDao.getByEmail(proposal.getRecipient()));
 			} catch (NoResultReturnedDAOException e) {
-				logger.warn(e); 
+				logger.warn(e);
 				throw new UserNotFoundException(e);
 			} catch (DAOException e) {
 				logger.error(e);
@@ -300,7 +303,7 @@ public class Handler {
 		// Get the source workspace
 		Workspace sourceWorkspace;
 		User owner;
-		
+
 		try {
 			sourceWorkspace = workspaceDAO.getById(item.getWorkspace().getId());
 			owner = userDao.findById(sourceWorkspace.getOwner().getId());
@@ -308,27 +311,26 @@ public class Handler {
 			logger.error(e);
 			throw new ShareProposalNotCreatedException(e);
 		}
-		
+
 		if (sourceWorkspace == null) {
 			throw new ShareProposalNotCreatedException("Workspace not found.");
 		}
-		
+
 		Workspace workspace;
-		
+
 		if (sourceWorkspace.isShared()) {
 			workspace = sourceWorkspace;
 
 		} else {
-			//if the workspace isn't shared, create a new shared workspace
+			// if the workspace isn't shared, create a new shared workspace
 			workspace = newSharedWorkspace(owner, sourceWorkspace, item, users, false);
 			isNewWorkspace = true;
 		}
-		
+
 		// Add the addressees to the workspace
 		for (User addressee : users) {
 			try {
 				workspaceDAO.addUser(addressee, workspace);
-
 
 			} catch (DAOException e) {
 				workspace.getUsers().remove(addressee);
@@ -344,7 +346,7 @@ public class Handler {
 				throw new ShareProposalNotCreatedException(e);
 			}
 		}
-			
+
 		return new NewUserData(workspace, item, user.getName(), pass, isNewWorkspace);
 
 	}
@@ -816,11 +818,12 @@ public class Handler {
 				throw new ShareProposalNotCreatedException(e);
 			}
 		}
-		
+
 		return workspace;
 	}
-	
-	private void createProposals(List<String> externalAddressees, UUID ownerId, Item item) throws ShareProposalNotCreatedException, UserNotFoundException{
+
+	private void createProposals(List<String> externalAddressees, UUID ownerId, Item item)
+			throws ShareProposalNotCreatedException, UserNotFoundException {
 		SharingProposal proposal;
 		User owner;
 		try {
@@ -838,14 +841,14 @@ public class Handler {
 			proposal = new SharingProposal();
 			proposal.setKey(UUID.randomUUID());
 			proposal.setIsLocal(true);
-			proposal.setResourceUrl(Config.getSwiftUrl()+"/folder/" + item.getId());
+			proposal.setResourceUrl(Config.getSwiftUrl() + "/folder/" + item.getId());
 			proposal.setOwner(ownerId);
 			proposal.setOwnerName(owner.getName());
 			proposal.setOwnerEmail(owner.getEmail());
 			proposal.setFolder(item.getId());
 			proposal.setFolderName(item.getFilename());
 			proposal.setWriteAccess(true);
-			proposal.setCallback(Config.getInteropBaseUrl()+"/interop/result");
+			proposal.setCallback(Config.getInteropBaseUrl() + "/interop/result");
 			proposal.setRecipient(email);
 			proposal.setProtocolVersion("1.0");
 			proposal.setStatus("CREATED");
@@ -857,15 +860,15 @@ public class Handler {
 				throw new ShareProposalNotCreatedException(e);
 			}
 			// generate link to /select/share_id
-			String link = Config.getInteropBaseUrl()+"/interop/select/" + proposal.getKey();
+			String link = Config.getInteropBaseUrl() + "/interop/select/" + proposal.getKey();
 			logger.debug("Link that will be send into email: " + link);
 		}
 
-			// send email to all the external users
-			// TODO: Send Email to all the external users
+		// send email to all the external users
+		// TODO: Send Email to all the external users
 	}
-	
-	private List<Object> createNewUser(String email) throws ShareProposalNotCreatedException{
+
+	private List<Object> createNewUser(String email) throws ShareProposalNotCreatedException {
 		User user = new User();
 		SecureRandom secureRandom = new SecureRandom();
 		String randomName = new BigInteger(130, secureRandom).toString(32);
@@ -873,6 +876,11 @@ public class Handler {
 		user.setEmail(email);
 		user.setName(randomName);
 		user.setSwiftUser(randomName);
+		user.setSwiftAccount(Config.getSwiftAccount());
+		user.setQuotaLimit(0L);
+		user.setQuotaUsedLogical(0L);
+		user.setQuotaUsedReal(0L);
+		user.setIsLocal(false);
 		String pass;
 		try {
 			pass = storageManager.createNewUser(user);

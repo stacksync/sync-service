@@ -27,7 +27,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		ResultSet resultSet = null;
 		User user = null;
 
-		String query = "SELECT id, name, email, swift_user, swift_account, quota_limit, quota_used_logical, quota_used_real " + " FROM \"user1\" WHERE id = ?::uuid";
+		String query = "SELECT id, name, email, swift_user, swift_account, quota_limit, quota_used_logical, quota_used_real, is_local " + " FROM \"user1\" WHERE id = ?::uuid";
 
 		try {
 			resultSet = executeQuery(query, new Object[] { userID });
@@ -96,9 +96,9 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			throw new IllegalArgumentException("User attributes not set");
 		}
 
-		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsedLogical(), user.getQuotaUsedReal() };
+		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsedLogical(), user.getQuotaUsedReal(), user.getIsLocal()};
 
-		String query = "INSERT INTO user1 (email, name, swift_user, swift_account, quota_limit, quota_used_logical, quota_used_real) VALUES (?, ?, ?, ?, ?, ?)";
+		String query = "INSERT INTO user1 (email, name, swift_user, swift_account, quota_limit, quota_used_logical, quota_used_real, is_local) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
 		try {
 			UUID userId = (UUID) executeUpdate(query, values);
@@ -115,9 +115,9 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 			throw new IllegalArgumentException("User attributes not set");
 		}
 
-		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsedLogical(), user.getQuotaUsedReal(), user.getId() };
+		Object[] values = { user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(), user.getQuotaUsedLogical(), user.getQuotaUsedReal(), user.getIsLocal(), user.getId() };
 
-		String query = "UPDATE user1 SET email = ?, name = ?, swift_user = ?, swift_account = ?, quota_limit = ?, quota_used_logical = ?, quota_used_real = ? WHERE id = ?::uuid";
+		String query = "UPDATE user1 SET email = ?, name = ?, swift_user = ?, swift_account = ?, quota_limit = ?, quota_used_logical = ?, quota_used_real = ?, is_local = ? WHERE id = ?::uuid";
 
 		try {
 			executeUpdate(query, values);
@@ -147,6 +147,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 		user.setQuotaLimit(resultSet.getLong("quota_limit"));
 		user.setQuotaUsedLogical(resultSet.getLong("quota_used_logical"));
 		user.setQuotaUsedReal(resultSet.getLong("quota_used_real"));
+		user.setIsLocal(resultSet.getBoolean("is_local"));
 		return user;
 	}
 
