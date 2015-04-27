@@ -1,150 +1,42 @@
-2015-04-20 16:09:23,868 INFO  Config:40 - Configuration file loaded 
-2015-04-20 16:09:23,869 INFO  Config:77 - Displaying configuration: 
-2015-04-20 16:09:23,869 INFO  Config:83 - postgresql.database : stacksync 
-2015-04-20 16:09:23,869 INFO  Config:83 - omq.port : 5672 
-2015-04-20 16:09:23,870 INFO  Config:83 - omq.num_threads : 1 
-2015-04-20 16:09:23,870 INFO  Config:83 - omq.host : 10.30.102.242 
-2015-04-20 16:09:23,870 INFO  Config:83 - swift.keystone_protocol : http 
-2015-04-20 16:09:23,870 INFO  Config:83 - swift.user : stacksync_admin 
-2015-04-20 16:09:23,870 INFO  Config:83 - postgresql.user : stacksync_user 
-2015-04-20 16:09:23,870 INFO  Config:83 - datasource : infinispan 
-2015-04-20 16:09:23,871 INFO  Config:83 - swift.tenant : stacksync 
-2015-04-20 16:09:23,871 INFO  Config:83 - omq.rpc_exchange : rpc_global_exchange 
-2015-04-20 16:09:23,871 INFO  Config:83 - swift.keystone_port : 5000 
-2015-04-20 16:09:23,871 INFO  Config:83 - swift.keystone_admin_port : 35357 
-2015-04-20 16:09:23,871 INFO  Config:83 - postgresql.port : 5432 
-2015-04-20 16:09:23,873 INFO  Config:83 - swift.keystone_host : 10.30.233.214 
-2015-04-20 16:09:23,873 INFO  Config:83 - swift.host : 10.30.233.214 
-2015-04-20 16:09:23,873 INFO  Config:83 - postgresql.host : localhost 
-2015-04-20 16:09:23,874 INFO  Config:83 - omq.username : guest 
-2015-04-20 16:09:24,267 INFO  JGroupsTransport:189 - ISPN000078: Starting JGroups channel ISPN 
-2015-04-20 16:09:24,267 INFO  JGroupsTransport:412 - ISPN000088: Unable to use any JGroups configuration mechanisms provided in properties {}. Using default JGroups configuration! 
-2015-04-20 16:09:24,419 WARN  Configurator:1140 - JGRP000014: Discovery.timeout has been deprecated: GMS.join_timeout should be used instead 
-2015-04-20 16:09:24,419 WARN  Configurator:1140 - JGRP000014: Discovery.num_initial_members has been deprecated: will be ignored 
-2015-04-20 16:09:24,563 WARN  UDP:536 - JGRP000015: the send buffer of socket DatagramSocket was set to 640KB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max send buffer in the OS correctly (e.g. net.core.wmem_max on Linux) 
-2015-04-20 16:09:24,563 WARN  UDP:548 - JGRP000015: the receive buffer of socket DatagramSocket was set to 20MB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max receive buffer in the OS correctly (e.g. net.core.rmem_max on Linux) 
-2015-04-20 16:09:24,564 WARN  UDP:536 - JGRP000015: the send buffer of socket MulticastSocket was set to 640KB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max send buffer in the OS correctly (e.g. net.core.wmem_max on Linux) 
-2015-04-20 16:09:24,564 WARN  UDP:548 - JGRP000015: the receive buffer of socket MulticastSocket was set to 25MB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max receive buffer in the OS correctly (e.g. net.core.rmem_max on Linux) 
-2015-04-20 16:09:27,581 INFO  JGroupsTransport:682 - ISPN000094: Received new cluster view for channel ISPN: [ast11-62011|0] (1) [ast11-62011] 
-2015-04-20 16:09:27,584 INFO  JGroupsTransport:227 - ISPN000079: Channel ISPN local address is ast11-62011, physical addresses are [10.30.103.145:34810] 
-2015-04-20 16:09:27,588 INFO  GlobalComponentRegistry:224 - ISPN000128: Infinispan version: Infinispan 'Guinness' 7.0.1-SNAPSHOT 
-2015-04-20 16:09:27,935 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=5ed7e67e-ba0e-4a20-a0dc-6e515b31f50d 
-2015-04-20 16:09:27,935 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=d02dedd7-614a-4913-8689-5d32e73d47be 
-2015-04-20 16:09:27,938 INFO  AServerDummy:85 - hander_doCommit_start,commitID=5ed7e67e-ba0e-4a20-a0dc-6e515b31f50d 
-2015-04-20 16:09:27,938 INFO  AServerDummy:85 - hander_doCommit_start,commitID=d02dedd7-614a-4913-8689-5d32e73d47be 
-2015-04-20 16:09:27,957 INFO  AServerDummy:87 - hander_doCommit_end,commitID=5ed7e67e-ba0e-4a20-a0dc-6e515b31f50d 
-2015-04-20 16:09:27,957 INFO  AServerDummy:87 - hander_doCommit_end,commitID=d02dedd7-614a-4913-8689-5d32e73d47be 
-2015-04-20 16:09:27,958 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=d02dedd7-614a-4913-8689-5d32e73d47be 
-2015-04-20 16:09:27,958 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=5ed7e67e-ba0e-4a20-a0dc-6e515b31f50d 
-2015-04-20 16:09:31,935 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=74fa54c3-fadf-4c88-bd91-024047296530 
-2015-04-20 16:09:31,935 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=fc6de221-fdb7-44d4-b2cc-826ce2d167be 
-2015-04-20 16:09:31,938 INFO  AServerDummy:85 - hander_doCommit_start,commitID=fc6de221-fdb7-44d4-b2cc-826ce2d167be 
-2015-04-20 16:09:31,939 INFO  AServerDummy:85 - hander_doCommit_start,commitID=74fa54c3-fadf-4c88-bd91-024047296530 
-2015-04-20 16:09:31,963 INFO  AServerDummy:87 - hander_doCommit_end,commitID=74fa54c3-fadf-4c88-bd91-024047296530 
-2015-04-20 16:09:31,964 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=74fa54c3-fadf-4c88-bd91-024047296530 
-2015-04-20 16:09:31,968 INFO  AServerDummy:87 - hander_doCommit_end,commitID=fc6de221-fdb7-44d4-b2cc-826ce2d167be 
-2015-04-20 16:09:31,968 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=fc6de221-fdb7-44d4-b2cc-826ce2d167be 
-2015-04-20 16:09:35,937 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=960920c5-bf4c-4764-ad36-ae98bd10ba96 
-2015-04-20 16:09:35,937 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=0321e7de-1570-45f1-8508-f1a062fbcd1c 
-2015-04-20 16:09:35,940 INFO  AServerDummy:85 - hander_doCommit_start,commitID=960920c5-bf4c-4764-ad36-ae98bd10ba96 
-2015-04-20 16:09:35,940 INFO  AServerDummy:85 - hander_doCommit_start,commitID=0321e7de-1570-45f1-8508-f1a062fbcd1c 
-2015-04-20 16:09:35,964 INFO  AServerDummy:87 - hander_doCommit_end,commitID=960920c5-bf4c-4764-ad36-ae98bd10ba96 
-2015-04-20 16:09:35,964 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=960920c5-bf4c-4764-ad36-ae98bd10ba96 
-2015-04-20 16:09:35,965 INFO  AServerDummy:87 - hander_doCommit_end,commitID=0321e7de-1570-45f1-8508-f1a062fbcd1c 
-2015-04-20 16:09:35,965 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=0321e7de-1570-45f1-8508-f1a062fbcd1c 
-2015-04-20 16:09:39,938 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=b760ed1d-3487-4100-be55-60d0b1284f53 
-2015-04-20 16:09:39,939 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=f2b58165-b625-412e-b92a-85106087ce90 
-2015-04-20 16:09:39,941 INFO  AServerDummy:85 - hander_doCommit_start,commitID=b760ed1d-3487-4100-be55-60d0b1284f53 
-2015-04-20 16:09:39,942 INFO  AServerDummy:85 - hander_doCommit_start,commitID=f2b58165-b625-412e-b92a-85106087ce90 
-2015-04-20 16:09:39,962 INFO  AServerDummy:87 - hander_doCommit_end,commitID=b760ed1d-3487-4100-be55-60d0b1284f53 
-2015-04-20 16:09:39,962 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=b760ed1d-3487-4100-be55-60d0b1284f53 
-2015-04-20 16:09:39,963 INFO  AServerDummy:87 - hander_doCommit_end,commitID=f2b58165-b625-412e-b92a-85106087ce90 
-2015-04-20 16:09:39,963 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=f2b58165-b625-412e-b92a-85106087ce90 
-2015-04-20 16:09:43,939 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=d7d8229f-0d5a-4ac5-816c-590bd7298441 
-2015-04-20 16:09:43,939 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=80d474cd-be2f-4618-9a79-9f1c1a431f96 
-2015-04-20 16:09:43,941 INFO  AServerDummy:85 - hander_doCommit_start,commitID=d7d8229f-0d5a-4ac5-816c-590bd7298441 
-2015-04-20 16:09:43,942 INFO  AServerDummy:85 - hander_doCommit_start,commitID=80d474cd-be2f-4618-9a79-9f1c1a431f96 
-2015-04-20 16:09:43,959 INFO  AServerDummy:87 - hander_doCommit_end,commitID=d7d8229f-0d5a-4ac5-816c-590bd7298441 
-2015-04-20 16:09:43,959 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=d7d8229f-0d5a-4ac5-816c-590bd7298441 
-2015-04-20 16:09:43,960 INFO  AServerDummy:87 - hander_doCommit_end,commitID=80d474cd-be2f-4618-9a79-9f1c1a431f96 
-2015-04-20 16:09:43,960 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=80d474cd-be2f-4618-9a79-9f1c1a431f96 
-2015-04-20 16:09:47,940 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=234862f3-21fc-45e0-a9e8-01c8a3484db8 
-2015-04-20 16:09:47,940 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=7e75a7ac-ecf4-472e-b459-ca7cee160ff8 
-2015-04-20 16:09:47,942 INFO  AServerDummy:85 - hander_doCommit_start,commitID=234862f3-21fc-45e0-a9e8-01c8a3484db8 
-2015-04-20 16:09:47,942 INFO  AServerDummy:85 - hander_doCommit_start,commitID=7e75a7ac-ecf4-472e-b459-ca7cee160ff8 
-2015-04-20 16:09:47,965 INFO  AServerDummy:87 - hander_doCommit_end,commitID=234862f3-21fc-45e0-a9e8-01c8a3484db8 
-2015-04-20 16:09:47,966 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=234862f3-21fc-45e0-a9e8-01c8a3484db8 
-2015-04-20 16:09:47,968 INFO  AServerDummy:87 - hander_doCommit_end,commitID=7e75a7ac-ecf4-472e-b459-ca7cee160ff8 
-2015-04-20 16:09:47,968 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=7e75a7ac-ecf4-472e-b459-ca7cee160ff8 
-2015-04-20 16:09:51,941 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=12b9c8e2-5244-4f21-ade6-ca76909fc571 
-2015-04-20 16:09:51,941 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=0bb77826-fda8-40b6-9e84-f03330047d37 
-2015-04-20 16:09:51,941 INFO  AServerDummy:85 - hander_doCommit_start,commitID=12b9c8e2-5244-4f21-ade6-ca76909fc571 
-2015-04-20 16:09:51,942 INFO  AServerDummy:85 - hander_doCommit_start,commitID=0bb77826-fda8-40b6-9e84-f03330047d37 
-2015-04-20 16:09:51,948 INFO  AServerDummy:87 - hander_doCommit_end,commitID=12b9c8e2-5244-4f21-ade6-ca76909fc571 
-2015-04-20 16:09:51,949 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=12b9c8e2-5244-4f21-ade6-ca76909fc571 
-2015-04-20 16:09:51,949 INFO  AServerDummy:87 - hander_doCommit_end,commitID=0bb77826-fda8-40b6-9e84-f03330047d37 
-2015-04-20 16:09:51,949 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=0bb77826-fda8-40b6-9e84-f03330047d37 
-2015-04-20 16:09:55,941 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=c6dc2976-ae9d-4db3-a1c4-c9151036ec37 
-2015-04-20 16:09:55,942 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=b449d86e-78fe-4153-a88c-647f41170299 
-2015-04-20 16:09:55,944 INFO  AServerDummy:85 - hander_doCommit_start,commitID=c6dc2976-ae9d-4db3-a1c4-c9151036ec37 
-2015-04-20 16:09:55,945 INFO  AServerDummy:85 - hander_doCommit_start,commitID=b449d86e-78fe-4153-a88c-647f41170299 
-2015-04-20 16:09:55,967 INFO  AServerDummy:87 - hander_doCommit_end,commitID=c6dc2976-ae9d-4db3-a1c4-c9151036ec37 
-2015-04-20 16:09:55,968 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=c6dc2976-ae9d-4db3-a1c4-c9151036ec37 
-2015-04-20 16:09:55,969 INFO  AServerDummy:87 - hander_doCommit_end,commitID=b449d86e-78fe-4153-a88c-647f41170299 
-2015-04-20 16:09:55,969 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=b449d86e-78fe-4153-a88c-647f41170299 
-2015-04-20 16:09:59,941 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=86984aa1-72cc-4845-8c34-aac3d4c0aa5f 
-2015-04-20 16:09:59,943 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=551b9eb5-d1ae-4843-93c6-08fdca528c83 
-2015-04-20 16:09:59,944 INFO  AServerDummy:85 - hander_doCommit_start,commitID=86984aa1-72cc-4845-8c34-aac3d4c0aa5f 
-2015-04-20 16:09:59,945 INFO  AServerDummy:85 - hander_doCommit_start,commitID=551b9eb5-d1ae-4843-93c6-08fdca528c83 
-2015-04-20 16:09:59,966 INFO  AServerDummy:87 - hander_doCommit_end,commitID=86984aa1-72cc-4845-8c34-aac3d4c0aa5f 
-2015-04-20 16:09:59,967 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=86984aa1-72cc-4845-8c34-aac3d4c0aa5f 
-2015-04-20 16:09:59,968 INFO  AServerDummy:87 - hander_doCommit_end,commitID=551b9eb5-d1ae-4843-93c6-08fdca528c83 
-2015-04-20 16:09:59,968 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=551b9eb5-d1ae-4843-93c6-08fdca528c83 
-2015-04-20 16:10:03,942 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=033aa71d-2f57-4b31-b44d-4d38fcc0e942 
-2015-04-20 16:10:03,943 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=386f375a-ba33-4dfa-98a7-d1fa3e4411bc 
-2015-04-20 16:10:03,945 INFO  AServerDummy:85 - hander_doCommit_start,commitID=033aa71d-2f57-4b31-b44d-4d38fcc0e942 
-2015-04-20 16:10:03,946 INFO  AServerDummy:85 - hander_doCommit_start,commitID=386f375a-ba33-4dfa-98a7-d1fa3e4411bc 
-2015-04-20 16:10:03,955 INFO  AServerDummy:87 - hander_doCommit_end,commitID=033aa71d-2f57-4b31-b44d-4d38fcc0e942 
-2015-04-20 16:10:03,955 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=033aa71d-2f57-4b31-b44d-4d38fcc0e942 
-2015-04-20 16:10:03,956 INFO  AServerDummy:87 - hander_doCommit_end,commitID=386f375a-ba33-4dfa-98a7-d1fa3e4411bc 
-2015-04-20 16:10:03,956 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=386f375a-ba33-4dfa-98a7-d1fa3e4411bc 
-2015-04-20 16:10:07,944 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=05ec8164-7069-4ce1-ade3-dc4e48d8cecf 
-2015-04-20 16:10:07,944 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=07259a7e-8342-41e8-8fd2-36c7cc42dc3a 
-2015-04-20 16:10:07,946 INFO  AServerDummy:85 - hander_doCommit_start,commitID=05ec8164-7069-4ce1-ade3-dc4e48d8cecf 
-2015-04-20 16:10:07,946 INFO  AServerDummy:85 - hander_doCommit_start,commitID=07259a7e-8342-41e8-8fd2-36c7cc42dc3a 
-2015-04-20 16:10:07,971 INFO  AServerDummy:87 - hander_doCommit_end,commitID=07259a7e-8342-41e8-8fd2-36c7cc42dc3a 
-2015-04-20 16:10:07,971 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=07259a7e-8342-41e8-8fd2-36c7cc42dc3a 
-2015-04-20 16:10:07,972 INFO  AServerDummy:87 - hander_doCommit_end,commitID=05ec8164-7069-4ce1-ade3-dc4e48d8cecf 
-2015-04-20 16:10:07,972 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=05ec8164-7069-4ce1-ade3-dc4e48d8cecf 
-2015-04-20 16:10:11,944 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=af3e75f2-610b-40dc-ade1-b1b55522bff5 
-2015-04-20 16:10:11,945 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=e7d2ee8b-4a9d-4e48-9a9d-3b9ab567187d 
-2015-04-20 16:10:11,946 INFO  AServerDummy:85 - hander_doCommit_start,commitID=af3e75f2-610b-40dc-ade1-b1b55522bff5 
-2015-04-20 16:10:11,946 INFO  AServerDummy:85 - hander_doCommit_start,commitID=e7d2ee8b-4a9d-4e48-9a9d-3b9ab567187d 
-2015-04-20 16:10:11,967 INFO  AServerDummy:87 - hander_doCommit_end,commitID=af3e75f2-610b-40dc-ade1-b1b55522bff5 
-2015-04-20 16:10:11,968 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=af3e75f2-610b-40dc-ade1-b1b55522bff5 
-2015-04-20 16:10:11,969 INFO  AServerDummy:87 - hander_doCommit_end,commitID=e7d2ee8b-4a9d-4e48-9a9d-3b9ab567187d 
-2015-04-20 16:10:11,970 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=e7d2ee8b-4a9d-4e48-9a9d-3b9ab567187d 
-2015-04-20 16:10:15,944 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=61bb495f-11d0-48fd-ace6-70d2badd72a0 
-2015-04-20 16:10:15,945 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=9edf0a43-0c62-4b80-8c88-d595b1ef1f62 
-2015-04-20 16:10:15,947 INFO  AServerDummy:85 - hander_doCommit_start,commitID=61bb495f-11d0-48fd-ace6-70d2badd72a0 
-2015-04-20 16:10:15,947 INFO  AServerDummy:85 - hander_doCommit_start,commitID=9edf0a43-0c62-4b80-8c88-d595b1ef1f62 
-2015-04-20 16:10:15,973 INFO  AServerDummy:87 - hander_doCommit_end,commitID=61bb495f-11d0-48fd-ace6-70d2badd72a0 
-2015-04-20 16:10:15,974 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=61bb495f-11d0-48fd-ace6-70d2badd72a0 
-2015-04-20 16:10:15,974 INFO  AServerDummy:87 - hander_doCommit_end,commitID=9edf0a43-0c62-4b80-8c88-d595b1ef1f62 
-2015-04-20 16:10:15,974 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=9edf0a43-0c62-4b80-8c88-d595b1ef1f62 
-2015-04-20 16:10:19,945 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=0baca6a9-0445-4247-b36f-b6ffde1be4b2 
-2015-04-20 16:10:19,946 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=65c00747-b056-4e30-896e-b880d1adae13 
-2015-04-20 16:10:19,947 INFO  AServerDummy:85 - hander_doCommit_start,commitID=0baca6a9-0445-4247-b36f-b6ffde1be4b2 
-2015-04-20 16:10:19,947 INFO  AServerDummy:85 - hander_doCommit_start,commitID=65c00747-b056-4e30-896e-b880d1adae13 
-2015-04-20 16:10:19,962 INFO  AServerDummy:87 - hander_doCommit_end,commitID=0baca6a9-0445-4247-b36f-b6ffde1be4b2 
-2015-04-20 16:10:19,962 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=0baca6a9-0445-4247-b36f-b6ffde1be4b2 
-2015-04-20 16:10:19,964 INFO  AServerDummy:87 - hander_doCommit_end,commitID=65c00747-b056-4e30-896e-b880d1adae13 
-2015-04-20 16:10:19,964 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=65c00747-b056-4e30-896e-b880d1adae13 
-2015-04-20 16:10:23,946 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=b7bc6f5e-f432-4c0f-af52-ba3207ff6b36 
-2015-04-20 16:10:23,946 INFO  AServerDummy:58 - serverDummy2_doCommit_start,commitID=ba4a6288-e2fe-487b-a036-2f36266ac852 
-2015-04-20 16:10:23,948 INFO  AServerDummy:85 - hander_doCommit_start,commitID=b7bc6f5e-f432-4c0f-af52-ba3207ff6b36 
-2015-04-20 16:10:23,948 INFO  AServerDummy:85 - hander_doCommit_start,commitID=ba4a6288-e2fe-487b-a036-2f36266ac852 
-2015-04-20 16:10:23,967 INFO  AServerDummy:87 - hander_doCommit_end,commitID=b7bc6f5e-f432-4c0f-af52-ba3207ff6b36 
-2015-04-20 16:10:23,967 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=b7bc6f5e-f432-4c0f-af52-ba3207ff6b36 
-2015-04-20 16:10:23,968 INFO  AServerDummy:87 - hander_doCommit_end,commitID=ba4a6288-e2fe-487b-a036-2f36266ac852 
-2015-04-20 16:10:23,968 INFO  AServerDummy:69 - serverDummy2_doCommit_end,commitID=ba4a6288-e2fe-487b-a036-2f36266ac852 
+2015-04-24 11:33:42,126 INFO  Config:40 - Configuration file loaded 
+2015-04-24 11:33:42,126 INFO  Config:77 - Displaying configuration: 
+2015-04-24 11:33:42,127 INFO  Config:83 - postgresql.database : stacksync 
+2015-04-24 11:33:42,127 INFO  Config:83 - omq.port : 5672 
+2015-04-24 11:33:42,127 INFO  Config:83 - omq.num_threads : 1 
+2015-04-24 11:33:42,127 INFO  Config:83 - omq.host : 10.30.102.242 
+2015-04-24 11:33:42,128 INFO  Config:83 - swift.keystone_protocol : http 
+2015-04-24 11:33:42,128 INFO  Config:83 - swift.user : stacksync_admin 
+2015-04-24 11:33:42,128 INFO  Config:83 - postgresql.user : stacksync_user 
+2015-04-24 11:33:42,128 INFO  Config:83 - datasource : infinispan 
+2015-04-24 11:33:42,128 INFO  Config:83 - swift.tenant : stacksync 
+2015-04-24 11:33:42,128 INFO  Config:83 - omq.rpc_exchange : rpc_global_exchange 
+2015-04-24 11:33:42,129 INFO  Config:83 - swift.keystone_port : 5000 
+2015-04-24 11:33:42,129 INFO  Config:83 - swift.keystone_admin_port : 35357 
+2015-04-24 11:33:42,129 INFO  Config:83 - postgresql.port : 5432 
+2015-04-24 11:33:42,131 INFO  Config:83 - swift.keystone_host : 10.30.233.214 
+2015-04-24 11:33:42,131 INFO  Config:83 - swift.host : 10.30.233.214 
+2015-04-24 11:33:42,131 INFO  Config:83 - postgresql.host : localhost 
+2015-04-24 11:33:42,131 INFO  Config:83 - omq.username : guest 
+2015-04-24 11:33:42,560 INFO  JGroupsTransport:189 - ISPN000078: Starting JGroups channel ISPN 
+2015-04-24 11:33:42,560 INFO  JGroupsTransport:412 - ISPN000088: Unable to use any JGroups configuration mechanisms provided in properties {}. Using default JGroups configuration! 
+2015-04-24 11:33:42,723 WARN  Configurator:1140 - JGRP000014: Discovery.timeout has been deprecated: GMS.join_timeout should be used instead 
+2015-04-24 11:33:42,723 WARN  Configurator:1140 - JGRP000014: Discovery.num_initial_members has been deprecated: will be ignored 
+2015-04-24 11:33:42,877 WARN  UDP:536 - JGRP000015: the send buffer of socket DatagramSocket was set to 640KB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max send buffer in the OS correctly (e.g. net.core.wmem_max on Linux) 
+2015-04-24 11:33:42,878 WARN  UDP:548 - JGRP000015: the receive buffer of socket DatagramSocket was set to 20MB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max receive buffer in the OS correctly (e.g. net.core.rmem_max on Linux) 
+2015-04-24 11:33:42,878 WARN  UDP:536 - JGRP000015: the send buffer of socket MulticastSocket was set to 640KB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max send buffer in the OS correctly (e.g. net.core.wmem_max on Linux) 
+2015-04-24 11:33:42,879 WARN  UDP:548 - JGRP000015: the receive buffer of socket MulticastSocket was set to 25MB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max receive buffer in the OS correctly (e.g. net.core.rmem_max on Linux) 
+2015-04-24 11:33:45,903 INFO  JGroupsTransport:682 - ISPN000094: Received new cluster view for channel ISPN: [ast11-62978|0] (1) [ast11-62978] 
+2015-04-24 11:33:45,907 INFO  JGroupsTransport:227 - ISPN000079: Channel ISPN local address is ast11-62978, physical addresses are [10.30.103.145:44009] 
+2015-04-24 11:33:45,912 INFO  GlobalComponentRegistry:224 - ISPN000128: Infinispan version: Infinispan 'Guinness' 7.0.1-SNAPSHOT 
+2015-04-24 11:33:46,325 INFO  AServerDummy:54 - serverDummy2_doCommit_start,commitID=9436f5e1-e9ad-4cfc-835b-44f09ba6ba57 
+2015-04-24 11:33:46,325 INFO  AServerDummy:54 - serverDummy2_doCommit_start,commitID=f08bbe3b-db1f-4e45-8b02-dcc6098b4da3 
+2015-04-24 11:33:46,332 INFO  AServerDummy:120 - hander_doCommit_start,commitID=f08bbe3b-db1f-4e45-8b02-dcc6098b4da3 
+2015-04-24 11:33:46,332 INFO  AServerDummy:120 - hander_doCommit_start,commitID=9436f5e1-e9ad-4cfc-835b-44f09ba6ba57 
+2015-04-24 11:33:57,826 INFO  AServerDummy:122 - hander_doCommit_end,commitID=f08bbe3b-db1f-4e45-8b02-dcc6098b4da3 
+2015-04-24 11:33:57,826 INFO  AServerDummy:65 - serverDummy2_doCommit_end,commitID=f08bbe3b-db1f-4e45-8b02-dcc6098b4da3 
+2015-04-24 11:33:57,826 INFO  AServerDummy:54 - serverDummy2_doCommit_start,commitID=23b54f66-6f5e-4f31-a558-618e1f0e0bff 
+2015-04-24 11:33:57,826 INFO  AServerDummy:120 - hander_doCommit_start,commitID=23b54f66-6f5e-4f31-a558-618e1f0e0bff 
+2015-04-24 11:34:03,365 INFO  AServerDummy:122 - hander_doCommit_end,commitID=23b54f66-6f5e-4f31-a558-618e1f0e0bff 
+2015-04-24 11:34:03,366 INFO  AServerDummy:65 - serverDummy2_doCommit_end,commitID=23b54f66-6f5e-4f31-a558-618e1f0e0bff 
+2015-04-24 11:34:03,366 INFO  AServerDummy:54 - serverDummy2_doCommit_start,commitID=4563b077-dfe2-43f7-95ca-9af0e479f5c8 
+2015-04-24 11:34:03,367 INFO  AServerDummy:120 - hander_doCommit_start,commitID=4563b077-dfe2-43f7-95ca-9af0e479f5c8 

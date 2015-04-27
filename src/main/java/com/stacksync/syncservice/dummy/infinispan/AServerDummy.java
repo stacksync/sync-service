@@ -33,7 +33,13 @@ import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.logging.Level;
 
 /**
  * @author Sergi Toda <sergi.toda@estudiants.urv.cat>
@@ -54,16 +60,41 @@ public abstract class AServerDummy extends Thread {
     protected InfinispanDeviceDAO deviceDAO;
     protected InfinispanWorkspaceDAO workspaceDAO;
 
+    protected HashMap<Long, Long> ids;
+    protected HashMap<Long, String> filenames;
+    protected ArrayList<Action> lines;
+
     public AServerDummy(ConnectionPool pool, int commitsPerMinute, int minutes) throws SQLException, NoStorageManagerAvailable, Exception {
-        this.connection = (InfinispanConnection)pool.getConnection();
-        this.commitsPerMinute = commitsPerMinute;
+        this.connection = (InfinispanConnection) pool.getConnection();
+        //this.commitsPerMinute = commitsPerMinute;
         this.minutes = minutes;
         this.handler = new SQLSyncHandler(pool);
-        
+
         DAOFactory factory = new DAOFactory("infinispan");
         this.userDAO = factory.getUserDao(connection);
         this.deviceDAO = factory.getDeviceDAO(connection);
         this.workspaceDAO = factory.getWorkspaceDao(connection);
+
+        this.ids = new HashMap<Long, Long>();
+        this.filenames = new HashMap<Long, String>();
+        this.lines = new ArrayList<Action>();
+
+        BufferedReader read = new BufferedReader(new FileReader("file.txt"));
+        String line = read.readLine();
+        String[] lineParts;
+        while (line != null) {
+            lineParts = line.split(",");
+            if (lineParts[0].equals("new")) {
+                lines.add(new New(lineParts));
+            } else if (lineParts[0].equals("MOD")) {
+                //lines.add(new Modify("MOD", Long.parseLong(lineParts[1]), lineParts[2]));
+            } else if (lineParts[0].equals("DEL")) {
+                //lines.add(new Delete("DEL", Long.parseLong(lineParts[1])));
+            }
+            line = read.readLine();
+        }
+        read.close();
+        this.commitsPerMinute = lines.size();
     }
 
     /**
@@ -81,50 +112,25 @@ public abstract class AServerDummy extends Thread {
 
         // Create a ItemMetadata List
         List<ItemMetadata> items = new ArrayList<ItemMetadata>();
-        items.add(createItemMetadata(ran, min, max, uuid));
+
+        filenames.put(lines.get(0).getTempId(), java.util.UUID.randomUUID().toString());
+        ItemMetadata itemMetadata = lines.get(0).createItemMetadata(ran, min, max, uuid, ids.get(lines.get(0).getTempId()), filenames.get(lines.get(0).getTempId()));
+        items.add(itemMetadata);
 
         logger.info("hander_doCommit_start,commitID=" + id);
         List<CommitInfo> commitInfo = handler.doCommit(user, workspace, device, items);
         logger.info("hander_doCommit_end,commitID=" + id);
-    }
+        Long metadataId = commitInfo.get(0).getMetadata().getId();
 
-    private ItemMetadata createItemMetadata(Random ran, int min, int max, UUID deviceId) {
-        String[] mimes = {"pdf", "php", "java", "docx", "html", "png", "jpeg", "xml"};
-
-        Long id = null;
-        Long version = 1L;
-
-        Long parentId = null;
-        Long parentVersion = null;
-
-        String status = "NEW";
-        Date modifiedAt = new Date();
-        Long checksum = (long) ran.nextInt(Integer.MAX_VALUE);
-        List<String> chunks = new ArrayList<String>();
-        Boolean isFolder = false;
-        String filename = java.util.UUID.randomUUID().toString();
-        String mimetype = mimes[ran.nextInt(mimes.length)];
-
-        // Fill chunks
-        int numChunks = ran.nextInt((max - min) + 1) + min;
-        long size = numChunks * CHUNK_SIZE;
-        for (int i = 0; i < numChunks; i++) {
-            String str = java.util.UUID.randomUUID().toString();
-            try {
-                chunks.add(doHash(str));
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            }
+        if (!commitInfo.get(0).isCommitSucceed()) {
+            System.out.println("buuu");
         }
 
-        ItemMetadata itemMetadata = new ItemMetadata(id, version, deviceId, parentId, parentVersion, status, modifiedAt, checksum, size,
-                isFolder, filename, mimetype, chunks);
-        itemMetadata.setChunks(chunks);
-        itemMetadata.setTempId((long) ran.nextLong());
+        if (ids.get(itemMetadata.getTempId()) == null) {
+            ids.put(itemMetadata.getTempId(), metadataId);
+        }
 
-        return itemMetadata;
+        lines.remove(0);
     }
 
     private String doHash(String str) throws UnsupportedEncodingException, NoSuchAlgorithmException {
@@ -138,13 +144,13 @@ public abstract class AServerDummy extends Thread {
     }
 
     public void setup(UUID uuid) throws RemoteException {
-        
+
         DeviceRMI device = new DeviceRMI(uuid);
-        
+
         WorkspaceRMI workspace = new WorkspaceRMI(uuid);
         workspace.addUser(uuid);
         workspace.setOwner(uuid);
-        
+
         UserRMI user = new UserRMI(uuid);
         user.setEmail(uuid.toString());
         user.setName("a");
@@ -155,10 +161,10 @@ public abstract class AServerDummy extends Thread {
         //user.addDevice(device);
         user.addWorkspace(uuid);
         userDAO.add(user);
-        
+
         workspaceDAO.add(workspace);
         deviceDAO.add(device);
-        
+
     }
 
     public void setNumberOfItems(int numberOfItems) {

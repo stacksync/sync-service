@@ -14,6 +14,7 @@ import java.util.UUID;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,22 +24,27 @@ import java.util.logging.Logger;
  */
 public class ServerDummy extends AServerDummy {
 
-    private UUID[] uuids;
+    private ArrayList<UUID> uuids;
 
     public ServerDummy(ConnectionPool pool, int numUsers, int commitsPerMinute, int minutes) throws SQLException,
             NoStorageManagerAvailable,
             Exception {
         super(pool, commitsPerMinute, minutes);
 
-        uuids = new UUID[numUsers];
-        for (int i = 0; i < numUsers; i++) {
-            uuids[i] = UUID.randomUUID();
-            this.setup(uuids[i]);
+        uuids = new ArrayList<UUID>();
+        UUID userId;
+        for (int i = 0; i < lines.size(); i++) {
+            userId = lines.get(i).getUser_id();
+            if (uuids.contains(userId)) {
+                uuids.add(userId);
+                this.setup(userId);
+            }
         }
     }
 
     @Override
     public void run() {
+        Action action;
         Random ran = new Random(System.currentTimeMillis());
         // Distance between commits in msecs
         long distance = (long) (1000 / (commitsPerMinute / 60.0));
@@ -48,13 +54,15 @@ public class ServerDummy extends AServerDummy {
         for (int i = 0; i < minutes; i++) {
 
             long startMinute = System.currentTimeMillis();
-            for (int j = 0; j < commitsPerMinute; j++) {
-                String id = UUID.randomUUID().toString();
+            for (int j = 0; j < commitsPerMinute && lines.iterator().hasNext(); j++) {
+                action = lines.iterator().next();
+                UUID userId = action.getUser_id();
+                String id = action.getTempId().toString();
 
                 logger.info("serverDummy2_doCommit_start,commitID=" + id);
                 long start = System.currentTimeMillis();
                 try {
-                    doCommit(uuids[ran.nextInt(uuids.length)], ran, 1, 8, id);
+                    doCommit(uuids.get(uuids.indexOf(userId)), ran, 1, 8, id);
                     itemsCount++;
                 } catch (DAOException e1) {
                     logger.error(e1);
