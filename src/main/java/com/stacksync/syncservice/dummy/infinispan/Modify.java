@@ -6,12 +6,6 @@
 package com.stacksync.syncservice.dummy.infinispan;
 
 import com.stacksync.commons.models.ItemMetadata;
-import static com.stacksync.syncservice.dummy.infinispan.AServerDummy.CHUNK_SIZE;
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -25,24 +19,9 @@ public class Modify extends Action {
     }
 
     @Override
-    public ItemMetadata createItemMetadata(Random ran, int min, int max, UUID uuid, Long id, String filename) {
+    public ItemMetadata createItemMetadata(UUID uuid, Long id, String filename) {
 
-        List<String> chunks = new ArrayList<String>();
-        // Fill chunks
-        int numChunks = ran.nextInt((max - min) + 1) + min;
-        long size = numChunks * CHUNK_SIZE;
-        for (int i = 0; i < numChunks; i++) {
-            String str = java.util.UUID.randomUUID().toString();
-            try {
-                chunks.add(super.doHash(str));
-            } catch (UnsupportedEncodingException e) {
-                System.err.println(e.toString());
-            } catch (NoSuchAlgorithmException e) {
-                System.err.println(e.toString());
-            }
-        }
-
-        super.setValues(ran, id, 1L, null, null, (long) ran.nextInt(Integer.MAX_VALUE), new ArrayList<String>(), false, filename, numChunks, size);
+        super.setValues(id, 1L, null, null, false, filename, true);
 
         ItemMetadata itemMetadata = new ItemMetadata(super.id, super.version, uuid, super.parentId, super.parentVersion, super.status, super.modifiedAt, super.checksum, super.size,
                 super.isFolder, super.filename, super.mimetype, super.chunks);

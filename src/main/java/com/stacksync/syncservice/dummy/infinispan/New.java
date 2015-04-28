@@ -25,27 +25,12 @@ public class New extends Action {
     }
 
     @Override
-    public ItemMetadata createItemMetadata(Random ran, int min, int max, UUID uuid, Long id, String filename) {
+    public ItemMetadata createItemMetadata(UUID uuid, Long id, String filename) {
 
-        List<String> chunks = new ArrayList<String>();
-        // Fill chunks
-        int numChunks = ran.nextInt((max - min) + 1) + min;
-        long size = numChunks * CHUNK_SIZE;
-        for (int i = 0; i < numChunks; i++) {
-            String str = java.util.UUID.randomUUID().toString();
-            try {
-                chunks.add(super.doHash(str));
-            } catch (UnsupportedEncodingException e) {
-                System.err.println(e.toString());
-            } catch (NoSuchAlgorithmException e) {
-                System.err.println(e.toString());
-            }
-        }
+        setValues(null, 1L, null, null, false, filename, true);
 
-        super.setValues(ran, null, 1L, null, null, (long) ran.nextInt(Integer.MAX_VALUE), new ArrayList<String>(), false, filename, numChunks, size);
-
-        ItemMetadata itemMetadata = new ItemMetadata(super.id, super.version, uuid, super.parentId, super.parentVersion, super.status, super.modifiedAt, super.checksum, super.size,
-                super.isFolder, super.filename, super.mimetype, super.chunks);
+        ItemMetadata itemMetadata = new ItemMetadata(this.id, version, uuid, parentId, parentVersion, status, modifiedAt, checksum, size,
+                isFolder, filename, mimetype, chunks);
         itemMetadata.setChunks(chunks);
         itemMetadata.setTempId(super.getTempId());
 

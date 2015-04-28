@@ -6,24 +6,27 @@
 package com.stacksync.syncservice.dummy.infinispan;
 
 import com.stacksync.commons.models.ItemMetadata;
+import static com.stacksync.syncservice.dummy.infinispan.AServerDummy.CHUNK_SIZE;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
-public class Action {
+public abstract class Action {
 
     private String type;
-    private Long tempId;
 
     protected HashMap<Long, Long> itemMetadataID;
 
@@ -42,21 +45,33 @@ public class Action {
     protected String mimetype;
     protected int numChunks;
     protected long size;
-    
-    protected Float timestamp;
-    protected String op, file_type, file_mime;
-    protected Long file_id;
-    protected Integer file_size;
-    protected UUID user_id;
+
+    protected Long timestamp;
+    protected String op, fileType, fileMime;
+    protected Long fileId;
+    protected Integer fileSize;
+    protected Long userId;
+
+    private Random ran;
+    private int max, min;
 
     public Action(String[] lineParts) {
-        this.timestamp = Float.parseFloat(lineParts[0]);
+        this.ran = new Random(System.currentTimeMillis());
+        this.min = 1;
+        this.max = 8;
+
+        Float tstamp = Float.parseFloat(lineParts[0])*1000;
+        this.timestamp = tstamp.longValue();
         this.op = lineParts[1];
-        this.file_id = Long.parseLong(lineParts[2]);
-        this.file_type = lineParts[3];
-        this.file_mime = lineParts[4];
-        this.file_size = Integer.parseInt(lineParts[5]);
-        this.user_id = UUID.fromString(lineParts[6]);
+        this.fileId = Long.parseLong(lineParts[2]);
+        this.fileType = lineParts[3];
+        this.fileMime = lineParts[4];
+        if (lineParts[5].equals("")) {
+            this.fileSize = 0;
+        } else {
+            this.fileSize = Integer.parseInt(lineParts[5]);
+        }
+        this.userId = Long.parseLong(lineParts[6]);
     }
 
     public String getType() {
@@ -64,18 +79,20 @@ public class Action {
     }
 
     public Long getTempId() {
-        return tempId;
+        return fileId;
     }
 
-    public UUID getUser_id() {
-        return user_id;
+    public Long getUserId() {
+        return userId;
     }
 
-    protected ItemMetadata createItemMetadata(Random ran, int min, int max, UUID uuid, Long id, String filename) {
-        return null;
+    public Long getTimestamp() {
+        return timestamp;
     }
 
-    protected void setValues(Random ran, Long id, Long version, Long parentId, Long parentVersion, Long checksum, List<String> chunks, Boolean isFolder, String filename, int numChunks, long size) {
+    public abstract ItemMetadata createItemMetadata(UUID uuid, Long id, String filename);
+
+    public void setValues(Long id, Long version, Long parentId, Long parentVersion, Boolean isFolder, String filename, Boolean getChunks) {
         String[] mimes = {"pdf", "php", "java", "docx", "html", "png", "jpeg", "xml"};
 
         this.id = id;
@@ -87,7 +104,6 @@ public class Action {
         this.status = type;
         this.modifiedAt = new Date();
         this.checksum = (long) ran.nextInt(Integer.MAX_VALUE);
-        this.chunks = chunks;
         this.isFolder = isFolder;
         this.filename = filename;
         if (this.mimetype == null) {
@@ -95,12 +111,26 @@ public class Action {
         }
 
         // Fill chunks
-        this.numChunks = numChunks;
-        this.size = size;
+        if (getChunks) {
+            this.chunks = new ArrayList<String>();
+            this.numChunks = ran.nextInt((max - min) + 1) + min;
+            this.size = numChunks * CHUNK_SIZE;
+            for (int i = 0; i < numChunks; i++) {
+                try {
+                    String str = java.util.UUID.randomUUID().toString();
+                    this.chunks.add(this.doHash(str));
+                } catch (UnsupportedEncodingException ex) {
+                    Logger.getLogger(Action.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (NoSuchAlgorithmException ex) {
+                    Logger.getLogger(Action.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
     }
 
-    protected String doHash(String str) throws UnsupportedEncodingException, NoSuchAlgorithmException {
+    public String doHash(String str) throws UnsupportedEncodingException, NoSuchAlgorithmException {
 
+        // TODO autogenerate hash
         MessageDigest crypt = MessageDigest.getInstance("SHA-1");
         crypt.reset();
         crypt.update(str.getBytes("UTF-8"));

@@ -13,8 +13,12 @@ import java.util.UUID;
 
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,57 +28,106 @@ import java.util.logging.Logger;
  */
 public class ServerDummy extends AServerDummy {
 
-    private ArrayList<UUID> uuids;
+    private int linesSize;
+    private long totalTime;
 
-    public ServerDummy(ConnectionPool pool, int numUsers, int commitsPerMinute, int minutes) throws SQLException,
+    protected HashMap<Long, UUID> users;
+    protected ArrayList<Long> userIds;
+    protected ArrayList<Action> lines;
+
+    private int itemsCount;
+
+    public ServerDummy(ConnectionPool pool, int numUsers, String fileName, int commitsPerMinute, int minutes) throws SQLException,
             NoStorageManagerAvailable,
             Exception {
         super(pool, commitsPerMinute, minutes);
 
-        uuids = new ArrayList<UUID>();
-        UUID userId;
-        for (int i = 0; i < lines.size(); i++) {
-            userId = lines.get(i).getUser_id();
-            if (uuids.contains(userId)) {
-                uuids.add(userId);
-                this.setup(userId);
+        this.lines = new ArrayList<Action>();
+        BufferedReader read = new BufferedReader(new FileReader(fileName));
+        String line = read.readLine();
+        String[] lineParts;
+        while (line != null) {
+            lineParts = line.split(",");
+            if (lineParts[1].equals("new")) {
+                lines.add(new New(lineParts));
+            } else if (lineParts[1].equals("mod")) {
+                lines.add(new Modify(lineParts));
+            } else if (lineParts[1].equals("del")) {
+                lines.add(new Delete(lineParts));
             }
+            line = read.readLine();
+        }
+        read.close();
+
+        linesSize = lines.size();
+        users = new HashMap<Long, UUID>();
+        userIds = new ArrayList<Long>();
+        Long userId;
+        for (int i = 0; i < linesSize; i++) {
+            userId = lines.get(i).getUserId();
+            if (!users.containsKey(userId)) {
+                userIds.add(userId);
+                users.put(userId, UUID.randomUUID());
+                this.setup(users.get(userId));
+            }
+            totalTime += lines.get(i).timestamp;
         }
     }
 
     @Override
     public void run() {
-        Action action;
-        Random ran = new Random(System.currentTimeMillis());
-        // Distance between commits in msecs
-        long distance = (long) (1000 / (commitsPerMinute / 60.0));
+        long start = System.currentTimeMillis();
+        long end = System.currentTimeMillis();
+        long oldTime = 0;
+        itemsCount = 0;
 
-        int itemsCount = 0;
-        // Every iteration takes a minute
-        for (int i = 0; i < minutes; i++) {
+        if (minutes != 0) {
+            // Distance between commits in msecs
+            long distance = (long) (1000 / (commitsPerMinute / 60.0));
+            Random ran = new Random(System.currentTimeMillis());
+            for (int i = 0; i < minutes; i++) {
+                start = System.currentTimeMillis();
+                for (int j = 0; j < commitsPerMinute; j++) {
 
-            long startMinute = System.currentTimeMillis();
-            for (int j = 0; j < commitsPerMinute && lines.iterator().hasNext(); j++) {
-                action = lines.iterator().next();
-                UUID userId = action.getUser_id();
-                String id = action.getTempId().toString();
+                    int num = (new Random()).nextInt(userIds.size());
+                    Long userId = userIds.get(num);
+                    String str = "" + "0,new," + ran.nextLong() + ",,," + ran.nextInt() + "," + userId;
+                    String[] lineParts = str.split(",");
+                    Action action = new New(lineParts);
 
-                logger.info("serverDummy2_doCommit_start,commitID=" + id);
-                long start = System.currentTimeMillis();
-                try {
-                    doCommit(uuids.get(uuids.indexOf(userId)), ran, 1, 8, id);
-                    itemsCount++;
-                } catch (DAOException e1) {
-                    logger.error(e1);
-                } catch (Exception ex) {
-                    logger.error(ex);
+                    long startCommit = System.currentTimeMillis();
+                    commit(action);
+                    long endCommit = System.currentTimeMillis();
+
+                    // If doCommit had no cost sleep would be distance but we have
+                    // to take into account of the time that it takes
+                    long sleep = distance - (endCommit - startCommit);
+                    if (sleep > 0) {
+                        try {
+                            Thread.sleep(sleep);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
-                long end = System.currentTimeMillis();
-                logger.info("serverDummy2_doCommit_end,commitID=" + id);
+                end = System.currentTimeMillis();
+                long minute = end - start;
+
+                // I will forgive 5 seconds of delay...
+                if (minute > 65 * 1000) {
+                    // Notify error
+                    logger.error("MORE THAN 65 SECONDS=" + (minute / 1000));
+                }
+            }
+        } else {
+
+            for (Action action : lines) {
 
                 // If doCommit had no cost sleep would be distance but we have
                 // to take into account of the time that it takes
-                long sleep = distance - (end - start);
+                long testTime = action.getTimestamp();
+                long sleep = testTime - oldTime - (end - start);
+                oldTime = testTime;
                 if (sleep > 0) {
                     try {
                         Thread.sleep(sleep);
@@ -82,19 +135,15 @@ public class ServerDummy extends AServerDummy {
                         e.printStackTrace();
                     }
                 }
-            }
-            long endMinute = System.currentTimeMillis();
-            long minute = endMinute - startMinute;
+                start = System.currentTimeMillis();
+                commit(action);
+                end = System.currentTimeMillis();
 
-            // I will forgive 5 seconds of delay...
-            if (minute > 65 * 1000) {
-                // Notify error
-                logger.error("MORE THAN 65 SECONDS=" + (minute / 1000));
             }
         }
 
         int workspaceItems = 0;
-        for (UUID id : this.uuids) {
+        for (UUID id : this.users.values()) {
             try {
                 WorkspaceRMI workspace = this.handler.getWorkspace(id);
                 //WorkspaceRMI workspace = workspaceDAO.getById(id);
@@ -108,5 +157,30 @@ public class ServerDummy extends AServerDummy {
             System.out.println("Something wrong happens...");
         }
         System.out.println(workspaceItems + " vs " + itemsCount);
+    }
+
+    private void commit(Action action) {
+
+        Long userId = action.getUserId();
+        Long tempId = action.getTempId();
+
+        logger.info("serverDummy2_doCommit_start,commitID=" + users.get(userId));
+        try {
+            doCommit(users.get(userId), action);
+            itemsCount++;
+        } catch (DAOException e1) {
+            logger.error(e1);
+        } catch (Exception ex) {
+            logger.error(ex);
+        }
+        logger.info("serverDummy2_doCommit_end,commitID=" + users.get(userId));
+    }
+
+    public int getLinesSize() {
+        return linesSize;
+    }
+
+    public int getItemsCount() {
+        return itemsCount;
     }
 }

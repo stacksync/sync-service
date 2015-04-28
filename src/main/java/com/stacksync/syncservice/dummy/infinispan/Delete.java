@@ -6,8 +6,6 @@
 package com.stacksync.syncservice.dummy.infinispan;
 
 import com.stacksync.commons.models.ItemMetadata;
-import java.util.ArrayList;
-import java.util.Random;
 import java.util.UUID;
 
 /**
@@ -21,8 +19,9 @@ public class Delete extends Action {
     }
 
     @Override
-    public ItemMetadata createItemMetadata(Random ran, int min, int max, UUID uuid, Long id, String filename) {
-        super.setValues(ran, id, 1L, null, null, (long) ran.nextInt(Integer.MAX_VALUE), new ArrayList<String>(), false, filename, numChunks, size);
+    public ItemMetadata createItemMetadata(UUID uuid, Long id, String filename) {
+
+        super.setValues(id, 1L, null, null, false, filename, false);
 
         ItemMetadata itemMetadata = new ItemMetadata(super.id, super.version, uuid, super.parentId, super.parentVersion, super.status, super.modifiedAt, super.checksum, super.size,
                 super.isFolder, super.filename, super.mimetype, super.chunks);

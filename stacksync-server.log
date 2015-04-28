@@ -1,42 +1,510 @@
-2015-04-24 11:33:42,126 INFO  Config:40 - Configuration file loaded 
-2015-04-24 11:33:42,126 INFO  Config:77 - Displaying configuration: 
-2015-04-24 11:33:42,127 INFO  Config:83 - postgresql.database : stacksync 
-2015-04-24 11:33:42,127 INFO  Config:83 - omq.port : 5672 
-2015-04-24 11:33:42,127 INFO  Config:83 - omq.num_threads : 1 
-2015-04-24 11:33:42,127 INFO  Config:83 - omq.host : 10.30.102.242 
-2015-04-24 11:33:42,128 INFO  Config:83 - swift.keystone_protocol : http 
-2015-04-24 11:33:42,128 INFO  Config:83 - swift.user : stacksync_admin 
-2015-04-24 11:33:42,128 INFO  Config:83 - postgresql.user : stacksync_user 
-2015-04-24 11:33:42,128 INFO  Config:83 - datasource : infinispan 
-2015-04-24 11:33:42,128 INFO  Config:83 - swift.tenant : stacksync 
-2015-04-24 11:33:42,128 INFO  Config:83 - omq.rpc_exchange : rpc_global_exchange 
-2015-04-24 11:33:42,129 INFO  Config:83 - swift.keystone_port : 5000 
-2015-04-24 11:33:42,129 INFO  Config:83 - swift.keystone_admin_port : 35357 
-2015-04-24 11:33:42,129 INFO  Config:83 - postgresql.port : 5432 
-2015-04-24 11:33:42,131 INFO  Config:83 - swift.keystone_host : 10.30.233.214 
-2015-04-24 11:33:42,131 INFO  Config:83 - swift.host : 10.30.233.214 
-2015-04-24 11:33:42,131 INFO  Config:83 - postgresql.host : localhost 
-2015-04-24 11:33:42,131 INFO  Config:83 - omq.username : guest 
-2015-04-24 11:33:42,560 INFO  JGroupsTransport:189 - ISPN000078: Starting JGroups channel ISPN 
-2015-04-24 11:33:42,560 INFO  JGroupsTransport:412 - ISPN000088: Unable to use any JGroups configuration mechanisms provided in properties {}. Using default JGroups configuration! 
-2015-04-24 11:33:42,723 WARN  Configurator:1140 - JGRP000014: Discovery.timeout has been deprecated: GMS.join_timeout should be used instead 
-2015-04-24 11:33:42,723 WARN  Configurator:1140 - JGRP000014: Discovery.num_initial_members has been deprecated: will be ignored 
-2015-04-24 11:33:42,877 WARN  UDP:536 - JGRP000015: the send buffer of socket DatagramSocket was set to 640KB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max send buffer in the OS correctly (e.g. net.core.wmem_max on Linux) 
-2015-04-24 11:33:42,878 WARN  UDP:548 - JGRP000015: the receive buffer of socket DatagramSocket was set to 20MB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max receive buffer in the OS correctly (e.g. net.core.rmem_max on Linux) 
-2015-04-24 11:33:42,878 WARN  UDP:536 - JGRP000015: the send buffer of socket MulticastSocket was set to 640KB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max send buffer in the OS correctly (e.g. net.core.wmem_max on Linux) 
-2015-04-24 11:33:42,879 WARN  UDP:548 - JGRP000015: the receive buffer of socket MulticastSocket was set to 25MB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max receive buffer in the OS correctly (e.g. net.core.rmem_max on Linux) 
-2015-04-24 11:33:45,903 INFO  JGroupsTransport:682 - ISPN000094: Received new cluster view for channel ISPN: [ast11-62978|0] (1) [ast11-62978] 
-2015-04-24 11:33:45,907 INFO  JGroupsTransport:227 - ISPN000079: Channel ISPN local address is ast11-62978, physical addresses are [10.30.103.145:44009] 
-2015-04-24 11:33:45,912 INFO  GlobalComponentRegistry:224 - ISPN000128: Infinispan version: Infinispan 'Guinness' 7.0.1-SNAPSHOT 
-2015-04-24 11:33:46,325 INFO  AServerDummy:54 - serverDummy2_doCommit_start,commitID=9436f5e1-e9ad-4cfc-835b-44f09ba6ba57 
-2015-04-24 11:33:46,325 INFO  AServerDummy:54 - serverDummy2_doCommit_start,commitID=f08bbe3b-db1f-4e45-8b02-dcc6098b4da3 
-2015-04-24 11:33:46,332 INFO  AServerDummy:120 - hander_doCommit_start,commitID=f08bbe3b-db1f-4e45-8b02-dcc6098b4da3 
-2015-04-24 11:33:46,332 INFO  AServerDummy:120 - hander_doCommit_start,commitID=9436f5e1-e9ad-4cfc-835b-44f09ba6ba57 
-2015-04-24 11:33:57,826 INFO  AServerDummy:122 - hander_doCommit_end,commitID=f08bbe3b-db1f-4e45-8b02-dcc6098b4da3 
-2015-04-24 11:33:57,826 INFO  AServerDummy:65 - serverDummy2_doCommit_end,commitID=f08bbe3b-db1f-4e45-8b02-dcc6098b4da3 
-2015-04-24 11:33:57,826 INFO  AServerDummy:54 - serverDummy2_doCommit_start,commitID=23b54f66-6f5e-4f31-a558-618e1f0e0bff 
-2015-04-24 11:33:57,826 INFO  AServerDummy:120 - hander_doCommit_start,commitID=23b54f66-6f5e-4f31-a558-618e1f0e0bff 
-2015-04-24 11:34:03,365 INFO  AServerDummy:122 - hander_doCommit_end,commitID=23b54f66-6f5e-4f31-a558-618e1f0e0bff 
-2015-04-24 11:34:03,366 INFO  AServerDummy:65 - serverDummy2_doCommit_end,commitID=23b54f66-6f5e-4f31-a558-618e1f0e0bff 
-2015-04-24 11:34:03,366 INFO  AServerDummy:54 - serverDummy2_doCommit_start,commitID=4563b077-dfe2-43f7-95ca-9af0e479f5c8 
-2015-04-24 11:34:03,367 INFO  AServerDummy:120 - hander_doCommit_start,commitID=4563b077-dfe2-43f7-95ca-9af0e479f5c8 
+2015-04-28 16:55:10,833 INFO  Config:40 - Configuration file loaded 
+2015-04-28 16:55:10,834 INFO  Config:77 - Displaying configuration: 
+2015-04-28 16:55:10,834 INFO  Config:83 - postgresql.database : stacksync 
+2015-04-28 16:55:10,834 INFO  Config:83 - omq.port : 5672 
+2015-04-28 16:55:10,835 INFO  Config:83 - omq.num_threads : 1 
+2015-04-28 16:55:10,835 INFO  Config:83 - omq.host : 10.30.102.242 
+2015-04-28 16:55:10,835 INFO  Config:83 - swift.keystone_protocol : http 
+2015-04-28 16:55:10,835 INFO  Config:83 - swift.user : stacksync_admin 
+2015-04-28 16:55:10,835 INFO  Config:83 - postgresql.user : stacksync_user 
+2015-04-28 16:55:10,835 INFO  Config:83 - datasource : infinispan 
+2015-04-28 16:55:10,836 INFO  Config:83 - swift.tenant : stacksync 
+2015-04-28 16:55:10,836 INFO  Config:83 - omq.rpc_exchange : rpc_global_exchange 
+2015-04-28 16:55:10,836 INFO  Config:83 - swift.keystone_port : 5000 
+2015-04-28 16:55:10,836 INFO  Config:83 - swift.keystone_admin_port : 35357 
+2015-04-28 16:55:10,836 INFO  Config:83 - postgresql.port : 5432 
+2015-04-28 16:55:10,838 INFO  Config:83 - swift.keystone_host : 10.30.233.214 
+2015-04-28 16:55:10,838 INFO  Config:83 - swift.host : 10.30.233.214 
+2015-04-28 16:55:10,838 INFO  Config:83 - postgresql.host : localhost 
+2015-04-28 16:55:10,839 INFO  Config:83 - omq.username : guest 
+2015-04-28 16:55:11,198 INFO  JGroupsTransport:189 - ISPN000078: Starting JGroups channel ISPN 
+2015-04-28 16:55:11,199 INFO  JGroupsTransport:412 - ISPN000088: Unable to use any JGroups configuration mechanisms provided in properties {}. Using default JGroups configuration! 
+2015-04-28 16:55:11,358 WARN  Configurator:1140 - JGRP000014: Discovery.timeout has been deprecated: GMS.join_timeout should be used instead 
+2015-04-28 16:55:11,359 WARN  Configurator:1140 - JGRP000014: Discovery.num_initial_members has been deprecated: will be ignored 
+2015-04-28 16:55:11,496 WARN  UDP:536 - JGRP000015: the send buffer of socket DatagramSocket was set to 640KB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max send buffer in the OS correctly (e.g. net.core.wmem_max on Linux) 
+2015-04-28 16:55:11,497 WARN  UDP:548 - JGRP000015: the receive buffer of socket DatagramSocket was set to 20MB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max receive buffer in the OS correctly (e.g. net.core.rmem_max on Linux) 
+2015-04-28 16:55:11,497 WARN  UDP:536 - JGRP000015: the send buffer of socket MulticastSocket was set to 640KB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max send buffer in the OS correctly (e.g. net.core.wmem_max on Linux) 
+2015-04-28 16:55:11,497 WARN  UDP:548 - JGRP000015: the receive buffer of socket MulticastSocket was set to 25MB, but the OS only allocated 131.07KB. This might lead to performance problems. Please set your max receive buffer in the OS correctly (e.g. net.core.rmem_max on Linux) 
+2015-04-28 16:55:14,512 INFO  JGroupsTransport:682 - ISPN000094: Received new cluster view for channel ISPN: [ast11-30060|0] (1) [ast11-30060] 
+2015-04-28 16:55:14,516 INFO  JGroupsTransport:227 - ISPN000079: Channel ISPN local address is ast11-30060, physical addresses are [10.30.103.145:36189] 
+2015-04-28 16:55:14,520 INFO  GlobalComponentRegistry:224 - ISPN000128: Infinispan version: Infinispan 'Guinness' 7.0.1-SNAPSHOT 
+2015-04-28 16:55:14,920 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:55:14,920 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:55:14,923 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5931523233611257117 
+2015-04-28 16:55:14,925 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5931523233611257117 
+2015-04-28 16:55:14,932 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5931523233611257117 
+2015-04-28 16:55:14,932 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:55:14,933 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5931523233611257117 
+2015-04-28 16:55:14,933 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:55:16,920 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:55:16,920 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:55:16,921 INFO  AServerDummy:103 - hander_doCommit_start,commitID=1709836140035036029 
+2015-04-28 16:55:16,921 INFO  AServerDummy:103 - hander_doCommit_start,commitID=1709836140035036029 
+2015-04-28 16:55:16,930 INFO  AServerDummy:105 - hander_doCommit_end,commitID=1709836140035036029 
+2015-04-28 16:55:16,930 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:55:16,931 INFO  AServerDummy:105 - hander_doCommit_end,commitID=1709836140035036029 
+2015-04-28 16:55:16,931 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:55:18,920 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:18,921 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:55:18,921 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-4791501757505513720 
+2015-04-28 16:55:18,921 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-4791501757505513720 
+2015-04-28 16:55:18,945 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-4791501757505513720 
+2015-04-28 16:55:18,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:55:18,948 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-4791501757505513720 
+2015-04-28 16:55:18,948 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:20,921 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:55:20,921 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:55:20,924 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-2650256603613118933 
+2015-04-28 16:55:20,924 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-2650256603613118933 
+2015-04-28 16:55:20,934 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-2650256603613118933 
+2015-04-28 16:55:20,935 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:55:20,935 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-2650256603613118933 
+2015-04-28 16:55:20,936 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:55:22,921 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:22,921 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:55:22,923 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5259874954932346261 
+2015-04-28 16:55:22,924 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5259874954932346261 
+2015-04-28 16:55:22,954 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5259874954932346261 
+2015-04-28 16:55:22,955 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:22,958 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5259874954932346261 
+2015-04-28 16:55:22,958 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:55:24,921 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:24,922 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:55:24,923 INFO  AServerDummy:103 - hander_doCommit_start,commitID=2757965619159433829 
+2015-04-28 16:55:24,924 INFO  AServerDummy:103 - hander_doCommit_start,commitID=2757965619159433829 
+2015-04-28 16:55:24,931 INFO  AServerDummy:105 - hander_doCommit_end,commitID=2757965619159433829 
+2015-04-28 16:55:24,931 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:55:24,932 INFO  AServerDummy:105 - hander_doCommit_end,commitID=2757965619159433829 
+2015-04-28 16:55:24,932 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:26,921 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:55:26,923 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:55:26,923 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-8788521662486800549 
+2015-04-28 16:55:26,925 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-8788521662486800549 
+2015-04-28 16:55:26,934 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-8788521662486800549 
+2015-04-28 16:55:26,934 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:55:26,935 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-8788521662486800549 
+2015-04-28 16:55:26,935 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:55:28,922 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:55:28,922 INFO  AServerDummy:103 - hander_doCommit_start,commitID=3702710450134205789 
+2015-04-28 16:55:28,922 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:55:28,922 INFO  AServerDummy:103 - hander_doCommit_start,commitID=3702710450134205789 
+2015-04-28 16:55:28,928 INFO  AServerDummy:105 - hander_doCommit_end,commitID=3702710450134205789 
+2015-04-28 16:55:28,928 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:55:28,929 INFO  AServerDummy:105 - hander_doCommit_end,commitID=3702710450134205789 
+2015-04-28 16:55:28,929 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:55:30,922 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:55:30,922 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:55:30,923 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7530353351157335277 
+2015-04-28 16:55:30,923 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7530353351157335277 
+2015-04-28 16:55:30,937 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7530353351157335277 
+2015-04-28 16:55:30,937 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:55:30,939 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7530353351157335277 
+2015-04-28 16:55:30,939 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:55:32,923 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:55:32,923 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:55:32,925 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-7086073483492054455 
+2015-04-28 16:55:32,926 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-7086073483492054455 
+2015-04-28 16:55:32,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-7086073483492054455 
+2015-04-28 16:55:32,943 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:55:32,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-7086073483492054455 
+2015-04-28 16:55:32,943 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:55:34,923 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:55:34,923 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:55:34,924 INFO  AServerDummy:103 - hander_doCommit_start,commitID=403165539045806987 
+2015-04-28 16:55:34,924 INFO  AServerDummy:103 - hander_doCommit_start,commitID=403165539045806987 
+2015-04-28 16:55:34,932 INFO  AServerDummy:105 - hander_doCommit_end,commitID=403165539045806987 
+2015-04-28 16:55:34,933 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:55:34,933 INFO  AServerDummy:105 - hander_doCommit_end,commitID=403165539045806987 
+2015-04-28 16:55:34,933 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:55:36,923 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:55:36,924 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:55:36,924 INFO  AServerDummy:103 - hander_doCommit_start,commitID=1281329327036073322 
+2015-04-28 16:55:36,924 INFO  AServerDummy:103 - hander_doCommit_start,commitID=1281329327036073322 
+2015-04-28 16:55:36,938 INFO  AServerDummy:105 - hander_doCommit_end,commitID=1281329327036073322 
+2015-04-28 16:55:36,939 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:55:36,939 INFO  AServerDummy:105 - hander_doCommit_end,commitID=1281329327036073322 
+2015-04-28 16:55:36,939 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:55:38,923 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:55:38,924 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:38,926 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-5089656375141200535 
+2015-04-28 16:55:38,926 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-5089656375141200535 
+2015-04-28 16:55:38,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-5089656375141200535 
+2015-04-28 16:55:38,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:55:38,945 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-5089656375141200535 
+2015-04-28 16:55:38,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:40,924 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:40,924 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:55:40,925 INFO  AServerDummy:103 - hander_doCommit_start,commitID=6821122074336736 
+2015-04-28 16:55:40,925 INFO  AServerDummy:103 - hander_doCommit_start,commitID=6821122074336736 
+2015-04-28 16:55:40,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=6821122074336736 
+2015-04-28 16:55:40,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:40,946 INFO  AServerDummy:105 - hander_doCommit_end,commitID=6821122074336736 
+2015-04-28 16:55:40,946 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:55:42,924 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:55:42,925 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:55:42,926 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-3526531653422163300 
+2015-04-28 16:55:42,926 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-3526531653422163300 
+2015-04-28 16:55:42,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-3526531653422163300 
+2015-04-28 16:55:42,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:55:42,945 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-3526531653422163300 
+2015-04-28 16:55:42,946 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:55:44,924 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:44,925 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-1565757231725703239 
+2015-04-28 16:55:44,925 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:44,926 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-1565757231725703239 
+2015-04-28 16:55:44,942 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-1565757231725703239 
+2015-04-28 16:55:44,942 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:44,942 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-1565757231725703239 
+2015-04-28 16:55:44,942 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:46,925 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:55:46,925 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:55:46,927 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7532733859436574153 
+2015-04-28 16:55:46,928 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7532733859436574153 
+2015-04-28 16:55:46,937 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7532733859436574153 
+2015-04-28 16:55:46,937 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:55:46,937 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7532733859436574153 
+2015-04-28 16:55:46,937 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:55:48,924 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:48,925 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7477334195931452600 
+2015-04-28 16:55:48,926 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:55:48,926 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7477334195931452600 
+2015-04-28 16:55:48,938 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7477334195931452600 
+2015-04-28 16:55:48,938 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:55:48,939 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7477334195931452600 
+2015-04-28 16:55:48,939 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:50,924 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:55:50,927 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:50,927 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5228189418858028588 
+2015-04-28 16:55:50,928 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5228189418858028588 
+2015-04-28 16:55:50,934 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5228189418858028588 
+2015-04-28 16:55:50,934 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:55:50,934 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5228189418858028588 
+2015-04-28 16:55:50,935 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:52,924 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:55:52,926 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5943505988237428161 
+2015-04-28 16:55:52,927 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:52,928 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5943505988237428161 
+2015-04-28 16:55:52,949 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5943505988237428161 
+2015-04-28 16:55:52,950 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:55:52,950 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5943505988237428161 
+2015-04-28 16:55:52,951 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:54,925 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:55:54,927 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-7852519149454113643 
+2015-04-28 16:55:54,927 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:55:54,929 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-7852519149454113643 
+2015-04-28 16:55:54,947 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-7852519149454113643 
+2015-04-28 16:55:54,947 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-7852519149454113643 
+2015-04-28 16:55:54,949 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:55:54,948 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:55:56,926 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:56,927 INFO  AServerDummy:103 - hander_doCommit_start,commitID=4596767929541957622 
+2015-04-28 16:55:56,928 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:55:56,929 INFO  AServerDummy:103 - hander_doCommit_start,commitID=4596767929541957622 
+2015-04-28 16:55:56,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=4596767929541957622 
+2015-04-28 16:55:56,943 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:55:56,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=4596767929541957622 
+2015-04-28 16:55:56,943 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:58,926 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:58,926 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-8618819063113153695 
+2015-04-28 16:55:58,928 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:55:58,929 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-8618819063113153695 
+2015-04-28 16:55:58,936 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-8618819063113153695 
+2015-04-28 16:55:58,936 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:55:58,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-8618819063113153695 
+2015-04-28 16:55:58,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:00,926 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:00,927 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-5401599096928731165 
+2015-04-28 16:56:00,928 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:00,931 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-5401599096928731165 
+2015-04-28 16:56:00,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-5401599096928731165 
+2015-04-28 16:56:00,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:00,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-5401599096928731165 
+2015-04-28 16:56:00,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:02,926 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:02,928 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:56:02,929 INFO  AServerDummy:103 - hander_doCommit_start,commitID=9123876170089755049 
+2015-04-28 16:56:02,930 INFO  AServerDummy:103 - hander_doCommit_start,commitID=9123876170089755049 
+2015-04-28 16:56:02,941 INFO  AServerDummy:105 - hander_doCommit_end,commitID=9123876170089755049 
+2015-04-28 16:56:02,942 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:02,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=9123876170089755049 
+2015-04-28 16:56:02,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:56:04,926 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:04,927 INFO  AServerDummy:103 - hander_doCommit_start,commitID=4943765719083946575 
+2015-04-28 16:56:04,928 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:04,929 INFO  AServerDummy:103 - hander_doCommit_start,commitID=4943765719083946575 
+2015-04-28 16:56:04,933 INFO  AServerDummy:105 - hander_doCommit_end,commitID=4943765719083946575 
+2015-04-28 16:56:04,933 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:04,934 INFO  AServerDummy:105 - hander_doCommit_end,commitID=4943765719083946575 
+2015-04-28 16:56:04,934 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:06,926 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:06,927 INFO  AServerDummy:103 - hander_doCommit_start,commitID=30676560208551954 
+2015-04-28 16:56:06,929 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:06,929 INFO  AServerDummy:103 - hander_doCommit_start,commitID=30676560208551954 
+2015-04-28 16:56:06,931 INFO  AServerDummy:105 - hander_doCommit_end,commitID=30676560208551954 
+2015-04-28 16:56:06,931 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:06,933 INFO  AServerDummy:105 - hander_doCommit_end,commitID=30676560208551954 
+2015-04-28 16:56:06,933 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:08,926 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:08,928 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-7420608957416505977 
+2015-04-28 16:56:08,930 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:08,932 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-7420608957416505977 
+2015-04-28 16:56:08,940 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-7420608957416505977 
+2015-04-28 16:56:08,940 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:08,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-7420608957416505977 
+2015-04-28 16:56:08,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:10,926 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:10,928 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-745258196150953468 
+2015-04-28 16:56:10,930 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:10,932 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-745258196150953468 
+2015-04-28 16:56:10,939 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-745258196150953468 
+2015-04-28 16:56:10,939 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:10,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-745258196150953468 
+2015-04-28 16:56:10,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:12,927 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:12,928 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5329995577150725958 
+2015-04-28 16:56:12,930 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:12,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5329995577150725958 
+2015-04-28 16:56:12,941 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5329995577150725958 
+2015-04-28 16:56:12,942 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:12,947 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5329995577150725958 
+2015-04-28 16:56:12,947 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:14,928 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:14,930 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-8436241365625425867 
+2015-04-28 16:56:14,930 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:14,932 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-8436241365625425867 
+2015-04-28 16:56:14,942 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-8436241365625425867 
+2015-04-28 16:56:14,943 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:14,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-8436241365625425867 
+2015-04-28 16:56:14,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:16,929 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:56:16,930 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:56:16,931 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-3816204666660414853 
+2015-04-28 16:56:16,932 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-3816204666660414853 
+2015-04-28 16:56:16,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-3816204666660414853 
+2015-04-28 16:56:16,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:56:16,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-3816204666660414853 
+2015-04-28 16:56:16,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:56:18,929 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:18,930 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-1576543863242675763 
+2015-04-28 16:56:18,930 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:18,931 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-1576543863242675763 
+2015-04-28 16:56:18,934 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-1576543863242675763 
+2015-04-28 16:56:18,934 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:18,934 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-1576543863242675763 
+2015-04-28 16:56:18,934 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:20,929 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:56:20,931 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:20,932 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7636054068579399079 
+2015-04-28 16:56:20,932 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7636054068579399079 
+2015-04-28 16:56:20,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7636054068579399079 
+2015-04-28 16:56:20,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:56:20,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7636054068579399079 
+2015-04-28 16:56:20,946 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:22,929 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:22,930 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-5118229313371189367 
+2015-04-28 16:56:22,931 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:22,932 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-5118229313371189367 
+2015-04-28 16:56:22,945 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-5118229313371189367 
+2015-04-28 16:56:22,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:22,946 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-5118229313371189367 
+2015-04-28 16:56:22,946 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:24,930 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:24,930 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-6243808013353024119 
+2015-04-28 16:56:24,931 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:24,932 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-6243808013353024119 
+2015-04-28 16:56:24,935 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-6243808013353024119 
+2015-04-28 16:56:24,935 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:24,936 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-6243808013353024119 
+2015-04-28 16:56:24,936 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:26,930 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:26,931 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:26,931 INFO  AServerDummy:103 - hander_doCommit_start,commitID=3066301540564854951 
+2015-04-28 16:56:26,932 INFO  AServerDummy:103 - hander_doCommit_start,commitID=3066301540564854951 
+2015-04-28 16:56:26,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=3066301540564854951 
+2015-04-28 16:56:26,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:26,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=3066301540564854951 
+2015-04-28 16:56:26,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:28,931 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:28,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:28,932 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-4757344818311100092 
+2015-04-28 16:56:28,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-4757344818311100092 
+2015-04-28 16:56:28,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-4757344818311100092 
+2015-04-28 16:56:28,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:28,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-4757344818311100092 
+2015-04-28 16:56:28,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:30,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:30,933 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:30,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7610029794595423109 
+2015-04-28 16:56:30,935 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7610029794595423109 
+2015-04-28 16:56:30,946 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7610029794595423109 
+2015-04-28 16:56:30,947 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7610029794595423109 
+2015-04-28 16:56:30,947 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:30,947 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:32,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:32,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:32,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=4686646549557245015 
+2015-04-28 16:56:32,935 INFO  AServerDummy:103 - hander_doCommit_start,commitID=4686646549557245015 
+2015-04-28 16:56:32,948 INFO  AServerDummy:105 - hander_doCommit_end,commitID=4686646549557245015 
+2015-04-28 16:56:32,948 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:32,948 INFO  AServerDummy:105 - hander_doCommit_end,commitID=4686646549557245015 
+2015-04-28 16:56:32,950 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:34,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:34,933 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:34,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=315792525062853687 
+2015-04-28 16:56:34,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=315792525062853687 
+2015-04-28 16:56:34,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=315792525062853687 
+2015-04-28 16:56:34,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:34,945 INFO  AServerDummy:105 - hander_doCommit_end,commitID=315792525062853687 
+2015-04-28 16:56:34,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:36,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:36,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-3188517167491104785 
+2015-04-28 16:56:36,934 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:36,936 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-3188517167491104785 
+2015-04-28 16:56:36,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-3188517167491104785 
+2015-04-28 16:56:36,944 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:36,947 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-3188517167491104785 
+2015-04-28 16:56:36,947 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:38,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:38,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5395810776629846400 
+2015-04-28 16:56:38,934 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:38,935 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5395810776629846400 
+2015-04-28 16:56:38,936 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5395810776629846400 
+2015-04-28 16:56:38,936 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:56:38,942 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5395810776629846400 
+2015-04-28 16:56:38,942 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:40,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:40,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=3017594053883007107 
+2015-04-28 16:56:40,935 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:40,937 INFO  AServerDummy:103 - hander_doCommit_start,commitID=3017594053883007107 
+2015-04-28 16:56:40,946 INFO  AServerDummy:105 - hander_doCommit_end,commitID=3017594053883007107 
+2015-04-28 16:56:40,946 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:40,947 INFO  AServerDummy:105 - hander_doCommit_end,commitID=3017594053883007107 
+2015-04-28 16:56:40,947 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:42,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:42,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-388320434106862349 
+2015-04-28 16:56:42,936 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:56:42,937 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-388320434106862349 
+2015-04-28 16:56:42,946 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-388320434106862349 
+2015-04-28 16:56:42,947 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:42,948 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-388320434106862349 
+2015-04-28 16:56:42,948 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:56:44,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:44,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=4544857287014946233 
+2015-04-28 16:56:44,936 INFO  AServerDummy:105 - hander_doCommit_end,commitID=4544857287014946233 
+2015-04-28 16:56:44,936 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:44,937 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:44,937 INFO  AServerDummy:103 - hander_doCommit_start,commitID=4544857287014946233 
+2015-04-28 16:56:44,939 INFO  AServerDummy:105 - hander_doCommit_end,commitID=4544857287014946233 
+2015-04-28 16:56:44,939 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:56:46,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:46,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5217544696010956066 
+2015-04-28 16:56:46,936 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5217544696010956066 
+2015-04-28 16:56:46,936 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:46,937 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:46,937 INFO  AServerDummy:103 - hander_doCommit_start,commitID=5217544696010956066 
+2015-04-28 16:56:46,946 INFO  AServerDummy:105 - hander_doCommit_end,commitID=5217544696010956066 
+2015-04-28 16:56:46,946 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:48,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:48,935 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7404616267856353791 
+2015-04-28 16:56:48,937 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:56:48,939 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7404616267856353791 
+2015-04-28 16:56:48,946 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7404616267856353791 
+2015-04-28 16:56:48,946 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:56:48,949 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7404616267856353791 
+2015-04-28 16:56:48,949 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:56:50,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:50,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-1680040935565207252 
+2015-04-28 16:56:50,938 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:56:50,940 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-1680040935565207252 
+2015-04-28 16:56:50,945 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-1680040935565207252 
+2015-04-28 16:56:50,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:50,950 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-1680040935565207252 
+2015-04-28 16:56:50,951 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:56:52,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:52,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=485543001137695849 
+2015-04-28 16:56:52,938 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:52,941 INFO  AServerDummy:103 - hander_doCommit_start,commitID=485543001137695849 
+2015-04-28 16:56:52,944 INFO  AServerDummy:105 - hander_doCommit_end,commitID=485543001137695849 
+2015-04-28 16:56:52,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:52,952 INFO  AServerDummy:105 - hander_doCommit_end,commitID=485543001137695849 
+2015-04-28 16:56:52,952 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:54,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:56:54,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7440399798646508299 
+2015-04-28 16:56:54,938 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:54,940 INFO  AServerDummy:103 - hander_doCommit_start,commitID=7440399798646508299 
+2015-04-28 16:56:54,945 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7440399798646508299 
+2015-04-28 16:56:54,946 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:56:54,951 INFO  AServerDummy:105 - hander_doCommit_end,commitID=7440399798646508299 
+2015-04-28 16:56:54,951 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:56:56,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:56,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=8400495888035723946 
+2015-04-28 16:56:56,936 INFO  AServerDummy:105 - hander_doCommit_end,commitID=8400495888035723946 
+2015-04-28 16:56:56,936 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b4462eee-62fa-41de-9904-8d31afa6b00d 
+2015-04-28 16:56:56,938 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:56:56,938 INFO  AServerDummy:103 - hander_doCommit_start,commitID=8400495888035723946 
+2015-04-28 16:56:56,941 INFO  AServerDummy:105 - hander_doCommit_end,commitID=8400495888035723946 
+2015-04-28 16:56:56,941 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:56:58,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:58,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-4112344913739373985 
+2015-04-28 16:56:58,938 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:56:58,940 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-4112344913739373985 
+2015-04-28 16:56:58,945 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-4112344913739373985 
+2015-04-28 16:56:58,945 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:56:58,951 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-4112344913739373985 
+2015-04-28 16:56:58,951 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:57:00,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:57:00,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=1966069121074856511 
+2015-04-28 16:57:00,938 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:57:00,940 INFO  AServerDummy:103 - hander_doCommit_start,commitID=1966069121074856511 
+2015-04-28 16:57:00,945 INFO  AServerDummy:105 - hander_doCommit_end,commitID=1966069121074856511 
+2015-04-28 16:57:00,946 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:57:00,951 INFO  AServerDummy:105 - hander_doCommit_end,commitID=1966069121074856511 
+2015-04-28 16:57:00,952 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:57:02,932 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:57:02,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-5642274430501198911 
+2015-04-28 16:57:02,938 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:57:02,939 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-5642274430501198911 
+2015-04-28 16:57:02,943 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-5642274430501198911 
+2015-04-28 16:57:02,943 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:57:02,948 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-5642274430501198911 
+2015-04-28 16:57:02,949 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=29ccbd51-857c-43a9-943d-27c89b7805e2 
+2015-04-28 16:57:04,933 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:57:04,933 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-100111207760246992 
+2015-04-28 16:57:04,938 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:57:04,939 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-100111207760246992 
+2015-04-28 16:57:04,940 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-100111207760246992 
+2015-04-28 16:57:04,940 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=24642ff9-86f6-4265-989d-13522b3f9a19 
+2015-04-28 16:57:04,949 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-100111207760246992 
+2015-04-28 16:57:04,950 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:57:06,933 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:57:06,935 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-899454317757640519 
+2015-04-28 16:57:06,938 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:57:06,940 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-899454317757640519 
+2015-04-28 16:57:06,947 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-899454317757640519 
+2015-04-28 16:57:06,948 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=b0fb35a7-2564-4f6e-b801-f55264c24e2f 
+2015-04-28 16:57:06,951 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-899454317757640519 
+2015-04-28 16:57:06,952 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d1173928-9305-4a11-b776-bfc5b0aea3de 
+2015-04-28 16:57:08,933 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:57:08,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=8255838618272386027 
+2015-04-28 16:57:08,937 INFO  AServerDummy:105 - hander_doCommit_end,commitID=8255838618272386027 
+2015-04-28 16:57:08,937 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:57:08,938 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:57:08,940 INFO  AServerDummy:103 - hander_doCommit_start,commitID=8255838618272386027 
+2015-04-28 16:57:08,951 INFO  AServerDummy:105 - hander_doCommit_end,commitID=8255838618272386027 
+2015-04-28 16:57:08,951 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=908c7815-c6d5-4814-ac94-ba9957202d82 
+2015-04-28 16:57:10,934 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:57:10,934 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-6303407046874393889 
+2015-04-28 16:57:10,937 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-6303407046874393889 
+2015-04-28 16:57:10,937 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c1ba285d-0674-462d-b8c7-9751f000a870 
+2015-04-28 16:57:10,939 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:57:10,941 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-6303407046874393889 
+2015-04-28 16:57:10,952 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-6303407046874393889 
+2015-04-28 16:57:10,953 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=d19ae071-09a1-4b23-9c46-0f46b5c79a7e 
+2015-04-28 16:57:12,934 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:57:12,935 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-1106848937370556124 
+2015-04-28 16:57:12,938 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-1106848937370556124 
+2015-04-28 16:57:12,938 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=6356791f-2466-41a4-8b1b-6415a2d8db43 
+2015-04-28 16:57:12,939 INFO  AServerDummy:177 - serverDummy2_doCommit_start,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
+2015-04-28 16:57:12,939 INFO  AServerDummy:103 - hander_doCommit_start,commitID=-1106848937370556124 
+2015-04-28 16:57:12,945 INFO  AServerDummy:105 - hander_doCommit_end,commitID=-1106848937370556124 
+2015-04-28 16:57:12,946 INFO  AServerDummy:186 - serverDummy2_doCommit_end,commitID=c16beb27-7ec7-4417-a0e5-4c9657f01a97 
