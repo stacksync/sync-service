@@ -6,9 +6,9 @@
 package com.stacksync.syncservice.dummy.infinispan;
 
 import com.stacksync.syncservice.db.ConnectionPool;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import java.sql.SQLException;
-import java.util.Random;
 import java.util.UUID;
 
 import com.stacksync.syncservice.exceptions.dao.DAOException;
@@ -18,7 +18,6 @@ import java.io.FileReader;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,7 +25,7 @@ import java.util.logging.Logger;
  * @author Sergi Toda <sergi.toda@estudiants.urv.cat>
  *
  */
-public class ServerDummy extends AServerDummy {
+public class ReadFile extends AReadFile {
 
     private int linesSize;
     private long totalTime;
@@ -37,10 +36,10 @@ public class ServerDummy extends AServerDummy {
 
     private int itemsCount;
 
-    public ServerDummy(ConnectionPool pool, int numUsers, String fileName, int commitsPerMinute, int minutes) throws SQLException,
+    public ReadFile(ConnectionPool pool, int numUsers, String fileName) throws SQLException,
             NoStorageManagerAvailable,
             Exception {
-        super(pool, commitsPerMinute, minutes);
+        super(pool);
 
         this.lines = new ArrayList<Action>();
         BufferedReader read = new BufferedReader(new FileReader(fileName));
@@ -48,11 +47,11 @@ public class ServerDummy extends AServerDummy {
         String[] lineParts;
         while (line != null) {
             lineParts = line.split(",");
-            if (lineParts[1].equals("new")) {
+            if (lineParts[1].equals("NEW")) {
                 lines.add(new New(lineParts));
-            } else if (lineParts[1].equals("mod")) {
+            } else if (lineParts[1].equals("CHANGED")) {
                 lines.add(new Modify(lineParts));
-            } else if (lineParts[1].equals("del")) {
+            } else if (lineParts[1].equals("DELETED")) {
                 lines.add(new Delete(lineParts));
             }
             line = read.readLine();
@@ -81,65 +80,34 @@ public class ServerDummy extends AServerDummy {
         long oldTime = 0;
         itemsCount = 0;
 
-        if (minutes != 0) {
-            // Distance between commits in msecs
-            long distance = (long) (1000 / (commitsPerMinute / 60.0));
-            Random ran = new Random(System.currentTimeMillis());
-            for (int i = 0; i < minutes; i++) {
-                start = System.currentTimeMillis();
-                for (int j = 0; j < commitsPerMinute; j++) {
-
-                    int num = (new Random()).nextInt(userIds.size());
-                    Long userId = userIds.get(num);
-                    String str = "" + "0,new," + ran.nextLong() + ",,," + ran.nextInt() + "," + userId;
-                    String[] lineParts = str.split(",");
-                    Action action = new New(lineParts);
-
-                    long startCommit = System.currentTimeMillis();
-                    commit(action);
-                    long endCommit = System.currentTimeMillis();
-
-                    // If doCommit had no cost sleep would be distance but we have
-                    // to take into account of the time that it takes
-                    long sleep = distance - (endCommit - startCommit);
-                    if (sleep > 0) {
-                        try {
-                            Thread.sleep(sleep);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-                end = System.currentTimeMillis();
-                long minute = end - start;
-
-                // I will forgive 5 seconds of delay...
-                if (minute > 65 * 1000) {
-                    // Notify error
-                    logger.error("MORE THAN 65 SECONDS=" + (minute / 1000));
+        for (Action action : lines) {
+            long testTime = action.getTimestamp();
+            long sleep = testTime - oldTime - (end - start);
+            oldTime = testTime;
+            if (sleep > 0) {
+                try {
+                    Thread.sleep(sleep);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
-        } else {
+            start = System.currentTimeMillis();
+            commit(action);
+            end = System.currentTimeMillis();
 
-            for (Action action : lines) {
-
-                // If doCommit had no cost sleep would be distance but we have
-                // to take into account of the time that it takes
-                long testTime = action.getTimestamp();
-                long sleep = testTime - oldTime - (end - start);
-                oldTime = testTime;
-                if (sleep > 0) {
-                    try {
-                        Thread.sleep(sleep);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                start = System.currentTimeMillis();
-                commit(action);
-                end = System.currentTimeMillis();
-
-            }
+        }
+        
+        try {
+            WorkspaceRMI workspace = this.handler.getWorkspace(users.get(311951037L));
+            assert workspace != null;
+            HashMap<Long, ItemRMI> items = workspace.getItems();
+            assert items.size() == 1;
+            ItemRMI item = items.get(ids.get(1427391262L));
+            assert item.isFolder() == false;
+            
+            
+        } catch (RemoteException ex) {
+            Logger.getLogger(ReadFile.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         int workspaceItems = 0;
@@ -149,7 +117,7 @@ public class ServerDummy extends AServerDummy {
                 //WorkspaceRMI workspace = workspaceDAO.getById(id);
                 workspaceItems += workspace.getItems().size();
             } catch (RemoteException ex) {
-                Logger.getLogger(ServerDummy.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ReadFile.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -174,10 +142,6 @@ public class ServerDummy extends AServerDummy {
             logger.error(ex);
         }
         logger.info("serverDummy2_doCommit_end,commitID=" + users.get(userId));
-    }
-
-    public int getLinesSize() {
-        return linesSize;
     }
 
     public int getItemsCount() {

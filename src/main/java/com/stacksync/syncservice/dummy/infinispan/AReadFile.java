@@ -6,14 +6,9 @@
 package com.stacksync.syncservice.dummy.infinispan;
 
 import com.stacksync.commons.models.CommitInfo;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 
 import org.apache.log4j.Logger;
@@ -32,19 +27,16 @@ import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.rmi.RemoteException;
 import java.util.HashMap;
-import org.infinispan.util.concurrent.locks.DeadlockDetectedException;
 
 /**
  * @author Sergi Toda <sergi.toda@estudiants.urv.cat>
  *
  */
-public abstract class AServerDummy extends Thread {
+public abstract class AReadFile extends Thread {
 
-    protected final Logger logger = Logger.getLogger(AServerDummy.class.getName());
+    protected final Logger logger = Logger.getLogger(AReadFile.class.getName());
 
     protected static final int CHUNK_SIZE = 512 * 1024;
 
@@ -60,12 +52,9 @@ public abstract class AServerDummy extends Thread {
     protected HashMap<Long, Long> ids;
     protected HashMap<Long, String> filenames;
 
-    public AServerDummy(ConnectionPool pool, int commitsPerMinute, int minutes) throws SQLException, NoStorageManagerAvailable, Exception {
+    public AReadFile(ConnectionPool pool) throws SQLException, NoStorageManagerAvailable, Exception {
         this.connection = (InfinispanConnection) pool.getConnection();
         this.handler = new SQLSyncHandler(pool);
-        
-        this.commitsPerMinute = commitsPerMinute;
-        this.minutes = minutes;
 
         DAOFactory factory = new DAOFactory("infinispan");
         this.userDAO = factory.getUserDao(connection);
@@ -93,24 +82,39 @@ public abstract class AServerDummy extends Thread {
         List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 
         Long tempId = action.getTempId();
-        if (!filenames.containsKey(tempId)){
+        if (!filenames.containsKey(tempId) && action.getStatus().equals("NEW")) {
             filenames.put(tempId, java.util.UUID.randomUUID().toString());
+        } else {
+            // Trying to do a CHANGED or a DELETED before a NEW from this object
+            // or a NEW item with an existing tempId
+            System.err.println("Change or Delete before a New or New item with existing tempId");
         }
-                
-        ItemMetadata itemMetadata = action.createItemMetadata(uuid, ids.get(tempId), filenames.get(tempId));
-        items.add(itemMetadata);
+
+        boolean correctNewItemVersion = action.getStatus().equals("NEW") && action.version.equals(1L);
+        boolean correctChangedDeletedItemVersion = !action.getStatus().equals("NEW") && action.version > 1L;
+        ItemMetadata itemMetadata = null;
+        if (correctNewItemVersion || correctChangedDeletedItemVersion) {
+            // Correct version for the item
+            itemMetadata = action.createItemMetadata(uuid, ids.get(tempId), filenames.get(tempId));
+            items.add(itemMetadata);
+        } else {
+            // Incorrect version for the item
+            System.err.println("Incorrect version for the item.");
+        }
 
         logger.info("hander_doCommit_start,commitID=" + tempId);
         List<CommitInfo> commitInfo = handler.doCommit(user, workspace, device, items);
         logger.info("hander_doCommit_end,commitID=" + tempId);
-        Long metadataId = commitInfo.get(0).getMetadata().getId();
 
-        if (!commitInfo.get(0).isCommitSucceed()) {
-            System.out.println("buuu");
-        }
-
-        if (!ids.containsKey(itemMetadata.getTempId())) {
-            ids.put(itemMetadata.getTempId(), metadataId);
+        if (commitInfo.isEmpty() || !commitInfo.get(0).isCommitSucceed()) {
+            System.err.println("SOME ERROR IN THE COMMIT!!");
+        } else {
+            System.out.println("__correct__");
+            // TODO -> comprovar què passa realment quan es crea un nou item amb el mateix tempId!!!
+            Long metadataId = commitInfo.get(0).getMetadata().getId();
+            if (!ids.containsKey(itemMetadata.getTempId())) {
+                ids.put(itemMetadata.getTempId(), metadataId);
+            }
         }
     }
 

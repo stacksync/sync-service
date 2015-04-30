@@ -6,13 +6,12 @@
 package com.stacksync.syncservice.dummy.infinispan;
 
 import com.stacksync.syncservice.db.Connection;
-import java.util.UUID;
 
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.util.Config;
 
-public class DummyServerTest {
+public class ReadFileTest {
 
     /**
      *
@@ -24,19 +23,13 @@ public class DummyServerTest {
 
         if ((args.length != 2) && (args.length != 4)) {
 
-            System.err.println("Usage: numUsers fileName [commitsPerMinute minutes]");
+            System.err.println("Usage: numUsers fileName");
             System.exit(0);
         }
 
         int numUsers = Integer.parseInt(args[0]);
         String fileName = args[1];
-        int commitsPerMinute = 0;
-        int minutes = 0;
-        if (args.length == 4) {
-            commitsPerMinute = Integer.parseInt(args[2]);
-            minutes = Integer.parseInt(args[3]);
-        }
-        int numThreads = 2;
+        int numThreads = 1;
 
         // Load properties
         Config.loadProperties(configPath);
@@ -48,23 +41,23 @@ public class DummyServerTest {
         Connection conn = pool.getConnection();
         conn.close();
 
-        ServerDummy[] dummies = new ServerDummy[numThreads];
+        ReadFile[] dummies = new ReadFile[numThreads];
 
         for (int i = 0; i < numThreads; i++) {
             // Crear un nou thread
-            dummies[i] = new ServerDummy(pool, numUsers, fileName, commitsPerMinute, minutes);
+            dummies[i] = new ReadFile(pool, numUsers, fileName);
         }
 
         // executar a la senyal
         // TODO provar només amb un únic thread
         for (int i = 0; i < numThreads; i++) {
-            ServerDummy dummy = dummies[i];
+            ReadFile dummy = dummies[i];
             dummy.start();
         }
 
         int numLines = 0;
         // Wait all the threads
-        for (ServerDummy dummy : dummies) {
+        for (ReadFile dummy : dummies) {
             dummy.join();
             dummy.getConnection().close();
             numLines = dummy.getItemsCount();

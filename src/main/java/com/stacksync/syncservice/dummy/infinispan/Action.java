@@ -6,7 +6,7 @@
 package com.stacksync.syncservice.dummy.infinispan;
 
 import com.stacksync.commons.models.ItemMetadata;
-import static com.stacksync.syncservice.dummy.infinispan.AServerDummy.CHUNK_SIZE;
+import static com.stacksync.syncservice.dummy.infinispan.AReadFile.CHUNK_SIZE;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -25,8 +25,6 @@ import java.util.logging.Logger;
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
 public abstract class Action {
-
-    private String type;
 
     protected HashMap<Long, Long> itemMetadataID;
 
@@ -47,7 +45,7 @@ public abstract class Action {
     protected long size;
 
     protected Long timestamp;
-    protected String op, fileType, fileMime;
+    protected String fileType, fileMime;
     protected Long fileId;
     protected Integer fileSize;
     protected Long userId;
@@ -62,7 +60,7 @@ public abstract class Action {
 
         Float tstamp = Float.parseFloat(lineParts[0])*1000;
         this.timestamp = tstamp.longValue();
-        this.op = lineParts[1];
+        this.status = lineParts[1];
         this.fileId = Long.parseLong(lineParts[2]);
         this.fileType = lineParts[3];
         this.fileMime = lineParts[4];
@@ -72,10 +70,11 @@ public abstract class Action {
             this.fileSize = Integer.parseInt(lineParts[5]);
         }
         this.userId = Long.parseLong(lineParts[6]);
+        this.version = Long.parseLong(lineParts[7]);
     }
 
-    public String getType() {
-        return type;
+    public String getStatus() {
+        return status;
     }
 
     public Long getTempId() {
@@ -92,16 +91,14 @@ public abstract class Action {
 
     public abstract ItemMetadata createItemMetadata(UUID uuid, Long id, String filename);
 
-    public void setValues(Long id, Long version, Long parentId, Long parentVersion, Boolean isFolder, String filename, Boolean getChunks) {
+    public void setValues(Long id, Long parentId, Long parentVersion, Boolean isFolder, String filename, Boolean getChunks) {
         String[] mimes = {"pdf", "php", "java", "docx", "html", "png", "jpeg", "xml"};
 
         this.id = id;
-        this.version = version;
 
         this.parentId = parentId;
         this.parentVersion = parentVersion;
 
-        this.status = type;
         this.modifiedAt = new Date();
         this.checksum = (long) ran.nextInt(Integer.MAX_VALUE);
         this.isFolder = isFolder;

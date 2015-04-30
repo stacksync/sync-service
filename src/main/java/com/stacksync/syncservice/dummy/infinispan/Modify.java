@@ -13,6 +13,8 @@ import java.util.UUID;
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
 public class Modify extends Action {
+    
+    private long version;
 
     public Modify(String[] lineParts) {
         super(lineParts);
@@ -21,10 +23,10 @@ public class Modify extends Action {
     @Override
     public ItemMetadata createItemMetadata(UUID uuid, Long id, String filename) {
 
-        super.setValues(id, 1L, null, null, false, filename, true);
+        super.setValues(id, null, null, false, filename, true);
 
-        ItemMetadata itemMetadata = new ItemMetadata(super.id, super.version, uuid, super.parentId, super.parentVersion, super.status, super.modifiedAt, super.checksum, super.size,
-                super.isFolder, super.filename, super.mimetype, super.chunks);
+        ItemMetadata itemMetadata = new ItemMetadata(id, version, uuid, parentId, parentVersion, status, modifiedAt, checksum, size,
+                isFolder, filename, mimetype, chunks);
         itemMetadata.setChunks(chunks);
 
         return itemMetadata;
