@@ -1,16 +1,13 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.rmi.RemoteException;
 import java.util.Date;
 import java.util.UUID;
 
 public class DeviceRMI implements Serializable {
 
     private static final long serialVersionUID = -2932481953197148130L;
-
     private UUID id;
     private String name;
     //private UserRMI user;
@@ -102,11 +99,11 @@ public class DeviceRMI implements Serializable {
     }
 
     /*public UserRMI getUser() {
-        return user;
+     return user;
      }
 
      public void setUser(UserRMI user) {
-        this.user = user;
+     this.user = user;
      }*/
     public boolean isValid() {
         // TODO Auto-generated method stub
@@ -120,7 +117,7 @@ public class DeviceRMI implements Serializable {
         result.append(this.getClass().getName());
         result.append(" {");
 
-		// determine fields declared in this class only (no fields of
+        // determine fields declared in this class only (no fields of
         // superclass)
         Field[] fields = this.getClass().getDeclaredFields();
 
@@ -140,5 +137,4 @@ public class DeviceRMI implements Serializable {
 
         return result.toString();
     }
-
 }

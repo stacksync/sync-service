@@ -1,8 +1,6 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import com.stacksync.commons.models.ItemMetadata;
 import java.io.Serializable;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

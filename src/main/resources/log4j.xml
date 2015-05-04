@@ -7,7 +7,7 @@
         <param name="Threshold" value="ERROR" />
         <param name="target" value="System.err"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss,fff]} %-5p %c{1}:%L - %m  %n" />
+            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss,SSS]} %-5p %c{1}:%L - %m  %n" />
         </layout>
     </appender>
     
@@ -15,7 +15,7 @@
         <param name="Threshold" value="DEBUG" />
         <param name="target" value="System.out"/>
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss,fff]} %-5p %c{1}:%L - %m %n" />
+            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss,SSS]} %-5p %c{1}:%L - %m %n" />
         </layout>
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
             <param name="LevelMin" value="DEBUG" />
@@ -47,7 +47,7 @@
         <param name="append" value="false" />
         <param name="threshold" value="debug" />
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss,fff]} %-5p %c{1}:%L - %m %n" />
+            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss,SSS]} %-5p %c{1}:%L - %m %n" />
         </layout>
     </appender>
     <root> 
