@@ -34,7 +34,7 @@ public class CommitsPerSecondTest {
         int numUsers = Integer.parseInt(args[1]);
         int minutes = Integer.parseInt(args[2]);
         int numThreads = Integer.parseInt(args[3]);;
-
+        
         // Load properties
         Config.loadProperties(configPath);
         String datasource = Config.getDatasource();
