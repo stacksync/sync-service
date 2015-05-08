@@ -8,19 +8,9 @@ package com.stacksync.syncservice.db.infinispan;
 import com.stacksync.commons.models.ItemMetadata;
 import java.io.Serializable;
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import com.stacksync.syncservice.db.infinispan.models.*;
 
-import com.stacksync.syncservice.db.infinispan.models.ChunkRMI;
-import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserWorkspaceRMI;
-import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
-import java.util.HashMap;
-import java.util.Random;
 
 import org.infinispan.atomic.AtomicObjectFactory;
 
@@ -200,8 +190,12 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public ItemRMI findById(Long id) throws RemoteException {
 
-        HashMap<Long, ItemRMI> items = workspace.getItems();
-        return items.get(id);
+        //HashMap<Long, ItemRMI> items = workspace.getItems();
+        //return items.get(id);
+        if (id != null) {
+            return workspace.finddById(id);
+        }
+        return null;
     }
 
     @Override
@@ -426,13 +420,14 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public void add(ItemVersionRMI itemVersion) throws RemoteException {
 
-        HashMap<Long, ItemRMI> items = workspace.getItems();
+        /*HashMap<Long, ItemRMI> items = workspace.getItems();
         ItemRMI item = items.get(itemVersion.getItemId());
         if (item != null) {
             itemVersion.setId(this.random.nextLong());
             item.addVersion(itemVersion);
             item.setLatestVersionNumber(itemVersion.getVersion());
-        }
+        }*/
+        itemVersion.setId(workspace.addVersionRMI(itemVersion));
 
     }
 
@@ -447,7 +442,7 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public void insertChunks(long id, List<ChunkRMI> chunks, long itemVersionId) throws RemoteException {
 
-        HashMap<Long, ItemRMI> items = workspace.getItems();
+        /*HashMap<Long, ItemRMI> items = workspace.getItems();
         ItemRMI item = items.get(id);
         List<ItemVersionRMI> versions;
 
@@ -456,7 +451,8 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
             if (version.getId().equals(itemVersionId)) {
                 version.setChunks(chunks);
             }
-        }
+        }*/
+        workspace.insertChunks(id,chunks,itemVersionId);
 
     }
 
@@ -465,17 +461,17 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         // TODO FIX ME
         /*List<ItemRMI> items = workspace.getItems();
-        List<ItemVersionRMI> versions;
+         List<ItemVersionRMI> versions;
 
-        for (ItemRMI item : items) {
-            versions = item.getVersions();
-            for (ItemVersionRMI version : versions) {
-                if (version.getId().equals(itemVersionId)) {
-                    return version.getChunks();
-                }
-            }
-        }
-        */
+         for (ItemRMI item : items) {
+         versions = item.getVersions();
+         for (ItemVersionRMI version : versions) {
+         if (version.getId().equals(itemVersionId)) {
+         return version.getChunks();
+         }
+         }
+         }
+         */
         return null;
 
     }
@@ -485,20 +481,19 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         /*List<ItemRMI> items = workspace.getItems();
 
-        for (ItemRMI item : items) {
-            if (item.getId().equals(itemVersion.getItemId())) {
-                List<ItemVersionRMI> versions = item.getVersions();
-                for (ItemVersionRMI version : versions) {
-                    if (version.getVersion().equals(itemVersion.getVersion())) {
-                        item.removeVersion(version);
-                        item.addVersion(itemVersion);
-                        break;
-                    }
-                }
-                break;
-            }
-        }*/
-
+         for (ItemRMI item : items) {
+         if (item.getId().equals(itemVersion.getItemId())) {
+         List<ItemVersionRMI> versions = item.getVersions();
+         for (ItemVersionRMI version : versions) {
+         if (version.getVersion().equals(itemVersion.getVersion())) {
+         item.removeVersion(version);
+         item.addVersion(itemVersion);
+         break;
+         }
+         }
+         break;
+         }
+         }*/
     }
 
     @Override
@@ -506,16 +501,15 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
 
         /*List<ItemRMI> items = workspace.getItems();
 
-        for (ItemRMI item : items) {
-            if (item.getId().equals(itemVersion.getItemId())) {
-                item.removeVersion(itemVersion);
-                if (item.getLatestVersionNumber().equals(itemVersion.getVersion())) {
-                    item.setLatestVersionNumber(itemVersion.getVersion() - 1L);
-                }
-                break;
-            }
-        }*/
-
+         for (ItemRMI item : items) {
+         if (item.getId().equals(itemVersion.getItemId())) {
+         item.removeVersion(itemVersion);
+         if (item.getLatestVersionNumber().equals(itemVersion.getVersion())) {
+         item.setLatestVersionNumber(itemVersion.getVersion() - 1L);
+         }
+         break;
+         }
+         }*/
     }
 
     //************************************

@@ -3,6 +3,7 @@ package com.stacksync.syncservice.db.infinispan;
 import com.stacksync.syncservice.db.Connection;
 import org.infinispan.Cache;
 import org.infinispan.atomic.AtomicObjectFactory;
+import org.infinispan.client.hotrod.RemoteCache;
 
 /**
  *
@@ -12,7 +13,8 @@ public class InfinispanConnection implements Connection {
     
     private AtomicObjectFactory factory;
     
-    public InfinispanConnection(Cache cache) {
+    public InfinispanConnection(RemoteCache cache) {
+    //public InfinispanConnection(Cache cache) {
         this.factory = new AtomicObjectFactory(cache);
     }
     
