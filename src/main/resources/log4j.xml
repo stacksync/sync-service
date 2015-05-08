@@ -2,51 +2,36 @@
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
 
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
-    
-    <appender name="stderr" class="org.apache.log4j.ConsoleAppender">
-        <param name="Threshold" value="ERROR" />
-        <param name="target" value="System.err"/>
+    <appender name="consoleAppender" class="org.apache.log4j.ConsoleAppender">
+        <param name="Threshold" value="INFO" />
         <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss]} %-5p %c{1}:%L - %m  %n" />
+            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss,SSS]} %-5p %c:%L - %m%n" />
         </layout>
-    </appender>
-    
-    <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
-        <param name="Threshold" value="DEBUG" />
-        <param name="target" value="System.out"/>
-        <layout class="org.apache.log4j.PatternLayout">
-            <param name="ConversionPattern" value="%d{[yyyy-MM-dd HH:mm:ss]} %-5p %c{1}:%L - %m %n" />
-        </layout>
-        <filter class="org.apache.log4j.varia.LevelRangeFilter">
-            <param name="LevelMin" value="DEBUG" />
-            <param name="LevelMax" value="WARN" />
-        </filter>
     </appender>
 
     <appender class="org.apache.log4j.rolling.RollingFileAppender" name="A2">
         <param value="true" name="append"/>
-        <param value="/var/log/stacksync-server/stacksync-server.log" name="File"/>
+        <param value="logs/sync-server.log" name="File"/>
 
         <rollingPolicy class="org.apache.log4j.rolling.FixedWindowRollingPolicy">
-            <param name="fileNamePattern" value="/var/log/stacksync-server/stacksync-server.%i.log" />
+            <param name="fileNamePattern" value="logs/sync-server-%i.log" />
             <param name="MinIndex" value="0"/> 
-            <param name="MaxIndex" value="3"/> 
+            <param name="MaxIndex" value="5"/> 
         </rollingPolicy>
         
         <triggeringPolicy class="org.apache.log4j.rolling.SizeBasedTriggeringPolicy"> 
-            <param name="MaxFileSize" value="10000000"/> 
+            <param name="MaxFileSize" value="1000000000"/> 
         </triggeringPolicy> 
         
-        <layout class="com.stacksync.syncservice.util.NoStackTracePatternLayout">
-            <param value="%d{[yyyy-MM-dd HH:mm:ss]} %-5p %c{1}:%L - %m%n" name="ConversionPattern"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param value="%d{[yyyy-MM-dd HH:mm:ss,SSS]} %-5p %c:%L - %m%n" name="ConversionPattern"/>
         </layout>        
     </appender>
 
   <root> 
-    <priority value ="debug" /> 
-    <appender-ref ref="stderr" />
-    <appender-ref ref="stdout" />
-    <!--  <appender-ref ref="A2" /> -->  
+    <priority value ="INFO" /> 
+    <appender-ref ref="consoleAppender" />
+    <appender-ref ref="A2" />  
   </root>
   
 </log4j:configuration>

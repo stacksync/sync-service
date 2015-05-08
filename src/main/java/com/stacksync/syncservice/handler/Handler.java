@@ -622,7 +622,8 @@ public class Handler {
 		}
 	}
 
-	private void createChunks(User user, List<String> chunksString, ItemVersion objectVersion) throws IllegalArgumentException, DAOException {
+	private void createChunks(User user, List<String> chunksString, ItemVersion objectVersion) throws IllegalArgumentException,
+			DAOException {
 		if (chunksString != null) {
 			if (chunksString.size() > 0) {
 				List<Chunk> chunks = new ArrayList<Chunk>();
@@ -638,8 +639,8 @@ public class Handler {
 		}
 	}
 
-	private void saveExistentVersion(User user, Item serverObject, ItemMetadata clientMetadata) throws CommitWrongVersion, CommitExistantVersion,
-			DAOException {
+	private void saveExistentVersion(User user, Item serverObject, ItemMetadata clientMetadata) throws CommitWrongVersion,
+			CommitExistantVersion, DAOException {
 
 		ItemMetadata serverMetadata = this.getServerObjectVersion(user, serverObject, clientMetadata.getVersion());
 
@@ -689,6 +690,30 @@ public class Handler {
 		} catch (SQLException e) {
 			throw new DAOException(e);
 		}
+	}
+
+	public WorkspaceDAO getWorkspaceDAO() {
+		return workspaceDAO;
+	}
+
+	public UserDAO getUserDao() {
+		return userDao;
+	}
+
+	public DeviceDAO getDeviceDao() {
+		return deviceDao;
+	}
+
+	public ItemDAO getItemDao() {
+		return itemDao;
+	}
+
+	public ItemVersionDAO getItemVersionDao() {
+		return itemVersionDao;
+	}
+
+	public StorageManager getStorageManager() {
+		return storageManager;
 	}
 
 }

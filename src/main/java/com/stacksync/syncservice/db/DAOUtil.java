@@ -65,7 +65,7 @@ public final class DAOUtil {
 	/**
 	 * Set the given parameter values in the given PreparedStatement.
 	 * 
-	 * @param connection
+	 * @param pool
 	 *            The PreparedStatement to set the given parameter values in.
 	 * @param values
 	 *            The parameter values to be set in the created

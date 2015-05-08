@@ -16,30 +16,30 @@ import com.stacksync.syncservice.util.Config;
 
 public class TestCommit {
 
-	public static void main(String[] args) throws Exception {
-		Config.loadProperties();
-
-		String datasource = Config.getDatasource();
-		ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
-		
-		Properties env = RabbitConfig.getProperties();
-
-		Broker broker = new Broker(env);
-		broker.lookup(ISyncService.class.getSimpleName(), ISyncService.class);
-
-		CommonFunctions.generateObjects(1, Constants.DEVICE_ID);
-
-		DAOFactory factory = new DAOFactory(datasource);
-		WorkspaceDAO workspaceDao = factory.getWorkspaceDao(pool.getConnection());
-
-		Workspace workspace = workspaceDao.getById(Constants.WORKSPACE_ID);
-
-		long startTotal = System.currentTimeMillis();
-		// server.commit(Constants.USER, Constants.REQUESTID, rWorkspace,
-		// Constants.DEVICENAME, metadata);
-
-		long totalTime = System.currentTimeMillis() - startTotal;
-		System.out.println("Total level time --> " + totalTime + " ms");
-	}
+//	public static void main(String[] args) throws Exception {
+//		Config.loadProperties();
+//
+//		String datasource = Config.getDatasource();
+//		ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
+//		
+//		Properties env = RabbitConfig.getProperties();
+//
+//		Broker broker = new Broker(env);
+//		broker.lookup(ISyncService.class.getSimpleName(), ISyncService.class);
+//
+//		CommonFunctions.generateObjects(1, Constants.DEVICE_ID);
+//
+//		DAOFactory factory = new DAOFactory(datasource);
+//		WorkspaceDAO workspaceDao = factory.getWorkspaceDao(pool.getConnection());
+//
+//		Workspace workspace = workspaceDao.getById(Constants.WORKSPACE_ID);
+//
+//		long startTotal = System.currentTimeMillis();
+//		// server.commit(Constants.USER, Constants.REQUESTID, rWorkspace,
+//		// Constants.DEVICENAME, metadata);
+//
+//		long totalTime = System.currentTimeMillis() - startTotal;
+//		System.out.println("Total level time --> " + totalTime + " ms");
+//	}
 
 }
