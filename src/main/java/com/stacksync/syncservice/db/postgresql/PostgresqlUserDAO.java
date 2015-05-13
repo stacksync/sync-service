@@ -94,7 +94,7 @@ public class PostgresqlUserDAO extends PostgresqlDAO implements UserDAO {
 	public void add(User user) throws DAOException {
 		// This will insert a new user in one of the shards:
 		// "RUN ON hashtext(id::text);"
-		UUID userID = UUID.randomUUID();
+		UUID userID = user.getId();
 
 		Object[] values = { userID, user.getEmail(), user.getName(), user.getSwiftUser(), user.getSwiftAccount(), user.getQuotaLimit(),
 				user.getQuotaUsed() };

@@ -54,12 +54,15 @@ public class PostgresqlUserDaoTest {
 
 	@Before
 	public void createUser() throws DAOException {
+		UUID id = UUID.randomUUID();
+		String idStr = id.toString();
+
 		user = new User();
-		user.setName(nextString());
-		user.setId(UUID.randomUUID());
-		user.setEmail(nextString());
-		user.setSwiftUser(nextString());
-		user.setSwiftAccount(nextString());
+		user.setName(idStr);
+		user.setId(id);
+		user.setEmail(idStr);
+		user.setSwiftUser(idStr);
+		user.setSwiftAccount(idStr);
 		user.setQuotaLimit(2048);
 		user.setQuotaUsed(1403);
 
