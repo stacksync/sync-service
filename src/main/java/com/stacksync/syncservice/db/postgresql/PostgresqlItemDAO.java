@@ -411,7 +411,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 				+ "FROM cloudspaces_sharing_proposal p "
 				+ "INNER JOIN \"user1\" u ON u.email = p.recipient "
 				+ "INNER JOIN \"cloudspaces_oauth1.0_credentials\" c "
-				+ "ON p.recipient = c.user where u.id = ?::uuid";
+				+ "ON p.recipient = c.user AND p.key = c.proposal_key where u.id = ?::uuid";
 	
 		try {
 			ResultSet result = executeQuery(query, values);
