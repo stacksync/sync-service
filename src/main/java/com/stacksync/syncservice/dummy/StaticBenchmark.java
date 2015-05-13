@@ -9,7 +9,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,6 +22,8 @@ import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.db.ConnectionPool;
+import com.stacksync.syncservice.db.DeviceDAO;
+import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
@@ -40,7 +41,8 @@ public class StaticBenchmark extends Thread {
 	protected static final int CHUNK_SIZE = 512 * 1024;
 
 	protected int commitsPerSecond, minutes, itemsCount;
-	private UUID[] uuids;
+	private UserContainer[] uuids;
+	// private UUID[] uuids;
 	protected ConnectionPool pool;
 	protected Handler handler;
 
@@ -52,10 +54,9 @@ public class StaticBenchmark extends Thread {
 		handler = new SQLSyncHandler(pool);
 		itemsCount = 0;
 
-		uuids = new UUID[numUsers];
+		uuids = new UserContainer[numUsers];
 		for (int i = 0; i < numUsers; i++) {
-			uuids[i] = UUID.randomUUID();
-			createUser(uuids[i]);
+			createUser(uuids, i);
 		}
 	}
 
@@ -66,6 +67,7 @@ public class StaticBenchmark extends Thread {
 	@Override
 	public void run() {
 		Random ran = new Random(System.currentTimeMillis());
+
 		// Distance between commits in msecs
 		long distance = (long) (1000 / commitsPerSecond);
 
@@ -73,10 +75,10 @@ public class StaticBenchmark extends Thread {
 		for (int i = 0; i < minutes; i++) {
 
 			long startMinute = System.currentTimeMillis();
-			for (int j = 0; j < commitsPerSecond; j++) {
+			for (int j = 0; j < commitsPerSecond * 60; j++) {
 				String id = UUID.randomUUID().toString();
 
-				logger.info("serverDummy2_doCommit_start,commitID=" + id);
+				// logger.info("serverDummy2_doCommit_start,commitID=" + id);
 				long start = System.currentTimeMillis();
 				try {
 					doCommit(uuids[ran.nextInt(uuids.length)], ran, 1, 8, id);
@@ -85,7 +87,7 @@ public class StaticBenchmark extends Thread {
 					logger.error(e1);
 				}
 				long end = System.currentTimeMillis();
-				logger.info("serverDummy2_doCommit_end,commitID=" + id);
+				// logger.info("serverDummy2_doCommit_end,commitID=" + id);
 
 				// If doCommit had no cost sleep would be distance but we have
 				// to take into account of the time that it takes
@@ -108,38 +110,17 @@ public class StaticBenchmark extends Thread {
 			}
 		}
 
-		// doChecks();
 	}
 
-	@SuppressWarnings("unused")
-	private void doChecks() {
-		int workspaceItems = 0;
-		for (UUID id : uuids) {
-			try {
-				WorkspaceDAO wDao = handler.getWorkspaceDAO();
-				Workspace workspace = wDao.getById(id, id);
-				workspaceItems += workspace.getItems().size();
-			} catch (Exception ex) {
-				logger.error(ex);
-			}
-		}
-
-		if (workspaceItems != itemsCount) {
-			System.out.println("Something wrong happens...");
-		}
-		System.out.println(workspaceItems + " vs " + itemsCount);
-	}
-
-	public void doCommit(UUID uuid, Random ran, int min, int max, String id) throws DAOException {
+	public void doCommit(UserContainer container, Random ran, int min, int max, String id) throws DAOException {
 		// Create user info
-		User user = new User();
-		user.setId(uuid);
-		Device device = new Device(uuid);
-		Workspace workspace = new Workspace(uuid);
+		User user = container.getUser();
+		Device device = container.getDevice();
+		Workspace workspace = container.getWorkspace();
 
 		// Create a ItemMetadata List
 		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
-		items.add(createItemMetadata(ran, min, max, uuid));
+		items.add(createItemMetadata(ran, min, max, device.getId()));
 
 		logger.info("hander_doCommit_start,commitID=" + id);
 		handler.doCommit(user, workspace, device, items);
@@ -195,27 +176,42 @@ public class StaticBenchmark extends Thread {
 
 	}
 
-	public void createUser(UUID id) {
+	public void createUser(UserContainer[] list, int i) {
 		try {
-			String[] create = new String[] {
-					"INSERT INTO user1 (id, name, swift_user, swift_account, email, quota_limit) VALUES ('" + id + "', '" + id + "', '"
-							+ id + "', '" + id + "', '" + id + "@asdf.asdf', 0);",
-					"INSERT INTO workspace (id, latest_revision, owner_id, is_shared, swift_container, swift_url) VALUES ('" + id
-							+ "', 0, '" + id + "', false, '" + id + "', 'STORAGEURL');",
-					"INSERT INTO workspace_user(workspace_id, user_id, workspace_name, parent_item_id) VALUES ('" + id + "', '" + id
-							+ "', 'default', NULL);",
-					"INSERT INTO device (id, name, user_id, os, app_version) VALUES ('" + id + "', '" + id + "', '" + id + "', 'LINUX', 1)" };
+			UUID id = UUID.randomUUID();
+			String idStr = id.toString();
+			User user = new User();
+			user = new User();
+			user.setName(idStr);
+			user.setId(id);
+			user.setEmail(idStr);
+			user.setSwiftUser(idStr);
+			user.setSwiftAccount(idStr);
+			user.setQuotaLimit(2048);
+			user.setQuotaUsed(1403);
 
-			Statement statement;
+			UserDAO uDao = handler.getUserDao();
+			uDao.add(user);
 
-			statement = handler.getConnection().createStatement();
+			Workspace workspace = new Workspace();
+			workspace.setEncrypted(false);
+			workspace.setOwner(user);
+			workspace.setShared(false);
+			workspace.setName(idStr);
+			workspace.setLatestRevision(0);
 
-			for (String query : create) {
-				statement.executeUpdate(query);
-			}
+			WorkspaceDAO wDao = handler.getWorkspaceDAO();
+			wDao.add(workspace);
 
-			statement.close();
-		} catch (SQLException e) {
+			Device device = new Device(id, idStr, user);
+			device.setAppVersion("0");
+
+			DeviceDAO dDao = handler.getDeviceDao();
+			dDao.add(device);
+
+			list[i] = new UserContainer(user, workspace, device);
+
+		} catch (Exception e) {
 			logger.error(e);
 		}
 	}
