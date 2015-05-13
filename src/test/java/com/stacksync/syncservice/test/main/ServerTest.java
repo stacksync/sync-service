@@ -21,7 +21,7 @@ public class ServerTest {
 				
 				@Override
 				public String[] getArguments() {
-					return new String[]{"/home/edgar/Documents/stackSync/sync-service/config2.properties"};
+					return new String[]{"/home/edgar/Documents/stackSync/sync-service/config.properties"};
 				}
 			};
 			
