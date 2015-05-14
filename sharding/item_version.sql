@@ -36,14 +36,14 @@ $$ LANGUAGE plproxy;
 
 -- Proxy
 
-CREATE OR REPLACE FUNCTION insert_chunk(uid uuid, item_version_id bigint,  client_chunk_name bigint, chunk_order integer)
+CREATE OR REPLACE FUNCTION insert_chunk(uid uuid, item_version_id bigint,  client_chunk_name text, chunk_order integer)
 RETURNS integer AS $$
 	CLUSTER 'usercluster';
 	RUN ON hashtext(uid::text) ;
 $$ LANGUAGE plproxy;
 
 -- Part
-CREATE OR REPLACE FUNCTION insert_chunk(uid uuid, item_version_id bigint, client_chunk_name bigint, chunk_order integer)
+CREATE OR REPLACE FUNCTION insert_chunk(uid uuid, item_version_id bigint, client_chunk_name text, chunk_order integer)
 RETURNS integer AS $$
     INSERT INTO item_version_chunk( item_version_id, client_chunk_name, chunk_order ) VALUES ( $2, $3, $4 );
 $$ LANGUAGE SQL;

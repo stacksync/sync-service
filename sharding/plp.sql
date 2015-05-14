@@ -23,6 +23,18 @@ RETURNS uuid AS $$
     RUN ON hashtext(uid::text) ;
 $$ LANGUAGE plproxy;
 
+------------------------------
+-- Add device uuid
+------------------------------
+
+-- Proxy
+
+CREATE OR REPLACE FUNCTION add_device(uid uuid, did uuid, name text, os text, last_ip inet, app_version text)
+RETURNS uuid AS $$
+    CLUSTER 'usercluster';
+    RUN ON hashtext(uid::text) ;
+$$ LANGUAGE plproxy;
+
 
 ------------------------------
 -- Update device
@@ -79,7 +91,7 @@ $$ LANGUAGE plproxy;
 
 -- Proxy
 
-CREATE OR REPLACE FUNCTION insert_chunk(uid uuid, item_version_id bigint,  client_chunk_name bigint, chunk_order integer)
+CREATE OR REPLACE FUNCTION insert_chunk(uid uuid, item_version_id bigint,  client_chunk_name text, chunk_order integer)
 RETURNS integer AS $$
 	CLUSTER 'usercluster';
 	RUN ON hashtext(uid::text) ;
@@ -358,6 +370,18 @@ $$ LANGUAGE plproxy;
 -- Proxy
 
 CREATE OR REPLACE FUNCTION add_workspace(uid uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text)
+RETURNS uuid AS $$
+	CLUSTER 'usercluster';
+	RUN ON hashtext(uid::text) ;
+$$ LANGUAGE plproxy;
+
+------------------------------
+-- Add workspace uuid
+------------------------------
+
+-- Proxy
+
+CREATE OR REPLACE FUNCTION add_workspace(uid uuid, wid uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text)
 RETURNS uuid AS $$
 	CLUSTER 'usercluster';
 	RUN ON hashtext(uid::text) ;

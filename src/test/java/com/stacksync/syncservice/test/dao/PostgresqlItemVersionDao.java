@@ -113,7 +113,7 @@ public class PostgresqlItemVersionDao {
 
 	@AfterClass
 	public static void testEnd() throws DAOException, SQLException {
-		userDao.delete(user.getId()); // This should remove everything else...
+//		userDao.delete(user.getId()); // This should remove everything else...
 		connection.close();
 	}
 

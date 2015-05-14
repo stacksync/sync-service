@@ -111,6 +111,16 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 			throw new IllegalArgumentException("Workspace attributes not set");
 		}
 
+		if (workspace.getId() == null) {
+			addWorkspaceWithoutId(workspace);
+		} else {
+			addWorkspaceWithId(workspace);
+		}
+
+	}
+
+	private void addWorkspaceWithoutId(Workspace workspace) throws DAOException {
+
 		Object[] values = { workspace.getOwner().getId(), workspace.getLatestRevision() + "", workspace.getOwner().getId(),
 				workspace.isShared(), workspace.isEncrypted(), workspace.getSwiftContainer(), workspace.getSwiftUrl() };
 
@@ -128,6 +138,33 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 				}
 			} else {
 				throw new DAOException("Creating object failed, no generated key obtained.");
+			}
+		} catch (SQLException e) {
+			throw new DAOException(e);
+		}
+
+	}
+
+	private void addWorkspaceWithId(Workspace workspace) throws DAOException {
+		UUID wid = workspace.getId();
+
+		Object[] values = { workspace.getOwner().getId(), wid, workspace.getLatestRevision() + "", workspace.getOwner().getId(),
+				workspace.isShared(), workspace.isEncrypted(), workspace.getSwiftContainer(), workspace.getSwiftUrl() };
+
+		String query = "SELECT add_workspace(?::uuid, ?::uuid, ?, ?, ?, ?, ?, ?)";
+
+		ResultSet resultSet = executeQuery(query, values);
+
+		UUID id;
+
+		try {
+			if (resultSet.next()) {
+				id = (UUID) resultSet.getObject(1);
+				if (!id.equals(wid)) {
+					throw new DAOException("Creating object failed, different key obtained.");
+				}
+			} else {
+				throw new DAOException("Creating object failed.");
 			}
 		} catch (SQLException e) {
 			throw new DAOException(e);

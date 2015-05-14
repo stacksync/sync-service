@@ -53,6 +53,15 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 			throw new IllegalArgumentException("Device attributes not set");
 		}
 
+		if (device.getId() == null) {
+			addDeviceWithoutId(device);
+		} else {
+			addDeviceWithId(device);
+		}
+	}
+
+	private void addDeviceWithoutId(Device device) throws DAOException {
+
 		Object[] values = { device.getUser().getId(), device.getName(), device.getOs(), device.getLastIp(), device.getAppVersion() };
 
 		String query = "SELECT add_device(?::uuid, ?, ?, ?::inet, ?)";
@@ -66,6 +75,32 @@ public class PostgresqlDeviceDAO extends PostgresqlDAO implements DeviceDAO {
 				id = (UUID) resultSet.getObject(1);
 				if (id != null) {
 					device.setId(id);
+				}
+			} else {
+				throw new DAOException("Creating object failed, no generated key obtained.");
+			}
+		} catch (SQLException e) {
+			throw new DAOException(e);
+		}
+	}
+
+	private void addDeviceWithId(Device device) throws DAOException {
+
+		UUID did = device.getId();
+
+		Object[] values = { device.getUser().getId(), did, device.getName(), device.getOs(), device.getLastIp(), device.getAppVersion() };
+
+		String query = "SELECT add_device(?::uuid, ?::uuid, ?, ?, ?::inet, ?)";
+
+		ResultSet resultSet = executeQuery(query, values);
+
+		UUID id;
+
+		try {
+			if (resultSet.next()) {
+				id = (UUID) resultSet.getObject(1);
+				if (!id.equals(did)) {
+					throw new DAOException("Creating object failed, different key obtained.");
 				}
 			} else {
 				throw new DAOException("Creating object failed, no generated key obtained.");
