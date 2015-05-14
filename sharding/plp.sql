@@ -79,7 +79,7 @@ $$ LANGUAGE plproxy;
 
 -- Proxy
 
-CREATE OR REPLACE FUNCTION insert_chunk(uid uuid, item_version_id bigint, chunk_id bigint, chunk_order integer)
+CREATE OR REPLACE FUNCTION insert_chunk(uid uuid, item_version_id bigint,  client_chunk_name bigint, chunk_order integer)
 RETURNS integer AS $$
 	CLUSTER 'usercluster';
 	RUN ON hashtext(uid::text) ;
@@ -436,5 +436,13 @@ RETURNS TABLE(workspace_id uuid,  user_id uuid, workspace_name text, parent_item
 	CLUSTER 'usercluster';
 	RUN ON ALL;
     SELECT u.*, CASE WHEN u.id=w.owner_id THEN True ELSE False END AS is_owner, wu.created_at AS joined_at, wu.workspace_id FROM workspace w INNER JOIN workspace_user wu ON wu.workspace_id = w.id INNER JOIN user1 u ON wu.user_id = u.id WHERE w.id = $1;
+$$ LANGUAGE plproxy;
+
+
+-- Delete user1
+CREATE OR REPLACE FUNCTION delete_user1()
+RETURNS TABLE(result integer) AS $$
+    CLUSTER 'usercluster';
+    RUN ON ALL;
 $$ LANGUAGE plproxy;
 

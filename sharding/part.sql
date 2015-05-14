@@ -15,6 +15,18 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION add_device(uid uuid, name text, os text, last_ip inet, app_version text)
+RETURNS uuid AS $$
+DECLARE
+	did uuid;
+BEGIN
+	did := (select uuid_generate_v1()); 
+	INSERT INTO device (id, name, user_id, os, created_at, last_access_at, last_ip, app_version) VALUES (did, $2, $1, $3, now(), now(), $4, $5);
+	return did;
+END;
+$$ LANGUAGE plpgsql;
+
+
 ------------------------------
 -- Update device
 ------------------------------
@@ -57,11 +69,10 @@ $$ LANGUAGE SQL;
 ------------------------------
 
 -- Part
-CREATE OR REPLACE FUNCTION insert_chunk(uid uuid, item_version_id bigint, chunk_id bigint, chunk_order integer)
+CREATE OR REPLACE FUNCTION insert_chunk(uid uuid, item_version_id bigint, client_chunk_name bigint, chunk_order integer)
 RETURNS integer AS $$
-    INSERT INTO item_version_chunk( item_version_id, chunk_id, chunk_order ) VALUES ( $2, $3, $4 );
+    INSERT INTO item_version_chunk( item_version_id, client_chunk_name, chunk_order ) VALUES ( $2, $3, $4 );
 $$ LANGUAGE SQL;
-
 
 ------------------------------
 -- Insert chunks // this function is built dynamically
@@ -274,4 +285,10 @@ RETURNS integer AS $$
 $$ LANGUAGE SQL;
 
 
+-- Delete user1
+CREATE OR REPLACE FUNCTION delete_user1()
+RETURNS integer AS $$
+    DELETE FROM user1;
+    SELECT 1;
+$$ LANGUAGE SQL;
 
