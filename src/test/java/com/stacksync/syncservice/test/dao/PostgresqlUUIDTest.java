@@ -44,7 +44,7 @@ public class PostgresqlUUIDTest {
 
 		User user = new User();
 		user.setName(idStr);
-		user.setId(UUID.randomUUID());
+		user.setId(userId);
 		user.setEmail(idStr);
 		user.setSwiftUser(idStr);
 		user.setSwiftAccount(idStr);
