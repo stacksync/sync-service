@@ -156,6 +156,19 @@ RETURNS bigint AS $$
 $$ LANGUAGE plproxy;
 
 ------------------------------
+-- Add item id
+------------------------------
+
+-- Proxy
+
+CREATE OR REPLACE FUNCTION add_item(uid uuid, iid bigint, workspace_id uuid, latest_version bigint, parent_id bigint, filename text, mimetype text, is_folder boolean, client_parent_file_version bigint)
+RETURNS bigint AS $$
+	CLUSTER 'usercluster';
+	RUN ON hashtext(uid::text) ;
+$$ LANGUAGE plproxy;
+
+
+------------------------------
 -- Update item
 ------------------------------
 

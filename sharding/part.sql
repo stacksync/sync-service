@@ -33,7 +33,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION add_device(uid uuid, did uuid, name text, os text, last_ip inet, app_version text)
 RETURNS uuid AS $$
 BEGIN
-	INSERT INTO device (id, name, user_id, os, created_at, last_access_at, last_ip, app_version) VALUES (did, $2, $1, $3, now(), now(), $4, $5);
+	INSERT INTO device (id, name, user_id, os, created_at, last_access_at, last_ip, app_version) VALUES (did, $3, $1, $4, now(), now(), $5, $6);
 	return did;
 END;
 $$ LANGUAGE plpgsql;
@@ -122,6 +122,20 @@ BEGIN
     RETURN iid;
 END;
 $$ LANGUAGE plpgsql;
+
+------------------------------
+-- Add item id
+------------------------------
+
+-- Part
+CREATE OR REPLACE FUNCTION add_item(uid uuid, iid bigint, workspace_id uuid, latest_version bigint, parent_id bigint, filename text, mimetype text, is_folder boolean, client_parent_file_version bigint)
+RETURNS bigint AS $$
+BEGIN
+    INSERT INTO item (id, workspace_id, latest_version, parent_id, filename, mimetype, is_folder, client_parent_file_version ) VALUES ( $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id INTO iid;
+    RETURN iid;
+END;
+$$ LANGUAGE plpgsql;
+
 
 ------------------------------
 -- Update item
@@ -255,7 +269,7 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION add_workspace(uid uuid, wid uuid, latest_revision text, owner_id uuid, is_shared boolean, is_encrypted boolean, swift_container text, swift_url text)
 RETURNS uuid AS $$
 BEGIN
-    INSERT INTO workspace (id, latest_revision, owner_id, is_shared, is_encrypted, swift_container, swift_url) VALUES (wid, $2, $3, $4, $5, $6, $7);
+    INSERT INTO workspace (id, latest_revision, owner_id, is_shared, is_encrypted, swift_container, swift_url) VALUES (wid, $3, $4, $5, $6, $7, $8);
     INSERT INTO workspace_user (workspace_id, user_id, workspace_name, parent_item_id) VALUES (wid, uid, 'default', NULL);
     return wid;
 END;
