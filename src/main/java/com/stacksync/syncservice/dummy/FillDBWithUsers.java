@@ -34,7 +34,7 @@ public class FillDBWithUsers {
 	private DeviceDAO deviceDao;
 
 	private FillDBWithUsers() throws Exception {
-		String configPath = "config2.properties";
+		String configPath = "config.properties";
 		Config.loadProperties(configPath);
 		String datasource = Config.getDatasource();
 		pool = ConnectionPoolFactory.getConnectionPool(datasource);

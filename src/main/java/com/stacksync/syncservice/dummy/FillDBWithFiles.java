@@ -27,7 +27,7 @@ public class FillDBWithFiles {
 	protected Handler handler;
 
 	public FillDBWithFiles() throws Exception {
-		String configPath = "config2.properties";
+		String configPath = "config.properties";
 		Config.loadProperties(configPath);
 		String datasource = Config.getDatasource();
 		pool = ConnectionPoolFactory.getConnectionPool(datasource);

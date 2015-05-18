@@ -56,8 +56,9 @@ public class WorkloadFromFileBenchmark {
 				Long fileId = Long.parseLong(words[2]);
 				String fileType = words[3];
 				String fileMime = words[4];
-				Long fileSize = Long.parseLong(words[5]);
-				Long fileVersion = Long.parseLong(words[6]);
+
+				Long fileSize = tryParseLong(words[5]);
+				Long fileVersion = tryParseLong(words[6]);
 				UUID userId = UUID.fromString(words[8]);
 
 				long sleep = t - execTime;
@@ -77,5 +78,13 @@ public class WorkloadFromFileBenchmark {
 
 		buff.close();
 
+	}
+
+	private static long tryParseLong(String num) {
+		try {
+			return Long.parseLong(num);
+		} catch (NumberFormatException e) {
+			return 0;
+		}
 	}
 }
