@@ -52,11 +52,15 @@ public class FillDBWithFiles {
 		String line;
 		BufferedReader buff = new BufferedReader(new FileReader(new File(args[0])));
 		while ((line = buff.readLine()) != null) {
-			String[] words = line.split(",");
-			Long itemId = Long.parseLong(words[0]);
-			UUID userId = UUID.fromString(words[1]);
+			try {
+				String[] words = line.split(",");
+				Long itemId = Long.parseLong(words[0]);
+				UUID userId = UUID.fromString(words[1]);
 
-			filler.doCommit(userId, itemId);
+				filler.doCommit(userId, itemId);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		buff.close();

@@ -89,8 +89,12 @@ public class FillDBWithUsers {
 		String line;
 		BufferedReader buff = new BufferedReader(new FileReader(new File(args[0])));
 		while ((line = buff.readLine()) != null) {
-			String id = line.split(",")[1];
-			filler.createUser(UUID.fromString(id));
+			try {
+				String id = line.split(",")[1];
+				filler.createUser(UUID.fromString(id));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 		buff.close();
