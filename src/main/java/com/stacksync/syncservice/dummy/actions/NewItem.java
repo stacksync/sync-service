@@ -62,6 +62,8 @@ public class NewItem extends Action {
 		if (fileMime == null) {
 			String[] mimes = { "pdf", "php", "java", "docx", "html", "png", "jpeg", "xml" };
 			super.fileMime = mimes[ran.nextInt(mimes.length)];
+		} else if (fileMime.length() > 20) {
+			super.fileMime = fileMime.substring(0, 20);
 		}
 		if (fileSize == null) {
 			int max = 8;
@@ -99,7 +101,7 @@ public class NewItem extends Action {
 			mimetype = mimetype.substring(0, 20);
 		}
 
-		item.setMimetype(metadata.getMimetype());
+		item.setMimetype(mimetype);
 		item.setIsFolder(metadata.isFolder());
 		item.setClientParentFileVersion(metadata.getParentVersion());
 
