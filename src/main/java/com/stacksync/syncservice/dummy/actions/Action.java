@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
+import org.apache.log4j.Logger;
+
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
@@ -25,6 +27,7 @@ import com.stacksync.syncservice.handler.Handler;
  * 
  */
 public abstract class Action {
+	protected final Logger logger = Logger.getLogger(Action.class.getName());
 	protected static final double CHUNK_SIZE = 512 * 1024;
 
 	protected Handler handler;
@@ -79,6 +82,8 @@ public abstract class Action {
 	}
 
 	public void doCommit() throws DAOException {
+		String idCommit = java.util.UUID.randomUUID().toString();
+
 		User user = new User(userId);
 		Device device = new Device(userId);
 		Workspace workspace = new Workspace(userId);
@@ -86,6 +91,9 @@ public abstract class Action {
 		Random ran = new Random(System.currentTimeMillis());
 		List<ItemMetadata> items = new ArrayList<ItemMetadata>();
 		items.add(createItemMetadata(ran));
+		logger.info("hander_doCommit_start,commitID=" + idCommit);
 		handler.doCommit(user, workspace, device, items);
+		logger.info("hander_doCommit_end,commitID=" + idCommit);
+
 	}
 }

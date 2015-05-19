@@ -93,6 +93,12 @@ public class NewItem extends Action {
 		Item item = new Item();
 		item.setId(metadata.getId());
 		item.setFilename(metadata.getFilename());
+
+		String mimetype = metadata.getMimetype();
+		if (mimetype.length() > 20) {
+			mimetype = mimetype.substring(0, 20);
+		}
+
 		item.setMimetype(metadata.getMimetype());
 		item.setIsFolder(metadata.isFolder());
 		item.setClientParentFileVersion(metadata.getParentVersion());
