@@ -6,7 +6,7 @@
 package com.stacksync.syncservice.dummy.infinispan;
 
 import com.stacksync.commons.models.ItemMetadata;
-import static com.stacksync.syncservice.dummy.infinispan.AReadFile.CHUNK_SIZE;
+import static com.stacksync.syncservice.dummy.infinispan.WorkloadFromFileBenchmark.CHUNK_SIZE;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
