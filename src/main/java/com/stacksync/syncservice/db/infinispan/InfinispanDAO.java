@@ -217,8 +217,8 @@ public class InfinispanDAO implements InfinispanWorkspaceDAO, InfinispanItemDAO,
     @Override
     public void put(ItemRMI item) throws RemoteException {
 
-        if (item.getId() == null) {
-            item.setId(this.random.nextLong());
+        if (item.getLatestVersionNumber() == 1) {
+            //item.setId(this.random.nextLong());
             add(item);
         } else {
             update(item);
