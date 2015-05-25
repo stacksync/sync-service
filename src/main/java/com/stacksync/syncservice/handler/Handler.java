@@ -40,682 +40,678 @@ import java.util.UUID;
 
 public class Handler {
 
-	private static final Logger logger = Logger.getLogger(Handler.class
-			.getName());
+    private static final Logger logger = Logger.getLogger(Handler.class
+            .getName());
+    protected Connection connection;
+    protected InfinispanWorkspaceDAO workspaceDAO;
+    protected InfinispanUserDAO userDao;
+    protected InfinispanDeviceDAO deviceDao;
+    protected InfinispanItemDAO itemDao;
+    protected InfinispanItemVersionDAO itemVersionDao;
+    protected StorageManager storageManager;
 
-	protected Connection connection;
-	protected InfinispanWorkspaceDAO workspaceDAO;
-	protected InfinispanUserDAO userDao;
-	protected InfinispanDeviceDAO deviceDao;
-	protected InfinispanItemDAO itemDao;
-	protected InfinispanItemVersionDAO itemVersionDao;
+    public enum Status {
+        NEW, DELETED, CHANGED, RENAMED, MOVED
+    };
 
-	protected StorageManager storageManager;
+    public Handler(ConnectionPool pool) throws Exception,
+            NoStorageManagerAvailable {
+        connection = pool.getConnection();
 
-	public enum Status {
-		NEW, DELETED, CHANGED, RENAMED, MOVED
-	};
+        String dataSource = Config.getDatasource();
 
-	public Handler(ConnectionPool pool) throws Exception,
-			NoStorageManagerAvailable {
-		connection = pool.getConnection();
+        DAOFactory factory = new DAOFactory(dataSource);
 
-		String dataSource = Config.getDatasource();
+        workspaceDAO = factory.getWorkspaceDao(connection);
+        deviceDao = factory.getDeviceDAO(connection);
+        userDao = factory.getUserDao(connection);
+        itemDao = factory.getItemDAO(connection);
+        itemVersionDao = factory.getItemVersionDAO(connection);
+        storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
+    }
 
-		DAOFactory factory =  new DAOFactory(dataSource);
+    public WorkspaceRMI getWorkspace(UUID id) throws RemoteException {
+        return workspaceDAO.getById(id);
+    }
 
-		workspaceDAO = factory.getWorkspaceDao(connection);
-		deviceDao = factory.getDeviceDAO(connection);
-		userDao = factory.getUserDao(connection);
-		itemDao = factory.getItemDAO(connection);
-		itemVersionDao = factory.getItemVersionDAO(connection);
-		storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
-	}
-        
-        public WorkspaceRMI getWorkspace(UUID id) throws RemoteException {
-            return workspaceDAO.getById(id);
+    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
+            DeviceRMI device, List<ItemMetadata> items) throws Exception {
+
+        HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
+
+        try {
+            workspace = workspaceDAO.getById(workspace.getId());
+            user = userDao.findById(user.getId());
+            // TODO: check if the workspace belongs to the user or its been given
+            // access
+
+            device = deviceDao.get(device.getId());
+
+        } catch (RemoteException ex) {
+            logger.error("Remote Exception getting workspace or device: " + ex);
+            throw new DAOException(ex);
         }
 
-	public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
-			DeviceRMI device, List<ItemMetadata> items) throws Exception {
+        // TODO: check if the device belongs to the user
 
-		HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
+        List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
+
+        for (ItemMetadata item : items) {
+
+            ItemMetadata objectResponse = null;
+            boolean committed;
 
             try {
-                workspace = workspaceDAO.getById(workspace.getId());
-                user = userDao.findById(user.getId());
-                // TODO: check if the workspace belongs to the user or its been given
-                // access
 
-		device = deviceDao.get(device.getId());
-                
-            } catch (RemoteException ex) {
-                logger.error("Remote Exception getting workspace or device: "+ex);
-                throw new DAOException(ex);
+                if (item.getParentId() != null) {
+                    Long parentId = tempIds.get(item.getParentId());
+                    if (parentId != null) {
+                        item.setParentId(parentId);
+                    }
+                }
+
+                // if the item does not have ID but has a TempID, maybe it was
+                // set
+                if (item.getId() == null && item.getTempId() != null) {
+                    Long newId = tempIds.get(item.getTempId());
+                    if (newId != null) {
+                        item.setId(newId);
+                    }
+                }
+
+                this.commitObject(item, workspace, device);
+
+                if (item.getTempId() != null) {
+                    tempIds.put(item.getTempId(), item.getId());
+                }
+
+                objectResponse = item;
+                committed = true;
+            } catch (CommitWrongVersionNoParent e) {
+                logger.info("Commit wrong version no parent");
+                committed = false;
+            } catch (Exception ex) {
+                logger.error("Undeclared exception thrown");
+                // FIXME: This Exception has to be removed. (RemoteException...)
+                committed = false;
             }
-            
-		// TODO: check if the device belongs to the user
 
-		List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
+            responseObjects.add(new CommitInfo(item.getVersion(), committed,
+                    objectResponse));
+        }
 
-		for (ItemMetadata item : items) {
+        return responseObjects;
+    }
 
-			ItemMetadata objectResponse = null;
-			boolean committed;
+    public WorkspaceRMI doShareFolder(UserRMI user, List<String> emails, ItemRMI item,
+            boolean isEncrypted) throws ShareProposalNotCreatedException,
+            UserNotFoundException {
 
-			try {
+        /*// Check the owner
+         try {
+         user = userDao.findById(user.getId());
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 
-				if (item.getParentId() != null) {
-					Long parentId = tempIds.get(item.getParentId());
-					if (parentId != null) {
-						item.setParentId(parentId);
-					}
-				}
+         // Get folder metadata
+         try {
+         item = itemDao.findById(item.getId());
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 
-				// if the item does not have ID but has a TempID, maybe it was
-				// set
-				if (item.getId() == null && item.getTempId() != null) {
-					Long newId = tempIds.get(item.getTempId());
-					if (newId != null) {
-						item.setId(newId);
-					}
-				}
+         if (item == null || !item.isFolder()) {
+         throw new ShareProposalNotCreatedException(
+         "No folder found with the given ID.");
+         }
 
-				this.commitObject(item, workspace, device);
+         // Get the source workspace
+         WorkspaceRMI sourceWorkspace;
+         try {
+         sourceWorkspace = workspaceDAO.getById(item.getWorkspace().getId());
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
+         if (sourceWorkspace == null) {
+         throw new ShareProposalNotCreatedException("Workspace not found.");
+         }
 
-				if (item.getTempId() != null) {
-					tempIds.put(item.getTempId(), item.getId());
-				}
+         // Check the addressees
+         List<UserRMI> addressees = new ArrayList<UserRMI>();
+         for (String email : emails) {
+         UserRMI addressee;
+         try {
+         addressee = userDao.getByEmail(email);
+         if (!addressee.getId().equals(user.getId())) {
+         addressees.add(addressee);
+         }
 
-				objectResponse = item;
-				committed = true;
-			} catch (CommitWrongVersionNoParent e) {
-                            logger.info("Commit wrong version no parent");
-				committed = false;
-			} catch (Exception ex) {
-                            logger.error("Undeclared exception thrown");
-                            // FIXME: This Exception has to be removed. (RemoteException...)
-                            committed = false;
-                        }
+         } catch (IllegalArgumentException e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         } catch (Exception e) {
+         logger.warn(
+         String.format(
+         "Email '%s' does not correspond with any user. ",
+         email), e);
+         }
+         }
 
-			responseObjects.add(new CommitInfo(item.getVersion(), committed,
-					objectResponse));
-		}
+         if (addressees.isEmpty()) {
+         throw new ShareProposalNotCreatedException("No addressees found");
+         }
 
-		return responseObjects;
-	}
+         WorkspaceRMI workspace;
 
-	public WorkspaceRMI doShareFolder(UserRMI user, List<String> emails, ItemRMI item,
-			boolean isEncrypted) throws ShareProposalNotCreatedException,
-			UserNotFoundException {
+         if (sourceWorkspace.isShared()) {
+         workspace = sourceWorkspace;
 
-		/*// Check the owner
-		try {
-			user = userDao.findById(user.getId());
-		} catch (Exception e) {
-			logger.error(e);
-			throw new ShareProposalNotCreatedException(e);
-		}
+         } else {
+         // Create the new workspace
+         String container = UUID.randomUUID().toString();
 
-		// Get folder metadata
-		try {
-			item = itemDao.findById(item.getId());
-		} catch (Exception e) {
-			logger.error(e);
-			throw new ShareProposalNotCreatedException(e);
-		}
+         workspace = new WorkspaceRMI();
+         workspace.setShared(true);
+         workspace.setEncrypted(isEncrypted);
+         workspace.setName(item.getFilename());
+         workspace.setOwner(user.getId());
+         List<UUID> users = new ArrayList<UUID>();
+         for (UserRMI userInList : addressees) {
+         users.add(userInList.getId());
+         }
+         workspace.setUsers(users);
+         workspace.setSwiftContainer(container);
+         workspace.setSwiftUrl(Config.getSwiftUrl() + "/"
+         + user.getSwiftAccount());
 
-		if (item == null || !item.isFolder()) {
-			throw new ShareProposalNotCreatedException(
-					"No folder found with the given ID.");
-		}
+         // Create container in Swift
+         try {
+         storageManager.createNewWorkspace(workspace);
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 
-		// Get the source workspace
-		WorkspaceRMI sourceWorkspace;
-		try {
-			sourceWorkspace = workspaceDAO.getById(item.getWorkspace().getId());
-		} catch (Exception e) {
-			logger.error(e);
-			throw new ShareProposalNotCreatedException(e);
-		}
-		if (sourceWorkspace == null) {
-			throw new ShareProposalNotCreatedException("Workspace not found.");
-		}
+         // Save the workspace to the DB
+         try {
+         workspaceDAO.add(workspace);
+         // add the owner to the workspace
+         workspaceDAO.addUser(user, workspace);
 
-		// Check the addressees
-		List<UserRMI> addressees = new ArrayList<UserRMI>();
-		for (String email : emails) {
-			UserRMI addressee;
-			try {
-				addressee = userDao.getByEmail(email);
-				if (!addressee.getId().equals(user.getId())) {
-					addressees.add(addressee);
-				}
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 
-			} catch (IllegalArgumentException e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			} catch (Exception e) {
-				logger.warn(
-						String.format(
-								"Email '%s' does not correspond with any user. ",
-								email), e);
-			}
-		}
+         // Grant user to container in Swift
+         try {
+         storageManager.grantUserToWorkspace(user, user, workspace);
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 
-		if (addressees.isEmpty()) {
-			throw new ShareProposalNotCreatedException("No addressees found");
-		}
+         // Migrate files to new workspace
+         List<String> chunks;
+         try {
+         chunks = itemDao.migrateItem(item.getId(), workspace.getId());
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 
-		WorkspaceRMI workspace;
+         // Move chunks to new container
+         for (String chunkName : chunks) {
+         try {
+         storageManager.copyChunk(sourceWorkspace, workspace,
+         chunkName);
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
+         }
+         }
 
-		if (sourceWorkspace.isShared()) {
-			workspace = sourceWorkspace;
+         // Add the addressees to the workspace
+         for (UserRMI addressee : addressees) {
+         try {
+         workspaceDAO.addUser(addressee, workspace);
 
-		} else {
-			// Create the new workspace
-			String container = UUID.randomUUID().toString();
+         } catch (Exception e) {
+         workspace.getUsers().remove(addressee);
+         logger.error(
+         String.format(
+         "An error ocurred when adding the user '%s' to workspace '%s'",
+         addressee.getId(), workspace.getId()), e);
+         }
 
-			workspace = new WorkspaceRMI();
-			workspace.setShared(true);
-			workspace.setEncrypted(isEncrypted);
-			workspace.setName(item.getFilename());
-			workspace.setOwner(user.getId());
-                        List<UUID> users = new ArrayList<UUID>();
-                        for (UserRMI userInList : addressees) {
-                            users.add(userInList.getId());
-                        }
-			workspace.setUsers(users);
-			workspace.setSwiftContainer(container);
-			workspace.setSwiftUrl(Config.getSwiftUrl() + "/"
-					+ user.getSwiftAccount());
+         // Grant the user to container in Swift
+         try {
+         storageManager.grantUserToWorkspace(user, addressee, workspace);
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
+         }
 
-			// Create container in Swift
-			try {
-				storageManager.createNewWorkspace(workspace);
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
+         return workspace;*/
+        return null;
+    }
 
-			// Save the workspace to the DB
-			try {
-				workspaceDAO.add(workspace);
-				// add the owner to the workspace
-				workspaceDAO.addUser(user, workspace);
+    public UnshareData doUnshareFolder(UserRMI user, List<String> emails, ItemRMI item, boolean isEncrypted)
+            throws ShareProposalNotCreatedException, UserNotFoundException {
 
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
+        /*UnshareData response;
+         // Check the owner
+         try {
+         user = userDao.findById(user.getId());
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 
-			// Grant user to container in Swift
-			try {
-				storageManager.grantUserToWorkspace(user, user, workspace);
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
+         // Get folder metadata
+         try {
+         item = itemDao.findById(item.getId());
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 
-			// Migrate files to new workspace
-			List<String> chunks;
-			try {
-				chunks = itemDao.migrateItem(item.getId(), workspace.getId());
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
+         if (item == null || !item.isFolder()) {
+         throw new ShareProposalNotCreatedException("No folder found with the given ID.");
+         }
 
-			// Move chunks to new container
-			for (String chunkName : chunks) {
-				try {
-					storageManager.copyChunk(sourceWorkspace, workspace,
-							chunkName);
-				} catch (Exception e) {
-					logger.error(e);
-					throw new ShareProposalNotCreatedException(e);
-				}
-			}
-		}
-
-		// Add the addressees to the workspace
-		for (UserRMI addressee : addressees) {
-			try {
-				workspaceDAO.addUser(addressee, workspace);
-
-			} catch (Exception e) {
-				workspace.getUsers().remove(addressee);
-				logger.error(
-						String.format(
-								"An error ocurred when adding the user '%s' to workspace '%s'",
-								addressee.getId(), workspace.getId()), e);
-			}
-
-			// Grant the user to container in Swift
-			try {
-				storageManager.grantUserToWorkspace(user, addressee, workspace);
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
-		}
-
-		return workspace;*/
-            return null;
-	}
-
-	public UnshareData doUnshareFolder(UserRMI user, List<String> emails, ItemRMI item, boolean isEncrypted)
-			throws ShareProposalNotCreatedException, UserNotFoundException {
+         // Get the workspace
+         WorkspaceRMI sourceWorkspace;
+         try {
+         sourceWorkspace = workspaceDAO.getById(item.getWorkspace().getId());
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
+         if (sourceWorkspace == null) {
+         throw new ShareProposalNotCreatedException("Workspace not found.");
+         }
+         if (!sourceWorkspace.isShared()) {
+         throw new ShareProposalNotCreatedException("This workspace is not shared.");
+         }
 		
-		/*UnshareData response;
-		// Check the owner
-		try {
-			user = userDao.findById(user.getId());
-		} catch (Exception e) {
-			logger.error(e);
-			throw new ShareProposalNotCreatedException(e);
-		}
+         // Check the addressees
+         List<UserRMI> addressees = new ArrayList<UserRMI>();
+         for (String email : emails) {
+         UserRMI addressee;
+         try {
+         addressee = userDao.getByEmail(email);
+         if (addressee.getId().equals(sourceWorkspace.getOwner())){
+         logger.warn(String.format("Email '%s' corresponds with owner of the folder. ", email));
+         throw new ShareProposalNotCreatedException("Email "+email+" corresponds with owner of the folder.");
+				
+         }
+				
+         if (!addressee.getId().equals(user.getId())) {
+         addressees.add(addressee);
+         }
+				
 
-		// Get folder metadata
-		try {
-			item = itemDao.findById(item.getId());
-		} catch (Exception e) {
-			logger.error(e);
-			throw new ShareProposalNotCreatedException(e);
-		}
+         } catch (IllegalArgumentException e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         } catch (Exception e) {
+         logger.warn(String.format("Email '%s' does not correspond with any user. ", email), e);
+         }
+         }
 
-		if (item == null || !item.isFolder()) {
-			throw new ShareProposalNotCreatedException("No folder found with the given ID.");
-		}
+         if (addressees.isEmpty()) {
+         throw new ShareProposalNotCreatedException("No addressees found");
+         }
 
-		// Get the workspace
-		WorkspaceRMI sourceWorkspace;
-		try {
-			sourceWorkspace = workspaceDAO.getById(item.getWorkspace().getId());
-		} catch (Exception e) {
-			logger.error(e);
-			throw new ShareProposalNotCreatedException(e);
-		}
-		if (sourceWorkspace == null) {
-			throw new ShareProposalNotCreatedException("Workspace not found.");
-		}
-		if (!sourceWorkspace.isShared()) {
-			throw new ShareProposalNotCreatedException("This workspace is not shared.");
-		}
+         // get workspace members
+         List<UserWorkspaceRMI> workspaceMembers;
+         try {
+         workspaceMembers = doGetWorkspaceMembers(user, sourceWorkspace);
+         } catch (InternalServerError e1) {
+         throw new ShareProposalNotCreatedException(e1.toString());
+         }
+
+         // remove users from workspace
+         List<UserRMI> usersToRemove = new ArrayList<UserRMI>();
 		
-		// Check the addressees
-		List<UserRMI> addressees = new ArrayList<UserRMI>();
-		for (String email : emails) {
-			UserRMI addressee;
-			try {
-				addressee = userDao.getByEmail(email);
-				if (addressee.getId().equals(sourceWorkspace.getOwner())){
-					logger.warn(String.format("Email '%s' corresponds with owner of the folder. ", email));
-					throw new ShareProposalNotCreatedException("Email "+email+" corresponds with owner of the folder.");
-				
-				}
-				
-				if (!addressee.getId().equals(user.getId())) {
-					addressees.add(addressee);
-				}
-				
+         for (UserRMI userToRemove : addressees) {
+         for (UserWorkspaceRMI member : workspaceMembers) {
+         if (member.getUser().getEmail().equals(userToRemove.getEmail())) {
+         workspaceMembers.remove(member);
+         usersToRemove.add(userToRemove);
+         break;
+         }
+         }
+         }
 
-			} catch (IllegalArgumentException e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			} catch (Exception e) {
-				logger.warn(String.format("Email '%s' does not correspond with any user. ", email), e);
-			}
-		}
+         if (workspaceMembers.size() <= 1) {
+         // All members have been removed from the workspace
+         WorkspaceRMI defaultWorkspace;
+         try {
+         //Always the last member of a shared folder should be the owner
+         defaultWorkspace = workspaceDAO.getDefaultWorkspaceByUserId(sourceWorkspace.getOwner());
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException("Could not get default workspace");
+         }
 
-		if (addressees.isEmpty()) {
-			throw new ShareProposalNotCreatedException("No addressees found");
-		}
+         // Migrate files to new workspace
+         List<String> chunks;
+         try {
+         chunks = itemDao.migrateItem(item.getId(), defaultWorkspace.getId());
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 
-		// get workspace members
-		List<UserWorkspaceRMI> workspaceMembers;
-		try {
-			workspaceMembers = doGetWorkspaceMembers(user, sourceWorkspace);
-		} catch (InternalServerError e1) {
-			throw new ShareProposalNotCreatedException(e1.toString());
-		}
-
-		// remove users from workspace
-		List<UserRMI> usersToRemove = new ArrayList<UserRMI>();
-		
-		for (UserRMI userToRemove : addressees) {
-			for (UserWorkspaceRMI member : workspaceMembers) {
-				if (member.getUser().getEmail().equals(userToRemove.getEmail())) {
-					workspaceMembers.remove(member);
-					usersToRemove.add(userToRemove);
-					break;
-				}
-			}
-		}
-
-		if (workspaceMembers.size() <= 1) {
-			// All members have been removed from the workspace
-			WorkspaceRMI defaultWorkspace;
-			try {
-				//Always the last member of a shared folder should be the owner
-				defaultWorkspace = workspaceDAO.getDefaultWorkspaceByUserId(sourceWorkspace.getOwner());
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException("Could not get default workspace");
-			}
-
-			// Migrate files to new workspace
-			List<String> chunks;
-			try {
-				chunks = itemDao.migrateItem(item.getId(), defaultWorkspace.getId());
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
-
-			// Move chunks to new container
-			for (String chunkName : chunks) {
-				try {
-					storageManager.copyChunk(sourceWorkspace, defaultWorkspace, chunkName);
-				} catch (Exception e) {
-					logger.error(e);
-					throw new ShareProposalNotCreatedException(e);
-				}
-			}
+         // Move chunks to new container
+         for (String chunkName : chunks) {
+         try {
+         storageManager.copyChunk(sourceWorkspace, defaultWorkspace, chunkName);
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
+         }
 			
-			// delete workspace
-			try {
-				workspaceDAO.deleteWorkspace(sourceWorkspace.getId());
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
+         // delete workspace
+         try {
+         workspaceDAO.deleteWorkspace(sourceWorkspace.getId());
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 			
-			// delete container from swift
-			try {
-				storageManager.deleteWorkspace(sourceWorkspace);
-			} catch (Exception e) {
-				logger.error(e);
-				throw new ShareProposalNotCreatedException(e);
-			}
+         // delete container from swift
+         try {
+         storageManager.deleteWorkspace(sourceWorkspace);
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 			
-			response = new UnshareData(usersToRemove, sourceWorkspace, true);
+         response = new UnshareData(usersToRemove, sourceWorkspace, true);
 
-		} else {
+         } else {
 			
-			for(UserRMI userToRemove : usersToRemove){
+         for(UserRMI userToRemove : usersToRemove){
 				
-				try {
-					workspaceDAO.deleteUser(userToRemove, sourceWorkspace);
-				} catch (Exception e) {
-					logger.error(e);
-					throw new ShareProposalNotCreatedException(e);
-				}
+         try {
+         workspaceDAO.deleteUser(userToRemove, sourceWorkspace);
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
 				
-				try {
-					storageManager.removeUserToWorkspace(user, userToRemove, sourceWorkspace);
-				} catch (Exception e) {
-					logger.error(e);
-					throw new ShareProposalNotCreatedException(e);
-				}
-			}
-			response = new UnshareData(usersToRemove, sourceWorkspace, false);
+         try {
+         storageManager.removeUserToWorkspace(user, userToRemove, sourceWorkspace);
+         } catch (Exception e) {
+         logger.error(e);
+         throw new ShareProposalNotCreatedException(e);
+         }
+         }
+         response = new UnshareData(usersToRemove, sourceWorkspace, false);
 
-		}
-		return response;*/
-            return null;
-	}
+         }
+         return response;*/
+        return null;
+    }
 
-	public List<UserWorkspaceRMI> doGetWorkspaceMembers(UserRMI user,
-			WorkspaceRMI workspace) throws InternalServerError {
+    public List<UserWorkspaceRMI> doGetWorkspaceMembers(UserRMI user,
+            WorkspaceRMI workspace) throws InternalServerError {
 
-		// TODO: check user permissions.
+        // TODO: check user permissions.
 
-		List<UserWorkspaceRMI> members;
-		try {
-			members = workspaceDAO.getMembersById(workspace.getId());
+        List<UserWorkspaceRMI> members;
+        try {
+            members = workspaceDAO.getMembersById(workspace.getId());
 
-		} catch (Exception e) {
-			logger.error(e);
-			throw new InternalServerError(e);
-		}
+        } catch (Exception e) {
+            logger.error(e);
+            throw new InternalServerError(e);
+        }
 
-		if (members == null || members.isEmpty()) {
-			throw new InternalServerError("No members found in workspace.");
-		}
+        if (members == null || members.isEmpty()) {
+            throw new InternalServerError("No members found in workspace.");
+        }
 
-		return members;
-	}
+        return members;
+    }
 
-	public Connection getConnection() {
-		return this.connection;
-	}
+    public Connection getConnection() {
+        return this.connection;
+    }
 
-	/*
-	 * Private functions
-	 */
+    /*
+     * Private functions
+     */
+    private void commitObject(ItemMetadata item, WorkspaceRMI workspace,
+            DeviceRMI device) throws CommitWrongVersionNoParent,
+            CommitWrongVersion, CommitExistantVersion, Exception {
 
-	private void commitObject(ItemMetadata item, WorkspaceRMI workspace,
-			DeviceRMI device) throws CommitWrongVersionNoParent,
-			CommitWrongVersion, CommitExistantVersion, Exception {
+        ItemRMI serverItem = itemDao.findById(item.getId());
 
-		ItemRMI serverItem = itemDao.findById(item.getId());
+        // Check if this object already exists in the server.
+        if (serverItem == null) {
+            if (item.getVersion() == 1) {
+                this.saveNewObject(item, workspace, device);
+            } else {
+                throw new CommitWrongVersionNoParent();
+            }
+            return;
+        }
 
-		// Check if this object already exists in the server.
-		if (serverItem == null) {
-			if (item.getVersion() == 1) {
-				this.saveNewObject(item, workspace, device);
-			} else {
-				throw new CommitWrongVersionNoParent();
-			}
-			return;
-		}
+        // Check if the client version already exists in the server
+        long serverVersion = serverItem.getLatestVersionNumber();
+        long clientVersion = item.getVersion();
+        boolean existVersionInServer = (serverVersion >= clientVersion);
 
-		// Check if the client version already exists in the server
-		long serverVersion = serverItem.getLatestVersionNumber();
-		long clientVersion = item.getVersion();
-		boolean existVersionInServer = (serverVersion >= clientVersion);
+        if (existVersionInServer) {
+            this.saveExistentVersion(serverItem, item);
+        } else {
+            // Check if version is correct
+            if (serverVersion + 1 == clientVersion) {
+                this.saveNewVersion(item, serverItem, workspace, device);
+            } else {
+                throw new CommitWrongVersion("Invalid version.", serverItem);
+            }
+        }
+    }
 
-		if (existVersionInServer) {
-			this.saveExistentVersion(serverItem, item);
-		} else {
-			// Check if version is correct
-			if (serverVersion + 1 == clientVersion) {
-				this.saveNewVersion(item, serverItem, workspace, device);
-			} else {
-				throw new CommitWrongVersion("Invalid version.", serverItem);
-			}
-		}
-	}
+    private void saveNewObject(ItemMetadata metadata, WorkspaceRMI workspace,
+            DeviceRMI device) throws Exception {
+        // Create workspace and parent instances
+        Long parentId = metadata.getParentId();
+        ItemRMI parent = null;
+        if (parentId != null) {
+            parent = itemDao.findById(parentId);
+        }
 
-	private void saveNewObject(ItemMetadata metadata, WorkspaceRMI workspace,
-			DeviceRMI device) throws Exception {
-		// Create workspace and parent instances
-		Long parentId = metadata.getParentId();
-		ItemRMI parent = null;
-		if (parentId != null) {
-			parent = itemDao.findById(parentId);
-		}
+        beginTransaction();
 
-		beginTransaction();
+        try {
+            // Insert object to DB
 
-		try {
-			// Insert object to DB
+            ItemRMI item = new ItemRMI();
+            item.setId(metadata.getId());
+            item.setFilename(metadata.getFilename());
+            item.setMimetype(metadata.getMimetype());
+            item.setIsFolder(metadata.isFolder());
+            item.setClientParentFileVersion(metadata.getParentVersion());
 
-			ItemRMI item = new ItemRMI();
-			item.setId(metadata.getId());
-			item.setFilename(metadata.getFilename());
-			item.setMimetype(metadata.getMimetype());
-			item.setIsFolder(metadata.isFolder());
-			item.setClientParentFileVersion(metadata.getParentVersion());
+            item.setLatestVersionNumber(metadata.getVersion());
+            //item.setWorkspace(workspace);
+            item.setParent(parent);
 
-			item.setLatestVersionNumber(metadata.getVersion());
-			//item.setWorkspace(workspace);
-			item.setParent(parent);
+            itemDao.put(item);
 
-			itemDao.put(item);
+            // set the global ID
+            metadata.setId(item.getId());
 
-			// set the global ID
-			metadata.setId(item.getId());
+            // Insert objectVersion
+            ItemVersionRMI objectVersion = new ItemVersionRMI();
+            objectVersion.setVersion(metadata.getVersion());
+            objectVersion.setModifiedAt(metadata.getModifiedAt());
+            objectVersion.setChecksum(metadata.getChecksum());
+            objectVersion.setStatus(metadata.getStatus());
+            objectVersion.setSize(metadata.getSize());
 
-			// Insert objectVersion
-			ItemVersionRMI objectVersion = new ItemVersionRMI();
-			objectVersion.setVersion(metadata.getVersion());
-			objectVersion.setModifiedAt(metadata.getModifiedAt());
-			objectVersion.setChecksum(metadata.getChecksum());
-			objectVersion.setStatus(metadata.getStatus());
-			objectVersion.setSize(metadata.getSize());
+            objectVersion.setItem(item.getId());
+            objectVersion.setDevice(device);
+            itemVersionDao.add(objectVersion);
 
-			objectVersion.setItem(item.getId());
-			objectVersion.setDevice(device);
-			itemVersionDao.add(objectVersion);
+            // If no folder, create new chunks
+            if (!metadata.isFolder()) {
+                List<String> chunks = metadata.getChunks();
+                this.createChunks(chunks, objectVersion);
+            }
 
-			// If no folder, create new chunks
-			if (!metadata.isFolder()) {
-				List<String> chunks = metadata.getChunks();
-				this.createChunks(chunks, objectVersion);
-			}
+            commitTransaction();
+        } catch (Exception e) {
+            logger.error(e);
+            rollbackTransaction();
+        }
+    }
 
-			commitTransaction();
-		} catch (Exception e) {
-			logger.error(e);
-			rollbackTransaction();
-		}
-	}
+    private void saveNewVersion(ItemMetadata metadata, ItemRMI serverItem,
+            WorkspaceRMI workspace, DeviceRMI device) throws Exception {
 
-	private void saveNewVersion(ItemMetadata metadata, ItemRMI serverItem,
-			WorkspaceRMI workspace, DeviceRMI device) throws Exception {
+        beginTransaction();
 
-		beginTransaction();
+        try {
+            // Create new objectVersion
+            ItemVersionRMI itemVersion = new ItemVersionRMI();
+            itemVersion.setVersion(metadata.getVersion());
+            itemVersion.setModifiedAt(metadata.getModifiedAt());
+            itemVersion.setChecksum(metadata.getChecksum());
+            itemVersion.setStatus(metadata.getStatus());
+            itemVersion.setSize(metadata.getSize());
 
-		try {
-			// Create new objectVersion
-			ItemVersionRMI itemVersion = new ItemVersionRMI();
-			itemVersion.setVersion(metadata.getVersion());
-			itemVersion.setModifiedAt(metadata.getModifiedAt());
-			itemVersion.setChecksum(metadata.getChecksum());
-			itemVersion.setStatus(metadata.getStatus());
-			itemVersion.setSize(metadata.getSize());
+            itemVersion.setItem(serverItem.getId());
+            itemVersion.setDevice(device);
 
-			itemVersion.setItem(serverItem.getId());
-			itemVersion.setDevice(device);
+            itemVersionDao.add(itemVersion);
 
-			itemVersionDao.add(itemVersion);
+            // If no folder, create new chunks
+            if (!metadata.isFolder()) {
+                List<String> chunks = metadata.getChunks();
+                this.createChunks(chunks, itemVersion);
+            }
 
-			// If no folder, create new chunks
-			if (!metadata.isFolder()) {
-				List<String> chunks = metadata.getChunks();
-				this.createChunks(chunks, itemVersion);
-			}
+            // TODO To Test!!
+            String status = metadata.getStatus();
+            if (status.equals(Status.RENAMED.toString())
+                    || status.equals(Status.MOVED.toString())
+                    || status.equals(Status.DELETED.toString())) {
 
-			// TODO To Test!!
-			String status = metadata.getStatus();
-			if (status.equals(Status.RENAMED.toString())
-					|| status.equals(Status.MOVED.toString())
-					|| status.equals(Status.DELETED.toString())) {
+                serverItem.setFilename(metadata.getFilename());
 
-				serverItem.setFilename(metadata.getFilename());
+                Long parentFileId = metadata.getParentId();
+                if (parentFileId == null) {
+                    serverItem.setClientParentFileVersion(null);
+                    serverItem.setParent(null);
+                } else {
+                    serverItem.setClientParentFileVersion(metadata
+                            .getParentVersion());
+                    ItemRMI parent = itemDao.findById(parentFileId);
+                    serverItem.setParent(parent);
+                }
+            }
 
-				Long parentFileId = metadata.getParentId();
-				if (parentFileId == null) {
-					serverItem.setClientParentFileVersion(null);
-					serverItem.setParent(null);
-				} else {
-					serverItem.setClientParentFileVersion(metadata
-							.getParentVersion());
-					ItemRMI parent = itemDao.findById(parentFileId);
-					serverItem.setParent(parent);
-				}
-			}
+            // Update object latest version
+            serverItem.setLatestVersionNumber(metadata.getVersion());
+            itemDao.put(serverItem);
 
-			// Update object latest version
-			serverItem.setLatestVersionNumber(metadata.getVersion());
-			itemDao.put(serverItem);
+            commitTransaction();
+        } catch (Exception e) {
+            logger.error(e);
+            rollbackTransaction();
+        }
+    }
 
-			commitTransaction();
-		} catch (Exception e) {
-			logger.error(e);
-			rollbackTransaction();
-		}
-	}
+    private void createChunks(List<String> chunksString,
+            ItemVersionRMI objectVersion) throws IllegalArgumentException,
+            Exception {
+        if (chunksString != null) {
+            if (chunksString.size() > 0) {
+                List<ChunkRMI> chunks = new ArrayList<ChunkRMI>();
+                int i = 0;
 
-	private void createChunks(List<String> chunksString,
-			ItemVersionRMI objectVersion) throws IllegalArgumentException,
-			Exception {
-		if (chunksString != null) {
-			if (chunksString.size() > 0) {
-				List<ChunkRMI> chunks = new ArrayList<ChunkRMI>();
-				int i = 0;
+                for (String chunkName : chunksString) {
+                    chunks.add(new ChunkRMI(chunkName, i));
+                    i++;
+                }
 
-				for (String chunkName : chunksString) {
-					chunks.add(new ChunkRMI(chunkName, i));
-					i++;
-				}
+                itemVersionDao.insertChunks(objectVersion.getItemId(), chunks, objectVersion.getId());
+            }
+        }
+    }
 
-				itemVersionDao.insertChunks(objectVersion.getItemId(), chunks, objectVersion.getId());
-			}
-		}
-	}
+    private void saveExistentVersion(ItemRMI serverObject,
+            ItemMetadata clientMetadata) throws CommitWrongVersion,
+            CommitExistantVersion, Exception {
 
-	private void saveExistentVersion(ItemRMI serverObject,
-			ItemMetadata clientMetadata) throws CommitWrongVersion,
-			CommitExistantVersion, Exception {
+        ItemMetadata serverMetadata = this.getServerObjectVersion(serverObject,
+                clientMetadata.getVersion());
 
-		ItemMetadata serverMetadata = this.getServerObjectVersion(serverObject,
-				clientMetadata.getVersion());
+        if (!clientMetadata.equals(serverMetadata)) {
+            throw new CommitWrongVersion("Invalid version.", serverObject);
+        }
 
-		if (!clientMetadata.equals(serverMetadata)) {
-			throw new CommitWrongVersion("Invalid version.", serverObject);
-		}
+        boolean lastVersion = (serverObject.getLatestVersion()
+                .equals(clientMetadata.getVersion()));
 
-		boolean lastVersion = (serverObject.getLatestVersion()
-				.equals(clientMetadata.getVersion()));
+        if (!lastVersion) {
+            throw new CommitExistantVersion("This version already exists.",
+                    serverObject, clientMetadata.getVersion());
+        }
+    }
 
-		if (!lastVersion) {
-			throw new CommitExistantVersion("This version already exists.",
-					serverObject, clientMetadata.getVersion());
-		}
-	}
+    private ItemMetadata getCurrentServerVersion(ItemRMI serverObject)
+            throws Exception {
+        return getServerObjectVersion(serverObject,
+                serverObject.getLatestVersionNumber());
+    }
 
-	private ItemMetadata getCurrentServerVersion(ItemRMI serverObject)
-			throws Exception {
-		return getServerObjectVersion(serverObject,
-				serverObject.getLatestVersionNumber());
-	}
+    private ItemMetadata getServerObjectVersion(ItemRMI serverObject,
+            long requestedVersion) throws Exception {
 
-	private ItemMetadata getServerObjectVersion(ItemRMI serverObject,
-			long requestedVersion) throws Exception {
+        ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(
+                serverObject.getId(), requestedVersion);
 
-		ItemMetadata metadata = itemVersionDao.findByItemIdAndVersion(
-				serverObject.getId(), requestedVersion);
+        return metadata;
+    }
 
-		return metadata;
-	}
+    private void beginTransaction() throws Exception {
+        try {
+            connection.setAutoCommit(false);
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
+    }
 
-	private void beginTransaction() throws Exception {
-		try {
-			connection.setAutoCommit(false);
-		} catch (Exception e) {
-			throw new Exception(e);
-		}
-	}
+    private void commitTransaction() throws Exception {
+        try {
+            connection.commit();
+            this.connection.setAutoCommit(true);
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
+    }
 
-	private void commitTransaction() throws Exception {
-		try {
-			connection.commit();
-			this.connection.setAutoCommit(true);
-		} catch (Exception e) {
-			throw new Exception(e);
-		}
-	}
-
-	private void rollbackTransaction() throws Exception {
-		try {
-			this.connection.rollback();
-			this.connection.setAutoCommit(true);
-		} catch (Exception e) {
-			throw new Exception(e);
-		}
-	}
-
+    private void rollbackTransaction() throws Exception {
+        try {
+            this.connection.rollback();
+            this.connection.setAutoCommit(true);
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
+    }
 }

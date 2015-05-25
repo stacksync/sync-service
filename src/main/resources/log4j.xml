@@ -53,7 +53,7 @@
     <root> 
         <priority value ="info" /> 
         <appender-ref ref="stderr" />
-        <appender-ref ref="stdout" />
+        <!--<appender-ref ref="stdout" />-->
         <appender-ref ref="file" />
         <!--  <appender-ref ref="A2" /> --> 
     </root>

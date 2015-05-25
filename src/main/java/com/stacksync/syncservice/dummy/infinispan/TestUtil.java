@@ -59,7 +59,8 @@ public class TestUtil {
         ItemMetadata itemMetadata = new ItemMetadata(id, version, deviceId, parentId, parentVersion, status, modifiedAt, checksum, size,
                 isFolder, filename, mimetype, chunks);
         itemMetadata.setChunks(chunks);
-        itemMetadata.setTempId((long) random.nextLong());
+        //itemMetadata.setTempId((long) random.nextLong());
+        itemMetadata.setId((long) random.nextLong());
 
         return itemMetadata;
     }

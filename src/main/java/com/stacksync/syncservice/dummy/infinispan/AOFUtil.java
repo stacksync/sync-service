@@ -38,6 +38,7 @@ public class AOFUtil {
 
     public void setup(UUID uuid) throws RemoteException {
 
+        System.out.println("New workspace: " + uuid.toString());
         DeviceRMI device = new DeviceRMI(uuid);
 
         WorkspaceRMI workspace = new WorkspaceRMI(uuid);
