@@ -160,17 +160,17 @@ public class JSONParser implements IParser {
 	private JsonObject parseItemMetadata(ItemMetadata metadata) {
 		JsonObject jMetadata = parseMetadata(metadata);
 
-		if (metadata.getParentId() == null) {
-			jMetadata.addProperty("parent_file_id", "");
-		} else {
-			jMetadata.addProperty("parent_file_id", metadata.getParentId());
-		}
-
-		if (metadata.getParentId() == null) {
-			jMetadata.addProperty("parent_file_version", "");
-		} else {
-			jMetadata.addProperty("parent_file_version", metadata.getParentVersion());
-		}
+//		if (metadata.getParentId() == null) {
+//			jMetadata.addProperty("parent_file_id", "");
+//		} else {
+//			jMetadata.addProperty("parent_file_id", metadata.getParentId());
+//		}
+//
+//		if (metadata.getParentId() == null) {
+//			jMetadata.addProperty("parent_file_version", "");
+//		} else {
+//			jMetadata.addProperty("parent_file_version", metadata.getParentVersion());
+//		}
 
 		// TODO: send only chunks when is a file
 		if (!metadata.isFolder()) {
