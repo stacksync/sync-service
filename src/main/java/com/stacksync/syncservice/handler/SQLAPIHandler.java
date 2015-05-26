@@ -807,7 +807,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
             try {
                 workspace = workspaceDAO.getByItemId(item.getId());
             } catch (DAOException e) {
-                return new APIGetWorkspaceInfoResponse(null, false, 404,
+                return new APIGetWorkspaceInfoResponse(null,false, 404,
                         "Workspace not found");
             }
         }
@@ -824,9 +824,18 @@ public class SQLAPIHandler extends Handler implements APIHandler {
             return new APIGetWorkspaceInfoResponse(null, false, 403,
                     "You are not allowed to access this file");
         }
-
+        
+        User workspaceOwner;
+        try {
+        	workspaceOwner = userDao.findById(workspace.getOwner().getId());
+        } catch (DAOException e) {
+            logger.error(e);
+            return new APIGetWorkspaceInfoResponse(null, false, 404,
+                    "User not found.");
+        }
+        workspace.setOwner(workspaceOwner);
         APIGetWorkspaceInfoResponse response = new APIGetWorkspaceInfoResponse(
-                workspace, true, 0, "");
+                workspace,  true, 0, "");
         return response;
     }
 

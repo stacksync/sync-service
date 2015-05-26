@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.rpc.messages;
 
 import com.google.gson.JsonObject;
+import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.Workspace;
 
 public class APIGetWorkspaceInfoResponse extends APIResponse {
@@ -50,6 +51,9 @@ public class APIGetWorkspaceInfoResponse extends APIResponse {
 		jMetadata.addProperty("latest_revision", workspace.getLatestRevision());
 		jMetadata.addProperty("parent_item_id", workspace.getParentItem().getId());
 		jMetadata.addProperty("is_encrypted", workspace.isEncrypted());
+		jMetadata.addProperty("quota_used", workspace.getOwner().getQuotaUsedLogical().toString());
+		jMetadata.addProperty("quota_limit", workspace.getOwner().getQuotaLimit().toString());
+
 
 		return jMetadata;
 	}
