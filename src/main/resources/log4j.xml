@@ -43,7 +43,7 @@
     </appender>
 
   <root> 
-    <priority value ="debug" /> 
+    <priority value ="info" /> 
     <appender-ref ref="stderr" />
     <appender-ref ref="stdout" />
     <!--  <appender-ref ref="A2" /> -->  

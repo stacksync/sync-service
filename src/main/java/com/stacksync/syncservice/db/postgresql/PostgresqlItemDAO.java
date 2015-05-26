@@ -422,6 +422,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		
 		Object[] values = { itemId, workspaceId.toString() };
 		
+                // This query move items to the new workspace.
 		String query = "WITH    RECURSIVE "
 			+ " q AS "  
 			+ " ( "

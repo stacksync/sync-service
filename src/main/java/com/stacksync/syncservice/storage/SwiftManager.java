@@ -31,342 +31,378 @@ import com.stacksync.syncservice.util.Config;
 
 public class SwiftManager extends StorageManager {
 
-	private static StorageManager instance = null;
-
-	private String authUrl;
-	private String user;
-	private String tenant;
-	private String password;
-	private String storageUrl;
-	private String authToken;
-	private DateTime expirationDate;
+    private static StorageManager instance = null;
+    private String authUrl;
+    private String user;
+    private String tenant;
+    private String password;
+    private String storageUrl;
+    private String authToken;
+    private DateTime expirationDate;
 
-	private SwiftManager() {
+    private SwiftManager() {
 
-		this.authUrl = Config.getSwiftAuthUrl();
-		this.user = Config.getSwiftUser();
-		this.tenant = Config.getSwiftTenant();
-		this.password = Config.getSwiftPassword();
-		this.expirationDate = DateTime.now();
-	}
+        this.authUrl = Config.getSwiftAuthUrl();
+        this.user = Config.getSwiftUser();
+        this.tenant = Config.getSwiftTenant();
+        this.password = Config.getSwiftPassword();
+        this.expirationDate = DateTime.now();
+    }
 
-	public static synchronized StorageManager getInstance() {
-		if (instance == null) {
-			instance = new SwiftManager();
-		}
+    public static synchronized StorageManager getInstance() {
+        if (instance == null) {
+            instance = new SwiftManager();
+        }
 
-		return instance;
-	}
+        return instance;
+    }
 
-	public void login() throws EndpointNotFoundException, UnauthorizedException, UnexpectedStatusCodeException,
-			IOException {
+    @Override
+    public void login() throws EndpointNotFoundException, UnauthorizedException, UnexpectedStatusCodeException,
+            IOException {
 
-		HttpClient httpClient = new DefaultHttpClient();
+        HttpClient httpClient = new DefaultHttpClient();
 
-		try {
-			HttpPost request = new HttpPost(authUrl);
+        try {
+            HttpPost request = new HttpPost(authUrl);
 
-			String body = String
-					.format("{\"auth\": {\"passwordCredentials\": {\"username\": \"%s\", \"password\": \"%s\"}, \"tenantName\":\"%s\"}}",
-							user, password, tenant);
-			StringEntity entity = new StringEntity(body);
-			entity.setContentType("application/json");
-			request.setEntity(entity);
-			HttpResponse response = httpClient.execute(request);
+            String body = String
+                    .format("{\"auth\": {\"passwordCredentials\": {\"username\": \"%s\", \"password\": \"%s\"}, \"tenantName\":\"%s\"}}",
+                    user, password, tenant);
+            StringEntity entity = new StringEntity(body);
+            entity.setContentType("application/json");
+            request.setEntity(entity);
+            HttpResponse response = httpClient.execute(request);
 
-			SwiftResponse swiftResponse = new SwiftResponse(response);
+            SwiftResponse swiftResponse = new SwiftResponse(response);
 
-			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-				throw new UnauthorizedException("404 User unauthorized");
-			}
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                throw new UnauthorizedException("404 User unauthorized");
+            }
 
-			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
-				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
-			}
+            if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
+                throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
+            }
 
-			String responseBody = swiftResponse.getResponseBodyAsString();
+            String responseBody = swiftResponse.getResponseBodyAsString();
 
-			Gson gson = new Gson();
-			LoginResponseObject loginResponse = gson.fromJson(responseBody, LoginResponseObject.class);
+            Gson gson = new Gson();
+            LoginResponseObject loginResponse = gson.fromJson(responseBody, LoginResponseObject.class);
 
-			this.authToken = loginResponse.getAccess().getToken().getId();
+            this.authToken = loginResponse.getAccess().getToken().getId();
 
-			Boolean endpointFound = false;
+            Boolean endpointFound = false;
 
-			for (ServiceObject service : loginResponse.getAccess().getServiceCatalog()) {
+            for (ServiceObject service : loginResponse.getAccess().getServiceCatalog()) {
 
-				if (service.getType().equals("object-store")) {
-					this.storageUrl = service.getEndpoints().get(0).getPublicURL();
-					endpointFound = true;
-					break;
-				}
-			}
+                if (service.getType().equals("object-store")) {
+                    this.storageUrl = service.getEndpoints().get(0).getPublicURL();
+                    endpointFound = true;
+                    break;
+                }
+            }
 
-			// get the token issue swift date
-			DateTimeZone.setDefault(DateTimeZone.UTC);
-			DateTimeFormatter dateStringFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
-			DateTime issuedAt = dateStringFormat.parseDateTime(loginResponse.getAccess().getToken().getIssuedAt());
+            // get the token issue swift date
+            DateTimeZone.setDefault(DateTimeZone.UTC);
+            DateTimeFormatter dateStringFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS");
+            DateTime issuedAt = dateStringFormat.parseDateTime(loginResponse.getAccess().getToken().getIssuedAt());
 
-			// get the token expiration swift date
-			dateStringFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
-			DateTime expiresAt = dateStringFormat.parseDateTime(loginResponse.getAccess().getToken().getExpires());
+            // get the token expiration swift date
+            dateStringFormat = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
+            DateTime expiresAt = dateStringFormat.parseDateTime(loginResponse.getAccess().getToken().getExpires());
 
-			// calculate the period between these two dates and add it to our
-			// current time because datetime can differ from Swift and this
-			// device
-			Period period = new Period(issuedAt, expiresAt);
-			expirationDate = DateTime.now().plus(period);
+            // calculate the period between these two dates and add it to our
+            // current time because datetime can differ from Swift and this
+            // device
+            Period period = new Period(issuedAt, expiresAt);
+            expirationDate = DateTime.now().plus(period);
 
-			if (!endpointFound) {
-				throw new EndpointNotFoundException();
-			}
+            if (!endpointFound) {
+                throw new EndpointNotFoundException();
+            }
 
-		} finally {
-			httpClient.getConnectionManager().shutdown();
-		}
-	}
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
 
-	@Override
-	public void createNewWorkspace(Workspace workspace) throws Exception {
+    @Override
+    public void createNewWorkspace(Workspace workspace) throws Exception {
 
-		if (!isTokenActive()) {
-			login();
-		}
+        if (!isTokenActive()) {
+            login();
+        }
 
-		HttpClient httpClient = new DefaultHttpClient();
+        HttpClient httpClient = new DefaultHttpClient();
 
-		String url = this.storageUrl + "/" + workspace.getSwiftContainer();
+        String url = this.storageUrl + "/" + workspace.getSwiftContainer();
 
-		try {
+        try {
 
-			HttpPut request = new HttpPut(url);
-			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
+            HttpPut request = new HttpPut(url);
+            request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
 
-			HttpResponse response = httpClient.execute(request);
+            HttpResponse response = httpClient.execute(request);
 
-			SwiftResponse swiftResponse = new SwiftResponse(response);
+            SwiftResponse swiftResponse = new SwiftResponse(response);
 
-			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-				throw new UnauthorizedException("401 User unauthorized");
-			}
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                throw new UnauthorizedException("401 User unauthorized");
+            }
 
-			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
-				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
-			}
+            if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
+                throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
+            }
 
-		} finally {
-			httpClient.getConnectionManager().shutdown();
-		}
-	}
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
 
-	@Override
-	public void removeUserToWorkspace(User owner, User user, Workspace workspace) throws Exception {
+    @Override
+    public void removeUserToWorkspace(User owner, User user, Workspace workspace) throws Exception {
 
-		if (!isTokenActive()) {
-			login();
-		}
+        if (!isTokenActive()) {
+            login();
+        }
 
-		String permissions = getWorkspacePermissions(owner, workspace);
+        String permissions = getWorkspacePermissions(owner, workspace);
 
-		String tenantUser = Config.getSwiftTenant() + ":" + user.getSwiftUser();
-		
-		if (permissions.contains("," + tenantUser)){
-			permissions.replace("," + tenantUser, "");
-	    }else if (permissions.contains(tenantUser)){
-	    	permissions.replace(tenantUser, "");
-	    }else{
-	    	return;
-	    }
-		
-		HttpClient httpClient = new DefaultHttpClient();
-		String url = this.storageUrl + "/" + workspace.getSwiftContainer();
+        String tenantUser = Config.getSwiftTenant() + ":" + user.getSwiftUser();
 
-		try {
+        if (permissions.contains("," + tenantUser)) {
+            permissions.replace("," + tenantUser, "");
+        } else if (permissions.contains(tenantUser)) {
+            permissions.replace(tenantUser, "");
+        } else {
+            return;
+        }
 
-			HttpPut request = new HttpPut(url);
-			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
-			request.setHeader(SwiftResponse.X_CONTAINER_READ, permissions);
-			request.setHeader(SwiftResponse.X_CONTAINER_WRITE, permissions);
+        HttpClient httpClient = new DefaultHttpClient();
+        String url = this.storageUrl + "/" + workspace.getSwiftContainer();
 
-			HttpResponse response = httpClient.execute(request);
+        try {
 
-			SwiftResponse swiftResponse = new SwiftResponse(response);
+            HttpPut request = new HttpPut(url);
+            request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
+            request.setHeader(SwiftResponse.X_CONTAINER_READ, permissions);
+            request.setHeader(SwiftResponse.X_CONTAINER_WRITE, permissions);
 
-			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-				throw new UnauthorizedException("404 User unauthorized");
-			}
+            HttpResponse response = httpClient.execute(request);
 
-			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
-				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
-			}
+            SwiftResponse swiftResponse = new SwiftResponse(response);
 
-		} finally {
-			httpClient.getConnectionManager().shutdown();
-		}
-	}
-	
-	@Override
-	public void grantUserToWorkspace(User owner, User user, Workspace workspace) throws Exception {
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                throw new UnauthorizedException("404 User unauthorized");
+            }
 
-		if (!isTokenActive()) {
-			login();
-		}
+            if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
+                throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
+            }
 
-		String permissions = getWorkspacePermissions(owner, workspace);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
 
-		String tenantUser = Config.getSwiftTenant() + ":" + user.getSwiftUser();
+    @Override
+    public void grantUserToWorkspace(User owner, User user, Workspace workspace) throws Exception {
 
-		if (permissions.contains(tenantUser)) {
-			return;
-		}
+        if (!isTokenActive()) {
+            login();
+        }
 
-		permissions += "," + tenantUser;
+        String permissions = getWorkspacePermissions(owner, workspace);
 
-		HttpClient httpClient = new DefaultHttpClient();
-		String url = this.storageUrl + "/" + workspace.getSwiftContainer();
+        String tenantUser = Config.getSwiftTenant() + ":" + user.getSwiftUser();
 
-		try {
+        if (permissions.contains(tenantUser)) {
+            return;
+        }
 
-			HttpPut request = new HttpPut(url);
-			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
-			request.setHeader(SwiftResponse.X_CONTAINER_READ, permissions);
-			request.setHeader(SwiftResponse.X_CONTAINER_WRITE, permissions);
+        permissions += "," + tenantUser;
 
-			HttpResponse response = httpClient.execute(request);
+        HttpClient httpClient = new DefaultHttpClient();
+        String url = this.storageUrl + "/" + workspace.getSwiftContainer();
 
-			SwiftResponse swiftResponse = new SwiftResponse(response);
+        try {
 
-			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-				throw new UnauthorizedException("404 User unauthorized");
-			}
+            HttpPut request = new HttpPut(url);
+            request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
+            request.setHeader(SwiftResponse.X_CONTAINER_READ, permissions);
+            request.setHeader(SwiftResponse.X_CONTAINER_WRITE, permissions);
 
-			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
-				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
-			}
+            HttpResponse response = httpClient.execute(request);
 
-		} finally {
-			httpClient.getConnectionManager().shutdown();
-		}
-	}
+            SwiftResponse swiftResponse = new SwiftResponse(response);
 
-	@Override
-	public void copyChunk(Workspace sourceWorkspace, Workspace destinationWorkspace, String chunkName) throws Exception {
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                throw new UnauthorizedException("404 User unauthorized");
+            }
 
-		if (!isTokenActive()) {
-			login();
-		}
-		
-		HttpClient httpClient = new DefaultHttpClient();
+            if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
+                throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
+            }
 
-		String url = this.storageUrl + "/" + destinationWorkspace.getSwiftContainer() + "/"
-				+ chunkName;
-		
-		String copyFrom = "/" + sourceWorkspace.getSwiftContainer() + "/" + chunkName;
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
 
-		try {
+    @Override
+    public void copyChunk(Workspace sourceWorkspace, Workspace destinationWorkspace, String chunkName) throws Exception {
 
-			HttpPut request = new HttpPut(url);
-			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
-			request.setHeader(SwiftResponse.X_COPY_FROM, copyFrom);
-			//request.setHeader("Content-Length", "0");
+        if (!isTokenActive()) {
+            login();
+        }
 
-			HttpResponse response = httpClient.execute(request);
+        HttpClient httpClient = new DefaultHttpClient();
 
-			SwiftResponse swiftResponse = new SwiftResponse(response);
+        String url = this.storageUrl + "/" + destinationWorkspace.getSwiftContainer() + "/"
+                + chunkName;
 
-			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-				throw new UnauthorizedException("401 User unauthorized");
-			}
-			
-			if (swiftResponse.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
-				throw new ObjectNotFoundException("404 Not Found");
-			}
+        String copyFrom = "/" + sourceWorkspace.getSwiftContainer() + "/" + chunkName;
 
-			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
-				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
-			}
+        try {
 
-		} finally {
-			httpClient.getConnectionManager().shutdown();
-		}
-	}
-	
-	@Override
-	public void deleteWorkspace(Workspace workspace) throws Exception {
+            HttpPut request = new HttpPut(url);
+            request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
+            request.setHeader(SwiftResponse.X_COPY_FROM, copyFrom);
+            //request.setHeader("Content-Length", "0");
 
-		if (!isTokenActive()) {
-			login();
-		}
+            HttpResponse response = httpClient.execute(request);
 
-		HttpClient httpClient = new DefaultHttpClient();
+            SwiftResponse swiftResponse = new SwiftResponse(response);
 
-		String url = this.storageUrl + "/" + workspace.getSwiftContainer();
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                throw new UnauthorizedException("401 User unauthorized");
+            }
 
-		try {
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                throw new ObjectNotFoundException("404 Not Found");
+            }
 
-			HttpDelete request = new HttpDelete(url);
-			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
+            if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
+                throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
+            }
 
-			HttpResponse response = httpClient.execute(request);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
 
-			SwiftResponse swiftResponse = new SwiftResponse(response);
+    @Override
+    public void deleteChunk(Workspace workspace, String chunkName) throws Exception {
 
-			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-				throw new UnauthorizedException("401 User unauthorized");
-			}
+        if (!isTokenActive()) {
+            login();
+        }
 
-			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
-				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
-			}
+        HttpClient httpClient = new DefaultHttpClient();
 
-		} finally {
-			httpClient.getConnectionManager().shutdown();
-		}
-	}
+        String url = this.storageUrl + "/" + workspace.getSwiftContainer() + "/" + chunkName;
 
-	private String getWorkspacePermissions(User user, Workspace workspace) throws Exception {
+        try {
 
-		if (!isTokenActive()) {
-			login();
-		}
+            HttpDelete request = new HttpDelete(url);
+            request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
 
-		HttpClient httpClient = new DefaultHttpClient();
+            HttpResponse response = httpClient.execute(request);
 
-		String url = this.storageUrl + "/" + workspace.getSwiftContainer();
+            SwiftResponse swiftResponse = new SwiftResponse(response);
 
-		try {
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                throw new UnauthorizedException("401 User unauthorized");
+            }
 
-			HttpHead request = new HttpHead(url);
-			request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                throw new ObjectNotFoundException("404 Not Found");
+            }
 
-			HttpResponse response = httpClient.execute(request);
+            if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
+                throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
+            }
 
-			SwiftResponse swiftResponse = new SwiftResponse(response);
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
 
-			if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
-				throw new UnauthorizedException("404 User unauthorized");
-			}
+    @Override
+    public void deleteWorkspace(Workspace workspace) throws Exception {
 
-			if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
-				throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
-			}
+        if (!isTokenActive()) {
+            login();
+        }
 
-			// We suppose there are the same permissions for read and write
-			Header containerWriteHeader = swiftResponse.getResponseHeader(SwiftResponse.X_CONTAINER_WRITE);
+        HttpClient httpClient = new DefaultHttpClient();
 
-			if (containerWriteHeader == null) {
-				return "";
-			}
+        String url = this.storageUrl + "/" + workspace.getSwiftContainer();
 
-			return containerWriteHeader.getValue();
+        try {
 
-		} finally {
-			httpClient.getConnectionManager().shutdown();
-		}
-	}
+            HttpDelete request = new HttpDelete(url);
+            request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
 
-	private boolean isTokenActive() {
-		return DateTime.now().isBefore(expirationDate);
-	}
+            HttpResponse response = httpClient.execute(request);
 
+            SwiftResponse swiftResponse = new SwiftResponse(response);
+
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                throw new UnauthorizedException("401 User unauthorized");
+            }
+
+            if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
+                throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
+            }
+
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
+
+    private String getWorkspacePermissions(User user, Workspace workspace) throws Exception {
+
+        if (!isTokenActive()) {
+            login();
+        }
+
+        HttpClient httpClient = new DefaultHttpClient();
+
+        String url = this.storageUrl + "/" + workspace.getSwiftContainer();
+
+        try {
+
+            HttpHead request = new HttpHead(url);
+            request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
+
+            HttpResponse response = httpClient.execute(request);
+
+            SwiftResponse swiftResponse = new SwiftResponse(response);
+
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                throw new UnauthorizedException("404 User unauthorized");
+            }
+
+            if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
+                throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
+            }
+
+            // We suppose there are the same permissions for read and write
+            Header containerWriteHeader = swiftResponse.getResponseHeader(SwiftResponse.X_CONTAINER_WRITE);
+
+            if (containerWriteHeader == null) {
+                return "";
+            }
+
+            return containerWriteHeader.getValue();
+
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
+
+    private boolean isTokenActive() {
+        return DateTime.now().isBefore(expirationDate);
+    }
 }

@@ -367,6 +367,43 @@ public class SwiftManagerHTTPS extends StorageManager {
     }
 
     @Override
+    public void deleteChunk(Workspace workspace, String chunkName) throws Exception {
+
+        if (!isTokenActive()) {
+            login();
+        }
+
+        HttpClient httpClient = new DefaultHttpClient();
+
+        String url = this.storageUrl + "/" + workspace.getSwiftContainer() + "/" + chunkName;
+
+        try {
+
+            HttpDelete request = new HttpDelete(url);
+            request.setHeader(SwiftResponse.X_AUTH_TOKEN, authToken);
+
+            HttpResponse response = httpClient.execute(request);
+
+            SwiftResponse swiftResponse = new SwiftResponse(response);
+
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_UNAUTHORIZED) {
+                throw new UnauthorizedException("401 User unauthorized");
+            }
+
+            if (swiftResponse.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                throw new ObjectNotFoundException("404 Not Found");
+            }
+
+            if (swiftResponse.getStatusCode() < 200 || swiftResponse.getStatusCode() >= 300) {
+                throw new UnexpectedStatusCodeException("Unexpected status code: " + swiftResponse.getStatusCode());
+            }
+
+        } finally {
+            httpClient.getConnectionManager().shutdown();
+        }
+    }
+
+    @Override
     public void deleteWorkspace(Workspace workspace) throws Exception {
 
         if (!isTokenActive()) {
