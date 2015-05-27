@@ -483,3 +483,15 @@ RETURNS TABLE(result integer) AS $$
     RUN ON ALL;
 $$ LANGUAGE plproxy;
 
+------------------------------
+-- Do commit
+------------------------------
+
+CREATE OR REPLACE FUNCTION commit_object2(client_id uuid, it item, itv item_version, chunks item_version_chunk[])
+RETURNS TABLE(item_id bigint, parent_id bigint, client_parent_file_version bigint, filename varchar(100), is_folder boolean, mimetype varchar(100), workspace_id uuid, version integer, device_id uuid, checksum bigint, status varchar(100), size bigint, modified_at timestamp, chunks text[]) AS $$
+    CLUSTER 'usercluster';
+    RUN ON hashtext(client_id::text) ;
+$$ LANGUAGE plproxy;
+
+
+

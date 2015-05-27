@@ -331,3 +331,154 @@ RETURNS integer AS $$
     SELECT 1;
 $$ LANGUAGE SQL;
 
+------------------------------
+-- Do commit
+------------------------------
+
+
+CREATE OR REPLACE FUNCTION commit_object2(client_id uuid, it item, itv item_version, item_chunks item_version_chunk[])
+RETURNS TABLE(item_id bigint, parent_id bigint, client_parent_file_version bigint, filename varchar(100), is_folder boolean, mimetype varchar(100), workspace_id uuid, version integer, device_id uuid, checksum bigint, status varchar(100), size bigint, modified_at timestamp, chunks text[]) AS $$
+DECLARE
+    server_item item;
+    x item_version_chunk;
+BEGIN
+    
+    -- check if this object already exists in the server.
+    SELECT * INTO server_item FROM item WHERE id = it.id;
+    
+    IF NOT FOUND THEN
+        IF it.latest_version = 1 THEN
+            RAISE NOTICE 'version == 1';
+            RETURN QUERY SELECT * from save_new_object2(it, itv, item_chunks);
+        ELSE
+            RAISE EXCEPTION 'Wrong version no parent'; 
+        END IF;
+
+        RETURN;
+    END IF;
+
+    -- check if the client version already exists in the server
+    IF server_item.latest_version >= it.latest_version THEN
+        --save_existent_version(serveritem, item);
+        RAISE NOTICE 'save_existent_version(serveritem, item)';        
+        RETURN QUERY SELECT * from save_existent_version2(it, itv);
+    ELSE
+        -- check if version is correct
+        IF server_item.latest_version + 1 = it.latest_version THEN
+            -- save_new_version(item, serveritem, workspace, device)
+            RAISE NOTICE 'save_new_version(serveritem, item)';
+            RETURN QUERY SELECT * from save_new_version2(it, itv, item_chunks);
+        ELSE
+            RAISE NOTICE 'invalid version';
+            RAISE EXCEPTION 'Invalid version --> %', it.latest_version USING HINT = 'Please check your item version'; 
+        END IF;
+    END IF;
+    
+    RETURN;
+END;
+$$ LANGUAGE plpgsql;
+
+
+
+CREATE OR REPLACE FUNCTION save_new_object2(it item, itv item_version, item_chunks item_version_chunk[])
+RETURNS TABLE(item_id bigint, parent_id bigint, client_parent_file_version bigint, filename varchar(100), is_folder boolean, mimetype varchar(100), workspace_id uuid, version integer, device_id uuid, checksum bigint, status varchar(100), size bigint, modified_at timestamp, chunks text[]) AS $$
+DECLARE
+    parent_item item;
+    iid bigint;    
+    item_version_id bigint;
+    x item_version_chunk;
+BEGIN
+    IF it.parent_id != null THEN
+        SELECT * INTO parent_item FROM item WHERE id = it.parent_id;
+    END IF;
+
+    RAISE NOTICE 'BEFORE INSERT INTO item';
+
+    INSERT INTO item (workspace_id, latest_version, parent_id, filename, mimetype, is_folder, client_parent_file_version ) VALUES ( it.workspace_id, it.latest_version, it.parent_id, it.filename, it.mimetype, it.is_folder, it.client_parent_file_version ) RETURNING id INTO iid;
+        
+    it.id := iid;
+    itv.item_id := iid;
+
+    RAISE NOTICE 'AFTER INSERT INTO item, it.id = %', it.id;
+
+    -- insert object version
+    INSERT INTO item_version(item_id, device_id, version, checksum, status, size, modified_at, committed_at) VALUES ( itv.item_id, itv.device_id, itv.version, itv.checksum, itv.status, itv.size, itv.modified_at, now()) RETURNING id INTO item_version_id;
+    
+    itv.id := item_version_id;
+    
+    -- if it isn't a folder, create new chunks
+    IF NOT it.is_folder THEN
+        FOREACH x IN ARRAY item_chunks
+          LOOP
+            -- item_version_id cannot be extracted from x.item_version_id!!
+            INSERT INTO item_version_chunk (item_version_id, client_chunk_name, chunk_order) VALUES (itv.id, x.client_chunk_name, x.chunk_order);
+        END LOOP;
+    END IF;
+
+
+    
+    RETURN QUERY SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, i.filename, i.is_folder, i.mimetype, i.workspace_id, iv.version, iv.device_id, iv.checksum, iv.status, iv.size, iv.modified_at, get_chunks(iv.id) AS chunks FROM item_version iv INNER JOIN item i ON i.id = iv.item_id WHERE iv.item_id = it.id and iv.version = itv.version;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION save_new_version2(it item, itv item_version, item_chunks item_version_chunk[])
+RETURNS TABLE(item_id bigint, parent_id bigint, client_parent_file_version bigint, filename varchar(100), is_folder boolean, mimetype varchar(100), workspace_id uuid, version integer, device_id uuid, checksum bigint, status varchar(100), size bigint, modified_at timestamp, chunks text[]) AS $$
+DECLARE
+    item_version_id bigint;
+    x item_version_chunk;
+BEGIN
+    -- insert object version
+    INSERT INTO item_version(item_id, device_id, version, checksum, status, size, modified_at, committed_at) VALUES ( itv.item_id, itv.device_id, itv.version, itv.checksum, itv.status, itv.size, itv.modified_at, now()) RETURNING id INTO item_version_id;
+    
+    itv.id := item_version_id;
+    
+    -- if it isn't a folder, create new chunks
+    IF NOT it.is_folder THEN
+        FOREACH x IN ARRAY item_chunks
+          LOOP
+            INSERT INTO item_version_chunk (item_version_id, client_chunk_name, chunk_order) VALUES (itv.id, x.client_chunk_name, x.chunk_order);
+        END LOOP;
+    END IF;    
+
+    IF itv.status = 'RENAMED' OR itv.status = 'MOVED' OR itv.status = 'DELETED' THEN
+        IF it.parent_id = NULL THEN
+            it.client_parent_file_version := null;
+        --ELSE
+            --SELECT * INTO parent_item FROM item WHERE id = it.parent_id;
+            --it.parent_id := parent_item.id
+        END IF;
+    END IF;
+
+    -- update object latest version
+    -- serverItem.setLatestVersion(metadata.getVersion());
+    -- itemDao.put(serverItem);
+    UPDATE item SET workspace_id = it.workspace_id, latest_version = it.latest_version, parent_id = it.parent_id, filename = it.filename, mimetype = it.mimetype, is_folder = it.is_folder, client_parent_file_version = it.client_parent_file_version WHERE id = it.id;
+
+    RETURN QUERY SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, i.filename, i.is_folder, i.mimetype, i.workspace_id, iv.version, iv.device_id, iv.checksum, iv.status, iv.size, iv.modified_at, get_chunks(iv.id) AS chunks FROM item_version iv INNER JOIN item i ON i.id = iv.item_id WHERE iv.item_id = it.id and iv.version = itv.version;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION save_existent_version2(it item, itv item_version)
+RETURNS void AS $$
+DECLARE
+    it2 item;
+    itv2 item_version;
+BEGIN
+
+    SELECT * INTO itv2 FROM item_version WHERE item_id = it.id and version = it.latest_version;
+    
+    IF itv.device_id != itv2.device_id OR itv.version != itv2.version OR itv.checksum != itv2.checksum OR itv.status != status OR itv.size != itv2.size THEN
+        RAISE EXCEPTION 'Invalid version --> %', it.latest_version USING HINT = 'Please check your item version'; 
+    END IF;
+
+    SELECT * INTO it2 FROM item WHERE id = it.id;
+
+    IF it.id != it2.id    OR it.latest_version != it2.latest_version THEN
+        RAISE EXCEPTION 'This version already exists --> %', it.latest_version USING HINT = 'Please check your item version'; 
+    END IF;    
+
+    RETURN;
+END;
+$$ LANGUAGE plpgsql;
+
+
