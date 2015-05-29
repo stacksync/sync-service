@@ -5,9 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import omq.common.broker.Broker;
+import omq.server.RabbitProperties;
 
 import org.apache.commons.daemon.Daemon;
 import org.apache.commons.daemon.DaemonContext;
@@ -21,42 +24,35 @@ import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 import com.stacksync.syncservice.omq.SyncServiceImp;
 import com.stacksync.syncservice.rpc.XmlRpcSyncHandler;
 import com.stacksync.syncservice.rpc.XmlRpcSyncServer;
-import com.stacksync.syncservice.storage.StorageFactory;
-import com.stacksync.syncservice.storage.StorageManager;
-import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
 import com.stacksync.syncservice.util.Constants;
 
 public class SyncServiceDaemon implements Daemon {
 
-	private static final Logger logger = Logger
-			.getLogger(SyncServiceDaemon.class.getName());
+	private static final Logger logger = Logger.getLogger(SyncServiceDaemon.class.getName());
 	private static ConnectionPool pool = null;
 	private static XmlRpcSyncServer xmlRpcServer = null;
 	private static Broker broker = null;
 	private static SyncServiceImp syncService = null;
 
-	
-
 	@Override
 	public void init(DaemonContext dc) throws DaemonInitException, Exception {
-		
-		logger.info(String.format("Initializing StackSync Server v%s...",
-				SyncServiceDaemon.getVersion()));
-		
-		logger.info(String.format("Java VM: %s" , System.getProperty("java.vm.name")));
-		logger.info(String.format("Java VM version: %s" , System.getProperty("java.vm.version")));
-		logger.info(String.format("Java Home: %s" , System.getProperty("java.home")));
-		logger.info(String.format("Java version: %s" , System.getProperty("java.version")));
-		
+
+		logger.info(String.format("Initializing StackSync Server v%s...", SyncServiceDaemon.getVersion()));
+
+		logger.info(String.format("Java VM: %s", System.getProperty("java.vm.name")));
+		logger.info(String.format("Java VM version: %s", System.getProperty("java.vm.version")));
+		logger.info(String.format("Java Home: %s", System.getProperty("java.home")));
+		logger.info(String.format("Java version: %s", System.getProperty("java.version")));
+
 		try {
 			String[] argv = dc.getArguments();
-			
-			if(argv.length == 0 ){
+
+			if (argv.length == 0) {
 				logger.error("No config file passed to StackSync Server.");
 				System.exit(1);
 			}
-			
+
 			String configPath = argv[0];
 
 			File file = new File(configPath);
@@ -90,18 +86,18 @@ public class SyncServiceDaemon implements Daemon {
 			logger.error("Connection to database failed.", e);
 			System.exit(4);
 		}
-		
-		logger.info("Connecting to OpenStack Swift...");
-		
-		try{
-			StorageManager storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
-			storageManager.login();
-			logger.info("Connected to OpenStack Swift successfully");
-		}catch (Exception e) {
-			logger.fatal("Could not connect to Swift.", e);
-			System.exit(7);
-		}
-		
+
+		// logger.info("Connecting to OpenStack Swift...");
+		//
+		// try{
+		// StorageManager storageManager =
+		// StorageFactory.getStorageManager(StorageType.SWIFT);
+		// storageManager.login();
+		// logger.info("Connected to OpenStack Swift successfully");
+		// }catch (Exception e) {
+		// logger.fatal("Could not connect to Swift.", e);
+		// System.exit(7);
+		// }
 
 		logger.info("Initializing the messaging middleware...");
 		try {
@@ -118,7 +114,29 @@ public class SyncServiceDaemon implements Daemon {
 	public void start() throws Exception {
 
 		try {
-			broker.bind(ISyncService.class.getSimpleName(), syncService);
+			if (Config.getOmqConsistentHashing()) {
+				// Get queue name that will be used by syncService
+				String queue = Config.getOmqQueueName();
+				String exchangeType = Constants.CONSISTENT_EXCHANGE;
+				String exchange = Config.getOmqExchange();
+
+				// Set the hashSpace or the number of points that will be used
+				List<String> hashSpace = new ArrayList<String>();
+				hashSpace.add(Config.getOmqNumPoints());
+
+				boolean durable = Config.getOmqDurableQueue();
+				boolean exclusive = Config.getOmqExclusiveQueue();
+				boolean autodelete = Config.getOmqAutodeleteQueue();
+
+				RabbitProperties queueProps = new RabbitProperties(queue, exchange, exchangeType, hashSpace, durable, exclusive, autodelete);
+
+				List<RabbitProperties> props = new ArrayList<RabbitProperties>();
+				props.add(queueProps);
+
+				broker.bind(ISyncService.class.getSimpleName(), syncService, props);
+			} else {
+				broker.bind(ISyncService.class.getSimpleName(), syncService);
+			}
 			logger.info("StackSync Server is ready and waiting for messages...");
 		} catch (Exception e) {
 			logger.fatal("Could not bind queue.", e);
@@ -144,7 +162,7 @@ public class SyncServiceDaemon implements Daemon {
 			throw e;
 		}
 	}
-	
+
 	@Override
 	public void destroy() {
 		broker = null;
@@ -152,8 +170,7 @@ public class SyncServiceDaemon implements Daemon {
 
 	private static void launchXmlRpc() throws Exception {
 		xmlRpcServer = new XmlRpcSyncServer(Constants.XMLRPC_PORT);
-		xmlRpcServer.addHandler("XmlRpcSyncHandler", new XmlRpcSyncHandler(
-				broker, pool));
+		xmlRpcServer.addHandler("XmlRpcSyncHandler", new XmlRpcSyncHandler(broker, pool));
 		xmlRpcServer.serve_forever();
 	}
 

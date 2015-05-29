@@ -10,6 +10,7 @@ public class Constants {
 	public static final String PROP_DATASOURCE = "datasource";
 	public static final String DEFAULT_CONFIG_FILE = "config.properties";
 	public static final UUID API_DEVICE_ID = new UUID(1, 1);
+	public static final String CONSISTENT_EXCHANGE = "x-consistent-hash";
 
 	// QUEUE
 	public static final String PROP_OMQ_HOST = ParameterQueue.RABBIT_HOST;
@@ -18,6 +19,12 @@ public class Constants {
 	public static final String PROP_OMQ_THREADS = ParameterQueue.NUM_THREADS;
 	public static final String PROP_OMQ_USER = ParameterQueue.USER_NAME;
 	public static final String PROP_OMQ_PASSWORD = ParameterQueue.USER_PASS;
+	public static final String PROP_OMQ_CONSITENT_HASHING = "omq.use_consistent_hashing";
+	public static final String PROP_OMQ_QUEUE_NAME = "omq.queue_name";
+	public static final String PROP_OMQ_NUM_POINTS = "omq.num_points";
+	public static final String PROP_OMQ_DURABLE_QUEUE = "omq.durable_queue";
+	public static final String PROP_OMQ_EXCLUSIVE_QUEUE = "omq.exclusive_queue";
+	public static final String PROP_OMQ_AUTODELETE_QUEUE = "omq.exclusive_queue";
 
 	// PostgreSQL
 	public static final String PROP_POSTGRESQL_HOST = "postgresql.host";
@@ -39,7 +46,7 @@ public class Constants {
 	public static final String PROP_SWIFT_TENANT = "swift.tenant";
 	public static final String PROP_SWIFT_USER = "swift.user";
 	public static final String PROP_SWIFT_PASSWORD = "swift.password";
-	
+
 	/* GENERAL */
 	public static final String DEFAULT_DATASOURCE = "postgresql";
 
@@ -50,6 +57,7 @@ public class Constants {
 	public static final String DEFAULT_OMQ_USER = "guest";
 	public static final String DEFAULT_OMQ_PASSWORD = "guest";
 	public static final String DEFAULT_OMQ_THREADS = "4";
+	public static final String DEFAULT_OMQ_NUM_POINTS = "100";
 
 	/* POSTGRESQL */
 	public static final String DEFAULT_POSTGRESQL_HOST = "localhost";
@@ -72,7 +80,7 @@ public class Constants {
 	public static final String DEFAULT_SWIFT_TENANT = "stacksync";
 	public static final String DEFAULT_SWIFT_USER = "stacksync_admin";
 	public static final String DEFAULT_SWIFT_PASSWORD = "secrete";
-	
+
 	/* XMLRPC */
 	public static final Integer XMLRPC_PORT = 61234;
 }
