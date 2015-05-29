@@ -1,5 +1,8 @@
 package com.stacksync.syncservice.omq;
 
+
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,6 +40,10 @@ import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
+import com.stacksync.syncservice.db.DeviceDAO;
+import com.stacksync.syncservice.db.UserDAO;
+import com.stacksync.syncservice.db.WorkspaceDAO;
+import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.handler.SyncHandler;
 import com.stacksync.syncservice.util.Config;
@@ -236,4 +243,36 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		return accountInfo;
 	}
+
+    @Override
+    public void createUser(UUID id) {
+        try {        	
+        	Handler handler = (Handler)getHandler();
+        	
+        	try {
+    			String[] create = new String[] {
+    					"INSERT INTO user1 (id, name, swift_user, swift_account, email, quota_limit) VALUES ('" + id + "', '" + id + "', '"
+    							+ id + "', '" + id + "', '" + id + "@asdf.asdf', 0);",
+    					"INSERT INTO workspace (id, latest_revision, owner_id, is_shared, swift_container, swift_url) VALUES ('" + id
+    							+ "', 0, '" + id + "', false, '" + id + "', 'STORAGEURL');",
+    					"INSERT INTO workspace_user(workspace_id, user_id, workspace_name, parent_item_id) VALUES ('" + id + "', '" + id
+    							+ "', 'default', NULL);",
+    					"INSERT INTO device (id, name, user_id, os, app_version) VALUES ('" + id + "', '" + id + "', '" + id + "', 'LINUX', 1)" };
+
+    			Statement statement;
+
+    			statement = handler.getConnection().createStatement();
+
+    			for (String query : create) {
+    				statement.executeUpdate(query);
+    			}
+
+    			statement.close();
+    		} catch (SQLException e) {
+    			logger.error(e);
+    		}        	
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
 }

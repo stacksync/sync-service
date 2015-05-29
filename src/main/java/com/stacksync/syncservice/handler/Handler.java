@@ -724,5 +724,29 @@ public class Handler {
 			throw new DAOException(e);
 		}
 	}
+        
+        public WorkspaceDAO getWorkspaceDAO() {
+		return workspaceDAO;
+	}
+
+	public UserDAO getUserDao() {
+		return userDao;
+	}
+
+	public DeviceDAO getDeviceDao() {
+		return deviceDao;
+	}
+
+	public ItemDAO getItemDao() {
+		return itemDao;
+	}
+
+	public ItemVersionDAO getItemVersionDao() {
+		return itemVersionDao;
+	}
+
+	public StorageManager getStorageManager() {
+		return storageManager;
+	}
 
 }

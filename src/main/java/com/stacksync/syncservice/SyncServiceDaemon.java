@@ -143,14 +143,14 @@ public class SyncServiceDaemon implements Daemon {
 			System.exit(5);
 		}
 
-		logger.info("Initializing XML RPC...");
-		try {
-			launchXmlRpc();
-			logger.info("XML RPC initialization succeded");
-		} catch (Exception e) {
-			logger.fatal("Could not initialize XMLRPC.", e);
-			System.exit(6);
-		}
+		//logger.info("Initializing XML RPC...");
+		//try {
+		//	launchXmlRpc();
+		//	logger.info("XML RPC initialization succeded");
+		//} catch (Exception e) {
+		//	logger.fatal("Could not initialize XMLRPC.", e);
+		//	System.exit(6);
+		//}
 	}
 
 	@Override
