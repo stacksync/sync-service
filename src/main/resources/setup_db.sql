@@ -98,6 +98,7 @@ ALTER TABLE public.workspace ADD CONSTRAINT fk1_workspace FOREIGN KEY (owner_id)
 --
 
 CREATE TABLE public.workspace_user (
+    id uuid,
     workspace_id uuid NOT NULL,
     user_id uuid NOT NULL,
     workspace_name varchar(255) NOT NULL,
@@ -121,7 +122,7 @@ CREATE TABLE public.item (
     latest_version bigint NOT NULL,
     parent_id bigint,
     filename varchar(100) NOT NULL,
-    mimetype varchar(45) NOT NULL,
+    mimetype varchar(150) NOT NULL,
     is_folder boolean NOT NULL,
     client_parent_file_version bigint
 );
