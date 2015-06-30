@@ -1,6 +1,6 @@
 package com.stacksync.syncservice.db.postgresql;
 
-import com.stacksync.commons.models.ABEItemMetadata;
+import com.stacksync.commons.models.abe.ABEItemMetadata;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;

@@ -11,8 +11,8 @@ import org.apache.log4j.Logger;
 
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
-import com.stacksync.commons.models.ABEItem;
-import com.stacksync.commons.models.ABEItemMetadata;
+import com.stacksync.commons.models.abe.ABEItem;
+import com.stacksync.commons.models.abe.ABEItemMetadata;
 import com.stacksync.commons.models.Chunk;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Device;

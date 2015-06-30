@@ -26,7 +26,6 @@ import com.stacksync.commons.requests.CommitRequest;
 import com.stacksync.commons.requests.GetAccountRequest;
 import com.stacksync.commons.requests.GetChangesRequest;
 import com.stacksync.commons.requests.GetWorkspacesRequest;
-import com.stacksync.commons.requests.ShareProposalRequest;
 import com.stacksync.commons.requests.UpdateDeviceRequest;
 import com.stacksync.commons.requests.UpdateWorkspaceRequest;
 import com.stacksync.syncservice.db.ConnectionPool;
@@ -37,6 +36,7 @@ import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.commons.models.SyncMetadata;
+import com.stacksync.commons.requests.ShareProposalRequest;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.handler.SyncHandler;
 import com.stacksync.syncservice.util.Config;
@@ -158,13 +158,16 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		
 		Item item = new Item(request.getItemId());
 
-		// Create share proposal
-		Workspace workspace = getHandler().doShareFolder(user, request.getEmails(), item, request.isEncrypted(), request.isAbeEncrypted());
-
-		// Create notification
-		ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
-				workspace.getName(), item.getId(), workspace.getOwner().getId(), workspace.getOwner().getName(),
-				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted(), workspace.isAbeEncrypted());
+                Workspace workspace=getHandler().doShareFolder(user, request.getEmails(), item, request.isEncrypted(), request.isAbeEncrypted());
+                
+                // Create notification
+                ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
+                            workspace.getName(), item.getId(), workspace.getOwner().getId(), workspace.getOwner().getName(),
+                            workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted(), workspace.isAbeEncrypted());
+                
+                if (request.isAbeEncrypted()) {
+                    notification.setABEKeys(request.getEmailsKeys());
+                }
 
 		notification.setRequestId(request.getRequestId());
 

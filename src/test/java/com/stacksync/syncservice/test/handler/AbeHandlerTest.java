@@ -5,8 +5,8 @@
  */
 package com.stacksync.syncservice.test.handler;
 
-import com.stacksync.commons.models.ABEItemMetadata;
-import com.stacksync.commons.models.ABEMetaComponent;
+import com.stacksync.commons.models.abe.ABEItemMetadata;
+import com.stacksync.commons.models.abe.ABEMetaComponent;
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.SyncMetadata;

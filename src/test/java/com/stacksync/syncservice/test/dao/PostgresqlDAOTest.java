@@ -1,6 +1,6 @@
 package com.stacksync.syncservice.test.dao;
 
-import com.stacksync.commons.models.ABEItemMetadata;
+import com.stacksync.commons.models.abe.ABEItemMetadata;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 

@@ -1,8 +1,8 @@
 package com.stacksync.syncservice.db.postgresql;
 
-import com.stacksync.commons.models.ABEItem;
-import com.stacksync.commons.models.ABEItemMetadata;
-import com.stacksync.commons.models.ABEMetaComponent;
+import com.stacksync.commons.models.abe.ABEItem;
+import com.stacksync.commons.models.abe.ABEItemMetadata;
+import com.stacksync.commons.models.abe.ABEMetaComponent;
 import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.syncservice.db.ABEItemDAO;

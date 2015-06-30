@@ -1,7 +1,7 @@
 package com.stacksync.syncservice.db;
 
-import com.stacksync.commons.models.ABEItemMetadata;
-import com.stacksync.commons.models.ABEMetaComponent;
+import com.stacksync.commons.models.abe.ABEItemMetadata;
+import com.stacksync.commons.models.abe.ABEMetaComponent;
 import java.sql.Array;
 import java.sql.Connection;
 import java.sql.Date;
