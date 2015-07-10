@@ -37,7 +37,7 @@ public class PostgresqlABEItemDAO extends PostgresqlItemDAO implements ABEItemDA
 		if (!it.isValid()) {
 			throw new IllegalArgumentException("Item attributes not set");
 		}
-
+           
 		Object[] values = { it.getWorkspace().getId(),
 				it.getLatestVersion(), it.getParentId(),
 				it.getFilename(), it.getMimetype(), it.isFolder(),

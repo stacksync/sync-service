@@ -304,8 +304,8 @@ public final class DAOUtil {
 		metadata.setChecksum(result.getLong("checksum"));
 		metadata.setSize(result.getLong("size"));
 		metadata.setModifiedAt(result.getTimestamp("modified_at"));
-		metadata.setCipherSymKey(result.getBytes("encrypted_dek"));
-                
+                metadata.setCipherSymKey(result.getBytes("encrypted_dek"));
+      
 		metadata.setLevel(getIntFromResultSet(result, "level"));
 
 		if (!metadata.isFolder()) {
