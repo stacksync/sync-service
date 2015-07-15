@@ -18,6 +18,7 @@ import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
+import java.util.HashMap;
 
 public interface SyncHandler {
 
@@ -31,7 +32,10 @@ public interface SyncHandler {
 
 	public List<Workspace> doGetWorkspaces(User user) throws NoWorkspacesFoundException;
 
-	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted, boolean abeEncryption)
+        public Workspace doShareFolder(User user, byte[] publicKey, HashMap<String,HashMap<String,byte[]>> emailsKeys, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted)
+	throws ShareProposalNotCreatedException, UserNotFoundException;
+
+        public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted, boolean abeEncryption)
 			throws ShareProposalNotCreatedException, UserNotFoundException;
 
 	public void doUpdateWorkspace(User user, Workspace workspace) throws UserNotFoundException,

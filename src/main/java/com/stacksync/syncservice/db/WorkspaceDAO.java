@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.db;
 
+import com.stacksync.commons.models.ABEWorkspace;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +24,8 @@ public interface WorkspaceDAO {
 	public void update(User user, Workspace workspace) throws DAOException;
 
 	public void addUser(User user, Workspace workspace) throws DAOException;
+        
+        public void addUser(User user, ABEWorkspace workspace) throws DAOException;
 	
 	public void deleteUser(User user, Workspace workspace) throws DAOException;
 

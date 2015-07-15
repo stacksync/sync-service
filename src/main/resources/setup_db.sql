@@ -103,13 +103,15 @@ CREATE TABLE public.workspace_user (
     workspace_name varchar(255) NOT NULL,
     parent_item_id bigint,
     created_at timestamp DEFAULT now(),
-    modified_at timestamp DEFAULT now()
+    modified_at timestamp DEFAULT now(),
+    secret_key bytea,
+    access_struc bytea,
+    public_key bytea
 );
 
 ALTER TABLE public.workspace_user ADD CONSTRAINT pk_workspace_user PRIMARY KEY (workspace_id, user_id);
 ALTER TABLE public.workspace_user ADD CONSTRAINT fk1_workspace_user FOREIGN KEY (user_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
 ALTER TABLE public.workspace_user ADD CONSTRAINT fk2_workspace_user FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
-
 
 --
 -- TABLE: item
@@ -119,7 +121,7 @@ CREATE TABLE public.item (
     workspace_id uuid NOT NULL,
     latest_version bigint NOT NULL,
     parent_id bigint,
-    encrypted_dek varchar(500),
+    encrypted_dek bytea,
     filename varchar(100) NOT NULL,
     mimetype varchar(45) NOT NULL,
     is_folder boolean NOT NULL,
@@ -235,7 +237,7 @@ CREATE TABLE public.abe_component (
     id uuid NOT NULL default uuid_generate_v4(),
     item_id bigint NOT NULL,
     attribute uuid NOT NULL,
-    encrypted_pk_component varchar(500) NOT NULL,
+    encrypted_pk_component bytea NOT NULL,
     version integer NOT NULL
 );
 

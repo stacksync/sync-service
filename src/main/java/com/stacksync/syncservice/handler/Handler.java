@@ -11,6 +11,7 @@ import org.apache.log4j.Logger;
 
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
+import com.stacksync.commons.models.ABEWorkspace;
 import com.stacksync.commons.models.abe.ABEItem;
 import com.stacksync.commons.models.abe.ABEItemMetadata;
 import com.stacksync.commons.models.Chunk;
@@ -141,7 +142,12 @@ public class Handler {
 		return responseObjects;
 	}
 
-	public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted)
+        public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted)
+                throws ShareProposalNotCreatedException, UserNotFoundException {
+            return doShareFolder(user, null, null, emails, item, isEncrypted, abeEncrypted);
+        }
+                
+	public Workspace doShareFolder(User user, byte[] publicKey, HashMap<String,HashMap<String,byte[]>> emailsKeys, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
 
 		// Check the owner
@@ -220,6 +226,10 @@ public class Handler {
 			workspace.setSwiftContainer(container);
 			workspace.setSwiftUrl(Config.getSwiftUrl() + "/" + user.getSwiftAccount());
 
+                        if(workspace.isAbeEncrypted()){
+                            workspace = new ABEWorkspace(workspace);
+                            ((ABEWorkspace)workspace).setPublicKey(publicKey);
+                        }
 			// Create container in Swift
 			try {
 				storageManager.createNewWorkspace(workspace);
@@ -274,7 +284,14 @@ public class Handler {
 		// Add the addressees to the workspace
 		for (User addressee : addressees) {
 			try {
-				workspaceDAO.addUser(addressee, workspace);
+                            if(workspace.isAbeEncrypted()){
+                                ((ABEWorkspace)workspace).setAccess_struct(emailsKeys.get(addressee.getEmail()).get("access_struct"));
+                                ((ABEWorkspace)workspace).setSecretKey(emailsKeys.get(addressee.getEmail()).get("secret_key"));
+                                workspaceDAO.addUser(addressee, (ABEWorkspace)workspace);
+                            } else {
+                                workspaceDAO.addUser(addressee, workspace);
+                            }
+				
 
 			} catch (DAOException e) {
 				workspace.getUsers().remove(addressee);

@@ -158,8 +158,14 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		
 		Item item = new Item(request.getItemId());
 
-                Workspace workspace=getHandler().doShareFolder(user, request.getEmails(), item, request.isEncrypted(), request.isAbeEncrypted());
-                
+                Workspace workspace;
+                        
+                if(request.isAbeEncrypted()){
+                    workspace=getHandler().doShareFolder(user, request.getPublicKey(), request.getEmailsKeys(), request.getEmails(), item, request.isEncrypted(), request.isAbeEncrypted());
+                } else{
+                    workspace=getHandler().doShareFolder(user, request.getEmails(), item, request.isEncrypted(), request.isAbeEncrypted());
+                }
+
                 // Create notification
                 ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
                             workspace.getName(), item.getId(), workspace.getOwner().getId(), workspace.getOwner().getName(),
@@ -167,6 +173,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
                 
                 if (request.isAbeEncrypted()) {
                     notification.setABEKeys(request.getEmailsKeys());
+                    notification.setPublicKey(request.getPublicKey());
                 }
 
 		notification.setRequestId(request.getRequestId());

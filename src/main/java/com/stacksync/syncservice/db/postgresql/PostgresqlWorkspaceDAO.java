@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.db.postgresql;
 
+import com.stacksync.commons.models.ABEWorkspace;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +19,7 @@ import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
+import java.util.HashMap;
 
 public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDAO {
 
@@ -47,7 +49,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
 		return workspace;
 	}
-
+        
 	@Override
 	public List<Workspace> getByUserId(UUID userId) throws DAOException {
 
@@ -67,7 +69,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 				Workspace workspace = mapWorkspace(result);
 				workspaces.add(workspace);
 			}
-
+                        
 			if (workspaces.isEmpty()) {
 				throw new NoResultReturnedDAOException(DAOError.WORKSPACES_NOT_FOUND);
 			}
@@ -125,7 +127,6 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		if (id != null) {
 			workspace.setId(id);
 		}
-
 	}
 
 	@Override
@@ -180,6 +181,14 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		owner.setId(UUID.fromString(result.getString("owner_id")));
 
 		workspace.setOwner(owner);
+                
+                if(result.getBoolean("is_abe_encrypted")){
+                        ABEWorkspace abeWorkspace = new ABEWorkspace(workspace);
+                        abeWorkspace.setPublicKey(result.getBytes("public_key"));
+                        abeWorkspace.setSecretKey(result.getBytes("secret_key"));
+                        abeWorkspace.setAccess_struct(result.getBytes("access_struc"));
+                        return abeWorkspace;
+                }
 
 		return workspace;
 	}
@@ -197,11 +206,29 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 			parentItemId = workspace.getParentItem().getId();
 		}
 
-		Object[] values = { workspace.getId(), user.getId(), workspace.getName(), parentItemId };
+                Object[] values = { workspace.getId(), user.getId(), workspace.getName(), parentItemId };
+                String query = "INSERT INTO workspace_user (workspace_id, user_id, workspace_name, parent_item_id) VALUES (?::uuid, ?::uuid, ?, ?)";
+                executeUpdate(query, values);
+	}
+        
+        @Override
+	public void addUser(User user, ABEWorkspace workspace) throws DAOException {
+		if (user == null || !user.isValid()) {
+			throw new IllegalArgumentException("User not valid");
+		} else if (workspace == null || !workspace.isValid()) {
+			throw new IllegalArgumentException("Workspace not valid");
+		}
 
-		String query = "INSERT INTO workspace_user (workspace_id, user_id, workspace_name, parent_item_id) VALUES (?::uuid, ?::uuid, ?, ?)";
+		Long parentItemId = null;
+		if (workspace.getParentItem() != null) {
+			parentItemId = workspace.getParentItem().getId();
+		}
 
-		executeUpdate(query, values);
+                ABEWorkspace abeWorkspace = (ABEWorkspace) workspace;
+                Object[] values = { workspace.getId(), user.getId(), workspace.getName(), parentItemId,
+                        abeWorkspace.getSecretKey(), abeWorkspace.getAccess_struct(), abeWorkspace.getPublicKey() };
+                String query = "INSERT INTO workspace_user (workspace_id, user_id, workspace_name, parent_item_id, secret_key, access_struc, public_key) VALUES (?::uuid, ?::uuid, ?, ?, ?, ?, ?)";
+                    executeUpdate(query, values);
 	}
 	
 	@Override
