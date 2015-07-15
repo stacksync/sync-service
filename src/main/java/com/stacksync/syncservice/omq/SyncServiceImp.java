@@ -171,12 +171,10 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
                             workspace.getName(), item.getId(), workspace.getOwner().getId(), workspace.getOwner().getName(),
                             workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted(), workspace.isAbeEncrypted());
                 
-                if (request.isAbeEncrypted()) {
-                    notification.setABEKeys(request.getEmailsKeys());
-                    notification.setPublicKey(request.getPublicKey());
-                }
-
 		notification.setRequestId(request.getRequestId());
+                
+                if (request.isAbeEncrypted()) 
+                    notification.setPublicKey(request.getPublicKey());
 
 		// Send notification to owner
 		RemoteClient client;
@@ -189,6 +187,12 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		// Send notifications to users
 		for (User addressee : workspace.getUsers()) {
+                    
+                        if (request.isAbeEncrypted()) {
+                                notification.setABEKey(request.getEmailsKeys().get(addressee.getEmail()));
+                                notification.setPublicKey(request.getPublicKey());
+                        }
+                        
 			try {
 				client = broker.lookupMulti(addressee.getId().toString(), RemoteClient.class);
 				client.notifyShareProposal(notification);
