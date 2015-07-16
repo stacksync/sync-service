@@ -211,6 +211,7 @@ public class Handler {
 
 		if (sourceWorkspace.isShared()) {
 			workspace = sourceWorkspace;
+                        workspace.setUsers(addressees);
 
 		} else {
 			// Create the new workspace

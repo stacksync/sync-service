@@ -189,6 +189,8 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
                         abeWorkspace.setAccess_struct(result.getBytes("access_struc"));
                         return abeWorkspace;
                 }
+                
+                
 
 		return workspace;
 	}
