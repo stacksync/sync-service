@@ -30,7 +30,6 @@ import com.stacksync.syncservice.db.UserDAO;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.CommitExistantVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersion;
-import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
@@ -133,9 +132,6 @@ public class Handler {
                 logger.info("Commit wrong version item:" + e.getItem().getId());
                 Item serverObject = e.getItem();
                 objectResponse = this.getCurrentServerVersion(serverObject);
-                committed = false;
-            } catch (CommitWrongVersionNoParent e) {
-                logger.info("Commit wrong version no parent");
                 committed = false;
             } catch (CommitExistantVersion e) {
                 logger.info("Commit existant version item:" + e.getItem().getId());
@@ -503,13 +499,13 @@ public class Handler {
      * Private functions
      */
     private void commitObject(User user, ItemMetadata item, Workspace workspace, Device device)
-            throws CommitWrongVersionNoParent, CommitWrongVersion, CommitExistantVersion, DAOException {
+            throws CommitWrongVersion, CommitExistantVersion, DAOException {
 
         Item serverItem = itemDao.findById(item.getId());
 
         // Check if this object already exists in the server.
         if (serverItem == null) {
-            if (item.getVersion() == 1) {
+            if (item.getVersion().equals(1L)) {
                 long newQuotaUsedLogical = item.getSize() + user.getQuotaUsedLogical();
                 this.saveNewObject(item, workspace, device);
 
@@ -517,7 +513,7 @@ public class Handler {
                 user.setQuotaUsedLogical(newQuotaUsedLogical);
                 userDao.updateAvailableQuota(user);
             } else {
-                throw new CommitWrongVersionNoParent();
+                throw new CommitWrongVersion("Invalid version " + item.getVersion() + ". Expected version 1.");
             }
             return;
         }
