@@ -122,32 +122,9 @@ Finally, assign the admin role to the stacksync_admin user:
 
 ## Create new users
 
-In the [script folder](script) there are the necessary scripts to create users.
+Go to the web manager project:
+https://github.com/stacksync/manager
 
-[**install_deps.sh**](script/install_deps.sh) will install requiered dependencies (ruby and python-keystoneclient).
-
-[**adduser.sh**](script/adduser.sh) is the script that creates users in both Swift and SyncService. The script contains some variables that have to be set:
-
-- Keystone parameters: These parameters are necessary to create the user in Keystone.
-    - **IP**: keystone server IP.
-    - **OS_USERNAME**: Swift admin user.
-    - **OS_PASSWORD**: Swift admin user pass.
-    - **OS_TENANT_NAME**: Swift admin tenant.
-- StackSync Swift admin parameters: These parameters are related to the Stacksync admin user in Swift and are necessary to create the container of the new user and set ACL on it.
-    - **STACKSYNC_TENANT**: Tenant from the StackSync admin and clients.
-    - **STACKSYNC_ADMIN_USER**: Name of the StackSync admin.
-    - **STACKSYNC_ADMIN_USER_PASS**: Passowrd of the StackSync admin.
-- StackSync database: These parameters are to connect with the StackSync database (postgres) in order to create the new user metadata:
-    - **STACKSYNC_DB_HOST**: Database host (normally localhost)
-    - **STACKSYNC_DB**: Database name.
-    - **STACKSYNC_USER**: Database user.
-    - **PGPASSWORD**: User password.
-
-Once all the parameters are set, execute the script with the parameters:
-
-    $ ./adduser.sh <user_name> <password> <email>
-    
-**NOTE**: The email is important and necessary since the user will use it in order to login in the system from the desktop client.
 
 # Compilation
 
