@@ -9,7 +9,7 @@ StackSync Synchronization service
 - [Synchronization service](#synchronization-service)
 - [Requirements](#requirements)
 - [Setup](#setup)
-    - [Database initialization](database-initialization)
+    - [Database initialization](#database-initialization)
     - [Create admin user](#create-admin-user)
     - [Create new users](#create-new-users)
 - [Compilation](#compilation)
@@ -33,7 +33,7 @@ service (Swift, Amazon S3, FTP...). An overview of the architecture
 with the main components and their interaction is shown in the following image.
 
 <p align="center">
-  <img width="500" src="https://raw.github.com/stacksync/desktop/master/res/stacksync-architecture.png">
+  <img width="500" src="https://raw.github.com/stacksync/desktop/master/resources/res/stacksync-architecture.png">
 </p>
 
 The StackSync client and the SyncService interact through the communication
