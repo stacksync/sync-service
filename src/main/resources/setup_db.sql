@@ -2,8 +2,8 @@
 -- PostgreSQL database initialization
 --
 
-DROP TABLE IF EXISTS public.item_version_chunk, public.item_version, public.item, public.workspace_user, public.workspace, public.device, public.user1 CASCADE;
-DROP SEQUENCE IF EXISTS public.sequencer_user, public.sequencer_workspace, public.sequencer_device, public.sequencer_item, public.sequencer_item_version, public.sequencer_chunk;
+DROP TABLE IF EXISTS public.item_version_chunk, public.item_version, public.item, public.workspace_user, public.workspace, public.device, public.user1, public.oauth1_access_tokens, public.oauth1_consumers, public.oauth1_nonce, public.oauth1_request_tokens CASCADE;
+DROP SEQUENCE IF EXISTS public.sequencer_user, public.sequencer_workspace, public.sequencer_device, public.sequencer_item, public.sequencer_item_version, public.sequencer_chunk, public.oauth1_access_tokens_id_seq, public.oauth1_consumers_id_seq, public.oauth1_nonce_id_seq, public.oauth1_request_tokens_id_seq;
 
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
@@ -49,6 +49,9 @@ CREATE TABLE public.user1 (
 );
 
 ALTER TABLE public.user1 ADD CONSTRAINT pk_user PRIMARY KEY (id);
+COPY user1 (id, name, swift_user, swift_account, email, quota_limit, quota_used_logical, quota_used_real, created_at) FROM stdin;
+9db83ed6-c22f-4bef-905f-4e4af931d92b	web	none	none	none	0	0	0	2015-04-15 18:15:22.179898
+\.
 
 
 --
@@ -70,7 +73,11 @@ ALTER TABLE public.device ADD CONSTRAINT pk_device PRIMARY KEY (id);
 
 ALTER TABLE public.device ADD CONSTRAINT fk1_device FOREIGN KEY (user_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
 
-INSERT INTO public.device ("id","name") VALUES ('00000000-0000-0001-0000-000000000001','API');
+--INSERT INTO public.device ("id","name") VALUES ('00000000-0000-0001-0000-000000000001','API');
+
+COPY device (id, name, user_id, os, created_at, last_access_at, last_ip, app_version) FROM stdin;
+00000000-0000-0001-0000-000000000001	web	9db83ed6-c22f-4bef-905f-4e4af931d92b	web	2014-04-09 17:14:33.530998	2014-04-09 17:14:33.530998	\N	\N
+\.
  
 
 --
@@ -92,6 +99,11 @@ ALTER TABLE public.workspace ADD CONSTRAINT pk_workspace PRIMARY KEY (id);
 
 ALTER TABLE public.workspace ADD CONSTRAINT fk1_workspace FOREIGN KEY (owner_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
 
+INSERT INTO workspace (id, latest_revision, owner_id, is_shared, is_encrypted, swift_container, swift_url) values ('07fd5785-f148-4e24-bd22-195e6bc78fe4', 0, '9db83ed6-c22f-4bef-905f-4e4af931d92b', false, false, 'no_swift_container', 'no_swift_url');
+--COPY workspace (id, latest_revision, owner_id, is_shared, is_encrypted, swift_container, swift_url) FROM stdin;
+--07fd5785-f148-4e24-bd22-195e6bc78fe4	0	9db83ed6-c22f-4bef-905f-4e4af931d92b	f	f	no_swift_container  no_swift_url
+--\.
+
 
 --
 -- TABLE: workspace_user
@@ -110,6 +122,10 @@ CREATE TABLE public.workspace_user (
 ALTER TABLE public.workspace_user ADD CONSTRAINT pk_workspace_user PRIMARY KEY (workspace_id, user_id);
 ALTER TABLE public.workspace_user ADD CONSTRAINT fk1_workspace_user FOREIGN KEY (user_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
 ALTER TABLE public.workspace_user ADD CONSTRAINT fk2_workspace_user FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
+
+COPY workspace_user (workspace_id, user_id, workspace_name, parent_item_id, created_at, modified_at, id) FROM stdin;
+07fd5785-f148-4e24-bd22-195e6bc78fe4	9db83ed6-c22f-4bef-905f-4e4af931d92b	default	\N	2014-04-09 17:14:11.16674	2014-04-09 17:14:11.16674	\N
+\.
 
 
 --
@@ -182,6 +198,127 @@ ALTER TABLE public.item_version_chunk ADD CONSTRAINT pk_item_version_chunk PRIMA
 ALTER TABLE public.item_version_chunk ADD CONSTRAINT fk2_item_version_chunk FOREIGN KEY (item_version_id) REFERENCES public.item_version (id) ON DELETE CASCADE;
 
 
+--
+-- OAUTH TABLES
+--
+
+--
+-- Name: oauth1_request_tokens;
+--
+
+CREATE TABLE oauth1_request_tokens (
+    id integer NOT NULL,
+    consumer integer,
+    "user" uuid,
+    realm character varying,
+    redirect_uri character varying,
+    request_token character varying,
+    request_token_secret character varying,
+    verifier character varying,
+    created_at timestamp without time zone,
+    modified_at timestamp without time zone
+);
+
+CREATE SEQUENCE oauth1_request_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE oauth1_request_tokens_id_seq OWNED BY oauth1_request_tokens.id;
+ALTER TABLE ONLY oauth1_request_tokens ALTER COLUMN id SET DEFAULT nextval('oauth1_request_tokens_id_seq'::regclass);
+ALTER TABLE ONLY oauth1_request_tokens ADD CONSTRAINT oauth1_request_tokens_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY oauth1_request_tokens ADD CONSTRAINT oauth1_request_tokens_user_fkey FOREIGN KEY ("user") REFERENCES user1(id);
+
+--
+-- Name: oauth1_consumers;
+--
+
+CREATE TABLE oauth1_consumers (
+    id integer NOT NULL,
+    consumer_key character varying,
+    consumer_secret character varying,
+    rsa_key character varying,
+    "user" uuid,
+    realm character varying,
+    redirect_uri character varying,
+    application_title character varying,
+    application_description character varying,
+    application_uri character varying,
+    created_at timestamp without time zone,
+    modified_at timestamp without time zone
+);
+
+CREATE SEQUENCE oauth1_consumers_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE oauth1_consumers_id_seq OWNED BY oauth1_consumers.id;
+ALTER TABLE ONLY oauth1_consumers ALTER COLUMN id SET DEFAULT nextval('oauth1_consumers_id_seq'::regclass);
+ALTER TABLE ONLY oauth1_consumers ADD CONSTRAINT oauth1_consumers_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY oauth1_consumers ADD CONSTRAINT oauth1_consumers_user_fkey FOREIGN KEY ("user") REFERENCES user1(id);
+ALTER TABLE ONLY oauth1_request_tokens ADD CONSTRAINT oauth1_request_tokens_consumer_fkey FOREIGN KEY (consumer) REFERENCES oauth1_consumers(id);
+
+COPY oauth1_consumers (id, consumer_key, consumer_secret, rsa_key, "user", realm, redirect_uri, application_title, application_description, application_uri, created_at, modified_at) FROM stdin;
+1	b3af4e669daf880fb16563e6f36051b105188d413	c168e65c18d75b35d8999b534a3776cf	\N	9db83ed6-c22f-4bef-905f-4e4af931d92b	stacksync	oob	StackSync Test App	This is an application test	http://example.com	\N	\N
+\.
+
+SELECT pg_catalog.setval('oauth1_consumers_id_seq', 1, true);
+
+--
+-- Name: oauth1_access_tokens;
+--
+
+CREATE TABLE oauth1_access_tokens (
+    id integer NOT NULL,
+    consumer integer,
+    "user" uuid,
+    realm character varying,
+    access_token character varying,
+    access_token_secret character varying,
+    created_at timestamp without time zone,
+    modified_at timestamp without time zone
+);
+
+CREATE SEQUENCE oauth1_access_tokens_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE oauth1_access_tokens_id_seq OWNED BY oauth1_access_tokens.id;
+ALTER TABLE ONLY oauth1_access_tokens ALTER COLUMN id SET DEFAULT nextval('oauth1_access_tokens_id_seq'::regclass);
+ALTER TABLE ONLY oauth1_access_tokens ADD CONSTRAINT oauth1_access_tokens_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY oauth1_access_tokens ADD CONSTRAINT oauth1_access_tokens_consumer_fkey FOREIGN KEY (consumer) REFERENCES oauth1_consumers(id);
+ALTER TABLE ONLY oauth1_access_tokens ADD CONSTRAINT oauth1_access_tokens_user_fkey FOREIGN KEY ("user") REFERENCES user1(id) ON DELETE CASCADE;
+
+--
+-- Name: oauth1_nonce;
+--
+
+CREATE TABLE oauth1_nonce (
+    id integer NOT NULL,
+    consumer_key character varying,
+    token character varying,
+    "timestamp" integer,
+    nonce character varying
+);
+
+CREATE SEQUENCE oauth1_nonce_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+ALTER SEQUENCE oauth1_nonce_id_seq OWNED BY oauth1_nonce.id;
+ALTER TABLE ONLY oauth1_nonce ALTER COLUMN id SET DEFAULT nextval('oauth1_nonce_id_seq'::regclass);
+ALTER TABLE ONLY oauth1_nonce ADD CONSTRAINT oauth1_nonce_pkey PRIMARY KEY (id);
 
 --
 -- FUNCTIONS
