@@ -3,11 +3,15 @@ package com.stacksync.syncservice.db.infinispan.models;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
 
+@Distributed
 public class ItemRMI implements Serializable {
 
     private static final long serialVersionUID = 1482457936400001556L;
 
+    @Key
     private Long id;
     private Long latestVersion;
     private ItemRMI parent;

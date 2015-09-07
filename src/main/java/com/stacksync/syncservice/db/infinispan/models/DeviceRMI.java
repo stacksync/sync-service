@@ -4,10 +4,15 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.UUID;
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
 
+@Distributed
 public class DeviceRMI implements Serializable {
 
     private static final long serialVersionUID = -2932481953197148130L;
+    
+    @Key
     private UUID id;
     private String name;
     //private UserRMI user;

@@ -24,7 +24,8 @@ public class InfinispanConnectionPool extends ConnectionPool {
     public InfinispanConnectionPool() throws DAOConfigurationException {
         ConfigurationBuilder builder = new ConfigurationBuilder();
         builder.maxRetries(1);
-        builder.addServers("192.168.2.2");
+        //builder.addServers("192.168.2.2");
+        builder.addServers("10.30.102.242");
         cacheManager = new RemoteCacheManager(builder.build());
         connection = new InfinispanConnection(cacheManager.getCache());
     }

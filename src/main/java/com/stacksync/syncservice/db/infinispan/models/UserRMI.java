@@ -6,11 +6,15 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
 
+@Distributed
 public class UserRMI implements Serializable, Remote {
 
     private static final long serialVersionUID = -8827608629982195900L;
 
+    @Key
     private UUID id;
     private String name;
     private String swiftUser;

@@ -2,12 +2,17 @@ package com.stacksync.syncservice.db.infinispan.models;
 
 import java.io.Serializable;
 import java.util.UUID;
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
 
+@Distributed
 public class AccountInfoRMI implements Serializable{
 
 	private static final long serialVersionUID = 5231686716350716264L;
-	
+        
+        @Key
 	private UUID userId;
+        
 	private String name;
 	private String email;
 	private Integer quotaLimit;

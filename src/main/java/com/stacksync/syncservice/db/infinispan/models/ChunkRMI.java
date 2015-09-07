@@ -1,7 +1,9 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import java.io.Serializable;
+import org.infinispan.atomic.Distributed;
 
+@Distributed
 public class ChunkRMI implements Serializable {
 
     private Integer order = null;

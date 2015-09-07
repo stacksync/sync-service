@@ -5,9 +5,13 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
 
+@Distributed
 public class ItemVersionRMI implements Serializable {
 
+    @Key
     private Long id;
     private Long itemId;
     private DeviceRMI device;
