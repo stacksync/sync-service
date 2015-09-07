@@ -49,7 +49,7 @@ public class CommitsPerSecondTest extends RemoteObject implements Start {
         System.out.println("Ready to g0!");
     }
 
-    private StaticBenchmark[] initializeThreads(int numThreads, int numUsers, int commitsPerSecond, int minutes) throws Exception {
+    public StaticBenchmark[] initializeThreads(int numThreads, int numUsers, int commitsPerSecond, int minutes) throws Exception {
         StaticBenchmark[] benchmarkThreads = new StaticBenchmark[numThreads];
         for (int i = 0; i < numThreads; i++) {
             // create a new thread
@@ -111,6 +111,10 @@ public class CommitsPerSecondTest extends RemoteObject implements Start {
             e.printStackTrace();
         }
     }
+    
+    public void setThreads(StaticBenchmark[] threads) {
+        this.threads = threads;
+    }
 
     /**
      *
@@ -135,7 +139,7 @@ public class CommitsPerSecondTest extends RemoteObject implements Start {
         int minutes = 1;
         int numThreads = 1;
         
-        try {
+        /*try {
             Properties env = new Properties();
             env.load(new FileReader(BROKER_PROPS));
             Broker broker = new Broker(env);
@@ -143,6 +147,11 @@ public class CommitsPerSecondTest extends RemoteObject implements Start {
         } catch (Exception e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-        }
+        }*/
+        
+        CommitsPerSecondTest test = new CommitsPerSecondTest(numThreads, numUsers, commitsPerSecond, minutes);
+        StaticBenchmark[] threads = test.initializeThreads(numThreads, numUsers, commitsPerSecond, minutes);
+        test.setThreads(threads);
+        test.startExperiment();
     }
 }
