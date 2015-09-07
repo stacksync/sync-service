@@ -21,11 +21,11 @@ import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 import com.stacksync.syncservice.omq.SyncServiceImp;
 import com.stacksync.syncservice.rpc.XmlRpcSyncHandler;
 import com.stacksync.syncservice.rpc.XmlRpcSyncServer;
-import com.stacksync.syncservice.storage.StorageFactory;
-import com.stacksync.syncservice.storage.StorageManager;
-import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
 import com.stacksync.syncservice.util.Constants;
+import java.util.ArrayList;
+import java.util.List;
+import omq.server.RabbitProperties;
 
 public class SyncServiceDaemon implements Daemon {
 
@@ -40,7 +40,7 @@ public class SyncServiceDaemon implements Daemon {
 
 	@Override
 	public void init(DaemonContext dc) throws DaemonInitException, Exception {
-		
+		logger.error("INIT");
 		logger.info(String.format("Initializing StackSync Server v%s...",
 				SyncServiceDaemon.getVersion()));
 		
@@ -93,16 +93,17 @@ public class SyncServiceDaemon implements Daemon {
 		
 		logger.info("Connecting to OpenStack Swift...");
 		
-		try{
+		/*try{
 			StorageManager storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
 			storageManager.login();
 			logger.info("Connected to OpenStack Swift successfully");
 		}catch (Exception e) {
 			logger.fatal("Could not connect to Swift.", e);
 			System.exit(7);
-		}
+		}*/
 		
 
+		logger.error("Initializing the messaging middleware...");
 		logger.info("Initializing the messaging middleware...");
 		try {
 			broker = new Broker(Config.getProperties());
@@ -117,7 +118,37 @@ public class SyncServiceDaemon implements Daemon {
 	@Override
 	public void start() throws Exception {
 
-		try {
+	    try {
+			if (Config.getOmqConsistentHashing()) {
+				// Get queue name that will be used by syncService
+				String queue = Config.getOmqQueueName();
+				String exchangeType = Constants.CONSISTENT_EXCHANGE;
+				String exchange = Config.getOmqExchange();
+
+				// Set the hashSpace or the number of points that will be used
+				List<String> hashSpace = new ArrayList<String>();
+				hashSpace.add(Config.getOmqNumPoints());
+
+				boolean durable = Config.getOmqDurableQueue();
+				boolean exclusive = Config.getOmqExclusiveQueue();
+				boolean autodelete = Config.getOmqAutodeleteQueue();
+
+				RabbitProperties queueProps = new RabbitProperties(queue, exchange, exchangeType, hashSpace, durable, exclusive, autodelete);
+
+				List<RabbitProperties> props = new ArrayList<RabbitProperties>();
+				props.add(queueProps);
+
+				broker.bind(ISyncService.class.getSimpleName(), syncService, props);
+			} else {
+				broker.bind(ISyncService.class.getSimpleName(), syncService);
+			}
+			logger.info("StackSync Server is ready and waiting for messages...");
+		} catch (Exception e) {
+			logger.fatal("Could not bind queue.", e);
+			System.exit(5);
+		}
+	    
+		/*try {
 			broker.bind(ISyncService.class.getSimpleName(), syncService);
 			logger.info("StackSync Server is ready and waiting for messages...");
 		} catch (Exception e) {
@@ -132,7 +163,7 @@ public class SyncServiceDaemon implements Daemon {
 		} catch (Exception e) {
 			logger.fatal("Could not initialize XMLRPC.", e);
 			System.exit(6);
-		}
+		}*/
 	}
 
 	@Override

@@ -1,0 +1,19 @@
+[2015-08-04 11:39:46,967] INFO  [main] Config:40 - Configuration file loaded 
+[2015-08-04 11:39:46,967] INFO  [main] Config:77 - Displaying configuration: 
+[2015-08-04 11:39:46,968] INFO  [main] Config:83 - omq.autodelete_queue : false 
+[2015-08-04 11:39:46,968] INFO  [main] Config:83 - postgresql.database : part08 
+[2015-08-04 11:39:46,968] INFO  [main] Config:83 - omq.port : 5672 
+[2015-08-04 11:39:46,968] INFO  [main] Config:83 - omq.num_threads : 10 
+[2015-08-04 11:39:46,969] INFO  [main] Config:83 - omq.num_points : 100 
+[2015-08-04 11:39:46,969] INFO  [main] Config:83 - omq.exclusive_queue : false 
+[2015-08-04 11:39:46,969] INFO  [main] Config:83 - omq.queue_name : database_8 
+[2015-08-04 11:39:46,971] INFO  [main] Config:83 - omq.durable_queue : true 
+[2015-08-04 11:39:46,972] INFO  [main] Config:83 - omq.host : stacksync.urv.cat 
+[2015-08-04 11:39:46,972] INFO  [main] Config:83 - postgresql.user : stacksync 
+[2015-08-04 11:39:46,972] INFO  [main] Config:83 - datasource : postgresql 
+[2015-08-04 11:39:46,972] INFO  [main] Config:83 - omq.rpc_exchange : rpc_global_exchange 
+[2015-08-04 11:39:46,972] INFO  [main] Config:83 - omq.use_consistent_hashing : true 
+[2015-08-04 11:39:46,972] INFO  [main] Config:83 - postgresql.initial_cons : 10 
+[2015-08-04 11:39:46,973] INFO  [main] Config:83 - postgresql.port : 5432 
+[2015-08-04 11:39:46,973] INFO  [main] Config:83 - postgresql.host : 192.168.2.2 
+[2015-08-04 11:39:46,973] INFO  [main] Config:83 - omq.username : guest 

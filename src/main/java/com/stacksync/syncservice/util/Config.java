@@ -112,6 +112,33 @@ public class Config {
 	public static Integer getOmqNumThreads() {
 		return Integer.parseInt(properties.getProperty(Constants.PROP_OMQ_THREADS, Constants.DEFAULT_OMQ_THREADS));
 	}
+	
+	public static Boolean getOmqConsistentHashing(){
+		return Boolean.parseBoolean(properties.getProperty(Constants.PROP_OMQ_CONSITENT_HASHING, "false"));
+	}
+	
+	public static Boolean getOmqDurableQueue(){
+		return Boolean.parseBoolean(properties.getProperty(Constants.PROP_OMQ_DURABLE_QUEUE, "false"));
+	}
+	
+	public static Boolean getOmqExclusiveQueue(){
+		return Boolean.parseBoolean(properties.getProperty(Constants.PROP_OMQ_EXCLUSIVE_QUEUE, "false"));
+	}
+	
+	public static Boolean getOmqAutodeleteQueue(){
+		return Boolean.parseBoolean(properties.getProperty(Constants.PROP_OMQ_AUTODELETE_QUEUE, "false"));
+	}
+	
+	
+	
+	//TODO check the default value
+	public static String getOmqQueueName(){
+		return properties.getProperty(Constants.PROP_OMQ_QUEUE_NAME);
+	}
+	
+	public static String getOmqNumPoints(){
+		return properties.getProperty(Constants.PROP_OMQ_NUM_POINTS, Constants.DEFAULT_OMQ_NUM_POINTS);
+	}
 
 	/* POSTGRESQL */
 

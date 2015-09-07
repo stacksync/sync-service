@@ -73,11 +73,11 @@ public class CommitHandlerTest {
 		
 		random = new SecureRandom();
 
-		String HOST = "10.30.233.113";
+		String HOST = "10.30.236.255";
 		int PORT = 5432;
-		String DB = "testdb";
-		String USER = "testos";
-		String PASS = "testos";
+		String DB = "part01";
+		String USER = "stacksync";
+		String PASS = "stacksync";
 
 		Class.forName("org.postgresql.Driver");
 		connection = DriverManager.getConnection("jdbc:postgresql://" + HOST + ":" + PORT + "/" + DB, USER, PASS);

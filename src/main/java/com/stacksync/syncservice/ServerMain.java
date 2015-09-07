@@ -1,14 +1,19 @@
-package com.stacksync.syncservice.test.main;
-
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package com.stacksync.syncservice;
 
 import org.apache.commons.daemon.DaemonContext;
 import org.apache.commons.daemon.DaemonController;
 
-import com.stacksync.syncservice.SyncServiceDaemon;
-
-public class ServerTest {
-	
-	public static void main(String[] args) throws Exception  {
+/**
+ *
+ * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
+ */
+public class ServerMain {
+    public static void main(String[] args) throws Exception  {
 		
 		SyncServiceDaemon daemon = new SyncServiceDaemon();
 		try {
