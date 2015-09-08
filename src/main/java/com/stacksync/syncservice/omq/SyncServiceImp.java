@@ -35,7 +35,6 @@ import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
-import com.stacksync.syncservice.handler.CommitHandler;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.handler.SyncHandler;
@@ -52,7 +51,6 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
     private transient ConnectionPool pool;
     private transient SyncHandler[] handlers;
     private transient Broker broker;
-    private CommitHandler[] commitHandler;
 
     public SyncServiceImp(Broker broker, ConnectionPool pool) throws Exception {
 	super();
@@ -63,11 +61,9 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 	// Create handlers
 	numThreads = Integer.parseInt(this.broker.getEnvironment().getProperty(ParameterQueue.NUM_THREADS, "1"));
 	handlers = new SyncHandler[numThreads];
-	commitHandler = new CommitHandler[numThreads];
 
 	for (int i = 0; i < numThreads; i++) {
 	    handlers[i] = new SQLSyncHandler(this.pool);
-	    commitHandler[i] = new CommitHandler(pool.getConnection());
 	}
     }
 
@@ -110,8 +106,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 	    long startTime = System.currentTimeMillis();
 	    //logger.info("COMMIT - requestId= " + request.getRequestId() + " - time: " + startTime);
-	    //List<CommitInfo> committedItems = getHandler().doCommit(user, workspace, device, request.getItems());
-	    List<CommitInfo> committedItems = getCommitHandler().doCommit(user, workspace, device, request.getItems());
+	    List<CommitInfo> committedItems = getHandler().doCommit(user, workspace, device, request.getItems());
 	    long endTime = System.currentTimeMillis();
 	    //logger.info("COMMIT - requestId= " + request.getRequestId() + " - time: " + endTime);
 	    logger.info("\tRequestId= " + request.getRequestId() + " - TotalTime: " + (endTime - startTime));
@@ -130,12 +125,6 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
     private synchronized SyncHandler getHandler() {
 	SyncHandler handler = handlers[index++ % numThreads];
-	logger.debug("Using handler: " + handler + " using connection: " + handler.getConnection());
-	return handler;
-    }
-
-    private synchronized CommitHandler getCommitHandler() {
-	CommitHandler handler = commitHandler[index++ % numThreads];
 	logger.debug("Using handler: " + handler + " using connection: " + handler.getConnection());
 	return handler;
     }
