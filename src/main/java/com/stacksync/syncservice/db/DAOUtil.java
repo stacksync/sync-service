@@ -334,7 +334,14 @@ public final class DAOUtil {
 		Workspace workspace = new Workspace();
 		workspace.setId(UUID.fromString(result.getString("workspace_id")));
 		
-		UserWorkspace userWorkspace = new UserWorkspace(user, workspace);
+                UserWorkspace userWorkspace;
+                
+                if(result.getBytes("access_struc")!=null){
+                    userWorkspace = new UserWorkspace(user, workspace, new String(result.getBytes("access_struc")));
+                } else{
+                    userWorkspace = new UserWorkspace(user, workspace);
+                }
+                
 		userWorkspace.setOwner(result.getBoolean("is_owner"));
 		userWorkspace.setJoinedAt(result.getDate("joined_at"));
 		

@@ -36,10 +36,13 @@ import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.commons.models.SyncMetadata;
+import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.requests.ShareProposalRequest;
+import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.handler.SyncHandler;
 import com.stacksync.syncservice.util.Config;
+import java.util.logging.Level;
 
 public class SyncServiceImp extends RemoteObject implements ISyncService {
 
@@ -251,4 +254,15 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
 		return accountInfo;
 	}
+        
+        @Override
+        public List<UserWorkspace> getWorkspaceMembers(User user, Workspace workspace) throws UserNotFoundException {
+            try {
+                return getHandler().doGetWorkspaceMembers(user, workspace);
+            } catch (InternalServerError ex) {
+                java.util.logging.Logger.getLogger(SyncServiceImp.class.getName()).log(Level.SEVERE, null, ex);
+                return null;
+            }
+        }
+        
 }

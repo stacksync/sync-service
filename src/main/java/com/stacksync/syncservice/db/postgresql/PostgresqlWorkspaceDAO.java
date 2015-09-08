@@ -279,7 +279,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 		List<UserWorkspace> users = new ArrayList<UserWorkspace>();
 
 		String query = " SELECT u.*, CASE WHEN u.id=w.owner_id THEN True ELSE False END AS is_owner " +
-			" , wu.created_at AS joined_at, wu.workspace_id " + 
+			" , wu.created_at AS joined_at, wu.workspace_id, wu.access_struc" + 
 			" FROM workspace w " + 
 			" INNER JOIN workspace_user wu ON wu.workspace_id = w.id " +
 			" INNER JOIN user1 u ON wu.user_id = u.id " +

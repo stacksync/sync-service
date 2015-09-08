@@ -17,6 +17,8 @@ import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.commons.models.SyncMetadata;
+import com.stacksync.commons.models.UserWorkspace;
+import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import java.util.HashMap;
 
@@ -43,6 +45,8 @@ public interface SyncHandler {
 
 	public User doGetUser(String email) throws UserNotFoundException;
 	
+        public List<UserWorkspace> doGetWorkspaceMembers(User user, Workspace workspace) throws InternalServerError;
+        
 	public Connection getConnection();
 
 }
