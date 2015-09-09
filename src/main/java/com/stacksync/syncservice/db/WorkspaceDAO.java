@@ -20,6 +20,8 @@ public interface WorkspaceDAO {
 	public Workspace getByItemId(Long itemId) throws DAOException;
 
 	public void add(Workspace workspace) throws DAOException;
+        
+        public void add(ABEWorkspace workspace) throws DAOException;
 
 	public void update(User user, Workspace workspace) throws DAOException;
 

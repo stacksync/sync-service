@@ -241,7 +241,12 @@ public class Handler {
 
 			// Save the workspace to the DB
 			try {
-				workspaceDAO.add(workspace);
+				if(workspace.isAbeEncrypted()){
+                                    workspaceDAO.add((ABEWorkspace)workspace);
+                                } else {
+                                    workspaceDAO.add(workspace);
+                                }
+                                    
 				// add the owner to the workspace
 				workspaceDAO.addUser(user, workspace);
 

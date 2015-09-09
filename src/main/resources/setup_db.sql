@@ -83,6 +83,7 @@ CREATE TABLE public.workspace (
     is_shared boolean NOT NULL,
     is_encrypted boolean NOT NULL DEFAULT false,
     is_abe_encrypted boolean NOT NULL DEFAULT false,
+    public_key bytea,
     swift_container varchar(45),
     swift_url varchar(250),
     created_at timestamp DEFAULT now()
@@ -106,12 +107,42 @@ CREATE TABLE public.workspace_user (
     modified_at timestamp DEFAULT now(),
     secret_key bytea,
     access_struc bytea,
-    public_key bytea
 );
 
 ALTER TABLE public.workspace_user ADD CONSTRAINT pk_workspace_user PRIMARY KEY (workspace_id, user_id);
 ALTER TABLE public.workspace_user ADD CONSTRAINT fk1_workspace_user FOREIGN KEY (user_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
 ALTER TABLE public.workspace_user ADD CONSTRAINT fk2_workspace_user FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
+
+--
+-- TABLE: workspace_reencryption_key_history
+--
+
+CREATE TABLE public.workspace_reencryption_key_history (
+    workspace_id uuid NOT NULL,
+    attribute varchar(255) NOT NULL,
+    version bigint NOT NULL,
+    reencryption_key bytea NOT NULL
+);
+
+ALTER TABLE public.workspace_reencryption_key_history ADD CONSTRAINT pk_workspace_reencryption_history PRIMARY KEY (workspace_id, attribute, version);
+ALTER TABLE public.workspace_reencryption_key_history ADD CONSTRAINT fk1_workspace_reencryption_key_history FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
+--
+-- TABLE: workspace_reencryption_key_history
+--
+
+CREATE TABLE public.workspace_user_key_components (
+    workspace_id uuid NOT NULL,
+    user_id uuid NOT NULL,
+    attribute varchar(255) NOT NULL,
+    version bigint NOT NULL,
+    component bytea NOT NULL
+);
+
+ALTER TABLE public.workspace_user_key_components ADD CONSTRAINT pk_workspace_reencryption_history PRIMARY KEY (workspace_id, user_id, attribute);
+ALTER TABLE public.workspace_user_key_components ADD CONSTRAINT fk1_workspace_user_key_components FOREIGN KEY (user_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
+ALTER TABLE public.workspace_user_key_components ADD CONSTRAINT fk2_workspace_user_key_components FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
+
+
 
 --
 -- TABLE: item

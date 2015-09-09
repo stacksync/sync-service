@@ -128,6 +128,24 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 			workspace.setId(id);
 		}
 	}
+        
+        @Override
+	public void add(ABEWorkspace workspace) throws DAOException {
+		if (!workspace.isValid()) {
+			throw new IllegalArgumentException("Workspace attributes not set");
+		}
+
+		Object[] values = { workspace.getLatestRevision(), workspace.getOwner().getId(), workspace.isShared(), workspace.isEncrypted(),
+				workspace.isAbeEncrypted(), workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.getPublicKey()};
+
+		String query = "INSERT INTO workspace (latest_revision, owner_id, is_shared, is_encrypted, is_abe_encrypted, swift_container, swift_url, public_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+		UUID id = (UUID)executeUpdate(query, values);
+
+		if (id != null) {
+			workspace.setId(id);
+		}
+	}
 
 	@Override
 	public void update(User user, Workspace workspace) throws DAOException {
@@ -228,8 +246,8 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
 
                 ABEWorkspace abeWorkspace = (ABEWorkspace) workspace;
                 Object[] values = { workspace.getId(), user.getId(), workspace.getName(), parentItemId,
-                        abeWorkspace.getSecretKey(), abeWorkspace.getAccess_struct(), abeWorkspace.getPublicKey() };
-                String query = "INSERT INTO workspace_user (workspace_id, user_id, workspace_name, parent_item_id, secret_key, access_struc, public_key) VALUES (?::uuid, ?::uuid, ?, ?, ?, ?, ?)";
+                        abeWorkspace.getSecretKey(), abeWorkspace.getAccess_struct() };
+                String query = "INSERT INTO workspace_user (workspace_id, user_id, workspace_name, parent_item_id, secret_key, access_struc) VALUES (?::uuid, ?::uuid, ?, ?, ?, ?)";
                     executeUpdate(query, values);
 	}
 	
