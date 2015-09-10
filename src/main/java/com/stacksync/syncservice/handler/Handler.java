@@ -1,5 +1,8 @@
 package com.stacksync.syncservice.handler;
 
+import com.ast.cloudABE.kpabe.AttributeUpdate;
+import com.ast.cloudABE.kpabe.KPABESecretKey;
+import com.google.gson.Gson;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -44,6 +47,7 @@ import com.stacksync.syncservice.storage.StorageFactory;
 import com.stacksync.syncservice.storage.StorageManager;
 import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
+import java.util.Map;
 
 public class Handler {
 
@@ -144,10 +148,10 @@ public class Handler {
 
         public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted)
                 throws ShareProposalNotCreatedException, UserNotFoundException {
-            return doShareFolder(user, null, null, emails, item, isEncrypted, abeEncrypted);
+            return doShareFolder(user, null, null, emails, item, isEncrypted, abeEncrypted, null);
         }
                 
-	public Workspace doShareFolder(User user, byte[] publicKey, HashMap<String,HashMap<String,byte[]>> emailsKeys, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted)
+	public Workspace doShareFolder(User user, byte[] publicKey, HashMap<String,HashMap<String,byte[]>> emailsKeys, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted, Map<String,Integer> attributeUniverse)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
 
 		// Check the owner
@@ -242,7 +246,18 @@ public class Handler {
 			// Save the workspace to the DB
 			try {
 				if(workspace.isAbeEncrypted()){
+                                    
                                     workspaceDAO.add((ABEWorkspace)workspace);
+                                    workspaceDAO.addAttributeUniverse(workspace.getId(), attributeUniverse);
+                                    
+                                    ArrayList<AttributeUpdate> attributesVersions = new ArrayList<AttributeUpdate>();
+                                    
+                                    for(String attribute:attributeUniverse.keySet()){
+                                        attributesVersions.add(new AttributeUpdate(attribute, 1, null, null, null));
+                                    }
+                                    
+                                    workspaceDAO.addAttributeVersions(workspace.getId(), attributesVersions);
+                                    
                                 } else {
                                     workspaceDAO.add(workspace);
                                 }
@@ -287,6 +302,7 @@ public class Handler {
 			}
 		}
 
+                Gson gson = new Gson(); 
 		// Add the addressees to the workspace
 		for (User addressee : addressees) {
 			try {
@@ -294,6 +310,15 @@ public class Handler {
                                 ((ABEWorkspace)workspace).setAccess_struct(emailsKeys.get(addressee.getEmail()).get("access_struct"));
                                 ((ABEWorkspace)workspace).setSecretKey(emailsKeys.get(addressee.getEmail()).get("secret_key"));
                                 workspaceDAO.addUser(addressee, (ABEWorkspace)workspace);
+                               
+                                // First we create the secretKey from the workspace instance, but it lacks the access tree.
+                                KPABESecretKey secretKey = gson.fromJson(new String(emailsKeys.get(addressee.getEmail()).get("secret_key")),  KPABESecretKey.class);
+                                
+                                
+                                Map<String, Map<Long, byte[]>> attributeVersions;
+                                
+                                workspaceDAO.updateUserAttributes(workspace.getId(), addressee.getId(), null);
+                                
                             } else {
                                 workspaceDAO.addUser(addressee, workspace);
                             }

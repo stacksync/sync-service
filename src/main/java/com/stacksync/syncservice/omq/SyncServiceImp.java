@@ -164,7 +164,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
                 Workspace workspace;
                         
                 if(request.isAbeEncrypted()){
-                    workspace=getHandler().doShareFolder(user, request.getPublicKey(), request.getEmailsKeys(), request.getEmails(), item, request.isEncrypted(), request.isAbeEncrypted());
+                    workspace=getHandler().doShareFolder(user, request.getPublicKey(), request.getEmailsKeys(), request.getEmails(), item, request.isEncrypted(), request.isAbeEncrypted(), request.getAttributeUniverse());
                 } else{
                     workspace=getHandler().doShareFolder(user, request.getEmails(), item, request.isEncrypted(), request.isAbeEncrypted());
                 }

@@ -113,6 +113,16 @@ ALTER TABLE public.workspace_user ADD CONSTRAINT pk_workspace_user PRIMARY KEY (
 ALTER TABLE public.workspace_user ADD CONSTRAINT fk1_workspace_user FOREIGN KEY (user_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
 ALTER TABLE public.workspace_user ADD CONSTRAINT fk2_workspace_user FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
 
+CREATE TABLE public.workspace_attribute_universe (
+    workspace_id uuid NOT NULL,
+    attribute varchar(255) NOT NULL,
+    id bigint NOT NULL UNIQUE
+);
+
+ALTER TABLE public.workspace_attribute_universe ADD CONSTRAINT pk_workspace_attribute_universe PRIMARY KEY (workspace_id, attribute);
+ALTER TABLE public.workspace_attribute_universe ADD CONSTRAINT fk1_workspace_attribute_universe FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
+
+
 --
 -- TABLE: workspace_reencryption_key_history
 --
@@ -121,11 +131,12 @@ CREATE TABLE public.workspace_reencryption_key_history (
     workspace_id uuid NOT NULL,
     attribute varchar(255) NOT NULL,
     version bigint NOT NULL,
-    reencryption_key bytea NOT NULL
+    reencryption_key bytea
 );
 
 ALTER TABLE public.workspace_reencryption_key_history ADD CONSTRAINT pk_workspace_reencryption_history PRIMARY KEY (workspace_id, attribute, version);
-ALTER TABLE public.workspace_reencryption_key_history ADD CONSTRAINT fk1_workspace_reencryption_key_history FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
+ALTER TABLE public.workspace_reencryption_key_history ADD CONSTRAINT fk1_workspace_reencryption_key_history FOREIGN KEY (workspace_id, attribute) REFERENCES public.workspace_attribute_universe (workspace_id, attribute) ON DELETE CASCADE;
+
 --
 -- TABLE: workspace_reencryption_key_history
 --
@@ -138,11 +149,9 @@ CREATE TABLE public.workspace_user_key_components (
     component bytea NOT NULL
 );
 
-ALTER TABLE public.workspace_user_key_components ADD CONSTRAINT pk_workspace_reencryption_history PRIMARY KEY (workspace_id, user_id, attribute);
+ALTER TABLE public.workspace_user_key_components ADD CONSTRAINT pk_workspace_user_key_components PRIMARY KEY (workspace_id, user_id, attribute);
 ALTER TABLE public.workspace_user_key_components ADD CONSTRAINT fk1_workspace_user_key_components FOREIGN KEY (user_id) REFERENCES public.user1 (id) ON DELETE CASCADE;
-ALTER TABLE public.workspace_user_key_components ADD CONSTRAINT fk2_workspace_user_key_components FOREIGN KEY (workspace_id) REFERENCES public.workspace (id) ON DELETE CASCADE;
-
-
+ALTER TABLE public.workspace_user_key_components ADD CONSTRAINT fk2_workspace_user_key_components FOREIGN KEY (workspace_id, attribute) REFERENCES public.workspace_attribute_universe (workspace_id, attribute) ON DELETE CASCADE;
 
 --
 -- TABLE: item
