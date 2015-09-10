@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.db.postgresql;
 
 import com.ast.cloudABE.kpabe.AttributeUpdate;
+import com.ast.cloudABE.kpabe.AttributeUpdateForUser;
 import com.stacksync.commons.models.ABEWorkspace;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -345,14 +346,14 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
     }
 
     @Override
-    public void addAttributeUniverse(UUID workspaceId, Map<String, Integer> attributeUniverse) throws DAOException {
+    public void addAttributeUniverse(UUID workspaceId, Map<Integer,String> attributeUniverse) throws DAOException {
     
         String query;
         
-        for(String attribute:attributeUniverse.keySet()){
+        for(Integer attributeId:attributeUniverse.keySet()){
             
             query = "INSERT INTO workspace_attribute_universe (workspace_id, attribute, id) VALUES (?::uuid, ?, ?)";
-            executeUpdate(query, new Object[]{workspaceId, attribute, attributeUniverse.get(attribute)});
+            executeUpdate(query, new Object[]{workspaceId, attributeUniverse.get(attributeId), attributeId});
         }
 
         
@@ -366,27 +367,26 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
     }
 
     @Override
-    public void updateUserAttributes(UUID workspaceId, UUID userId, Map<String, Map<Long, byte[]>> attributeVersions) throws DAOException {
-        for(String attribute:attributeVersions.keySet()){
-            for(Long version:attributeVersions.get(attribute).keySet()){
-                
+    public void updateUserAttributes(UUID workspaceId, UUID userId, ArrayList<AttributeUpdateForUser> attributeVersions) throws DAOException {
+        for(AttributeUpdateForUser attribute:attributeVersions){
                 try {
                     ResultSet resultSet = null;
                     
-                    String query = "SELECT EXISTS (SELECT * FROM WHERE workspace_id=?::uuid AND user_id=?::uuid AND version=?)";
+                    String query = "SELECT EXISTS (SELECT * FROM workspace_user_key_components WHERE workspace_id=?::uuid AND user_id=?::uuid AND attribute like ?)";
                     
-                    resultSet = executeQuery(query, new Object[]{workspaceId, userId, version});
+                    resultSet = executeQuery(query, new Object[]{workspaceId, userId, attribute.getAttribute()});
+                    
+                    resultSet.next();
                     
                     if(resultSet.getBoolean(1)){
-                        updateUserAttribute(workspaceId,userId,attribute, version, attributeVersions.get(attribute).get(version));
+                        updateUserAttribute(workspaceId,userId,attribute.getAttribute(), attribute.getVersion(), attribute.getSk_ti());
                     } else {
-                        insertUserAttribute(workspaceId,userId,attribute, version, attributeVersions.get(attribute).get(version));
+                        insertUserAttribute(workspaceId,userId,attribute.getAttribute(), attribute.getVersion(), attribute.getSk_ti());
                     }
                     
                 } catch (SQLException ex) {
                     java.util.logging.Logger.getLogger(PostgresqlWorkspaceDAO.class.getName()).log(Level.SEVERE, null, ex);
                 }
-            }
         }
     }
 

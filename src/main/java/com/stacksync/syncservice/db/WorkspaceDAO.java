@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.db;
 
 import com.ast.cloudABE.kpabe.AttributeUpdate;
+import com.ast.cloudABE.kpabe.AttributeUpdateForUser;
 import com.stacksync.commons.models.ABEWorkspace;
 import java.util.List;
 import java.util.UUID;
@@ -40,8 +41,8 @@ public interface WorkspaceDAO {
         
         public void addAttributeVersions(UUID workspaceId, ArrayList<AttributeUpdate> attributeVersions) throws DAOException;
         
-        public void updateUserAttributes(UUID workspaceId, UUID userId, Map<String, Map<Long, byte[]>> secretKeyComponents) throws DAOException;
+        public void updateUserAttributes(UUID workspaceId, UUID userId, ArrayList<AttributeUpdateForUser> secretKeyComponents) throws DAOException;
     
-        public void addAttributeUniverse(UUID workspaceId, Map<String, Integer> attributeUniverse) throws DAOException;
+        public void addAttributeUniverse(UUID workspaceId, Map<Integer, String> attributeUniverse) throws DAOException;
 
 }

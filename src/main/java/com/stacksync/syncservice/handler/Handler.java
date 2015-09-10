@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.handler;
 
 import com.ast.cloudABE.kpabe.AttributeUpdate;
+import com.ast.cloudABE.kpabe.AttributeUpdateForUser;
 import com.ast.cloudABE.kpabe.KPABESecretKey;
 import com.google.gson.Gson;
 import java.sql.Connection;
@@ -15,6 +16,7 @@ import org.apache.log4j.Logger;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.models.ABEWorkspace;
+import com.stacksync.commons.models.Attribute;
 import com.stacksync.commons.models.abe.ABEItem;
 import com.stacksync.commons.models.abe.ABEItemMetadata;
 import com.stacksync.commons.models.Chunk;
@@ -151,7 +153,7 @@ public class Handler {
             return doShareFolder(user, null, null, emails, item, isEncrypted, abeEncrypted, null);
         }
                 
-	public Workspace doShareFolder(User user, byte[] publicKey, HashMap<String,HashMap<String,byte[]>> emailsKeys, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted, Map<String,Integer> attributeUniverse)
+	public Workspace doShareFolder(User user, byte[] publicKey, HashMap<String,HashMap<String,byte[]>> emailsKeys, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted, Map<Integer, String> attributeUniverse)
 			throws ShareProposalNotCreatedException, UserNotFoundException {
 
 		// Check the owner
@@ -252,8 +254,8 @@ public class Handler {
                                     
                                     ArrayList<AttributeUpdate> attributesVersions = new ArrayList<AttributeUpdate>();
                                     
-                                    for(String attribute:attributeUniverse.keySet()){
-                                        attributesVersions.add(new AttributeUpdate(attribute, 1, null, null, null));
+                                    for(Integer attributeId:attributeUniverse.keySet()){
+                                        attributesVersions.add(new AttributeUpdate(attributeUniverse.get(attributeId), 1, null, null, null));
                                     }
                                     
                                     workspaceDAO.addAttributeVersions(workspace.getId(), attributesVersions);
@@ -315,9 +317,13 @@ public class Handler {
                                 KPABESecretKey secretKey = gson.fromJson(new String(emailsKeys.get(addressee.getEmail()).get("secret_key")),  KPABESecretKey.class);
                                 
                                 
-                                Map<String, Map<Long, byte[]>> attributeVersions;
+                                ArrayList<AttributeUpdateForUser> attributeVersions = new ArrayList<AttributeUpdateForUser>();
                                 
-                                workspaceDAO.updateUserAttributes(workspace.getId(), addressee.getId(), null);
+                                for(Integer leaf:secretKey.getLeaf_keys().keySet()){
+                                    attributeVersions.add(new AttributeUpdateForUser(attributeUniverse.get(leaf), 1, secretKey.getLeaf_keys().get(leaf)));
+                                }
+                                
+                                workspaceDAO.updateUserAttributes(workspace.getId(), addressee.getId(), attributeVersions);
                                 
                             } else {
                                 workspaceDAO.addUser(addressee, workspace);

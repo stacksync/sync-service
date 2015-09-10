@@ -35,7 +35,7 @@ public interface SyncHandler {
 
 	public List<Workspace> doGetWorkspaces(User user) throws NoWorkspacesFoundException;
 
-        public Workspace doShareFolder(User user, byte[] publicKey, HashMap<String,HashMap<String,byte[]>> emailsKeys, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted, Map<String,Integer> attributeUniverse)
+        public Workspace doShareFolder(User user, byte[] publicKey, HashMap<String,HashMap<String,byte[]>> emailsKeys, List<String> emails, Item item, boolean isEncrypted, boolean abeEncrypted, Map<Integer,String> attributeUniverse)
 	throws ShareProposalNotCreatedException, UserNotFoundException;
 
         public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted, boolean abeEncryption)
