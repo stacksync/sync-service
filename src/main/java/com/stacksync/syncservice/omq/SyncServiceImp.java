@@ -38,6 +38,7 @@ import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.requests.ShareProposalRequest;
+import com.stacksync.commons.requests.RevokeProposalRequest;
 import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.handler.SyncHandler;
@@ -264,5 +265,16 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
                 return null;
             }
         }
+
+    @Override
+    public void createRevokeProposal(RevokeProposalRequest request) throws UserNotFoundException {
+        
+            try {
+                getHandler().doRevokeFolder(new User(request.getUserId()), request.getWorkspaceId(), request.getRevokeMessages());
+            } catch (Exception ex) {
+                java.util.logging.Logger.getLogger(SyncServiceImp.class.getName()).log(Level.SEVERE, null, ex);
+            }
+                
+    }
         
 }

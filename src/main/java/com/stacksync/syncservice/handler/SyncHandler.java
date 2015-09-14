@@ -7,13 +7,14 @@ import java.util.UUID;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.commons.models.Device;
 import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.User;
+import com.ast.cloudABE.kpabe.RevokeMessage;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.commons.exceptions.DeviceNotUpdatedException;
 import com.stacksync.commons.exceptions.DeviceNotValidException;
 import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
+import com.stacksync.commons.exceptions.UnshareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.commons.models.SyncMetadata;
@@ -41,6 +42,9 @@ public interface SyncHandler {
         public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted, boolean abeEncryption)
 			throws ShareProposalNotCreatedException, UserNotFoundException;
 
+        public Workspace doRevokeFolder(User user, UUID workspace, List<RevokeMessage> revokeMessages)
+			throws UnshareProposalNotCreatedException, UserNotFoundException;
+            
 	public void doUpdateWorkspace(User user, Workspace workspace) throws UserNotFoundException,
 			WorkspaceNotUpdatedException;
 
@@ -49,5 +53,4 @@ public interface SyncHandler {
         public List<UserWorkspace> doGetWorkspaceMembers(User user, Workspace workspace) throws InternalServerError;
         
 	public Connection getConnection();
-
 }
