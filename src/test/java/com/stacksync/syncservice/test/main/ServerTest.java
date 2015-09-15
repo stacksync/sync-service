@@ -21,7 +21,7 @@ public class ServerTest {
 				
 				@Override
 				public String[] getArguments() {
-					return new String[]{"/home/marcruiz/NetBeansProjects/sync-service/config.properties"};
+					return new String[]{"/home/marcruiz/NetBeansProjects/sync-service/config.properties", "/home/marcruiz/NetBeansProjects/sync-service/a_160_512.param"};
 				}
 			};
 			

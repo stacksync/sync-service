@@ -11,6 +11,9 @@ import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 public interface WorkspaceDAO {
@@ -41,8 +44,23 @@ public interface WorkspaceDAO {
         
         public void addAttributeVersions(UUID workspaceId, ArrayList<AttributeUpdate> attributeVersions) throws DAOException;
         
-        public void updateUserAttributes(UUID workspaceId, UUID userId, ArrayList<AttributeUpdateForUser> secretKeyComponents) throws DAOException;
+        public HashMap<String,LinkedList<AttributeUpdate>> getAttributeVersions(UUID workspaceId) throws DAOException;
+        
+        public void updateUserAttributes(UUID workspaceId, UUID userId, Collection<AttributeUpdateForUser> secretKeyComponents) throws DAOException;
     
+        public HashMap<String,AttributeUpdateForUser> getUserAttributes(UUID workspaceId, UUID userId) throws DAOException;
+                
+        public void deleteUserAttributes(UUID workspaceId, UUID userId, ArrayList<String> attributes) throws DAOException;
+                
         public void addAttributeUniverse(UUID workspaceId, Map<Integer, String> attributeUniverse) throws DAOException;
 
+        public Map<String, Integer> getAttributeUniverse(UUID workspaceId) throws DAOException;
+        
+        public void updateWorkspacePublicKey(UUID workspace, byte[] publicKey) throws DAOException;
+        
+        public void updateWorkspaceUserSecretKey(UUID workspaceId, UUID userId, byte[] secretKey) throws DAOException;
+        
+        public byte[] getWorkspaceUserSecretKey(UUID workspaceId, UUID userId) throws DAOException;
+                
+                
 }

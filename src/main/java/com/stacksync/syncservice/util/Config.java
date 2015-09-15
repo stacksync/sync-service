@@ -16,7 +16,17 @@ public class Config {
 	private static final Logger logger = Logger.getLogger(Config.class.getName());
 	private static final String[] PASSWORD_KEYS = new String[]{Constants.PROP_OMQ_PASSWORD, 
 		Constants.PROP_POSTGRESQL_PASSWORD, Constants.PROP_SWIFT_PASSWORD}; 
+        
+        private static String curvePath = null;
 
+        public static String getCurvePath(){
+            return curvePath;
+        }
+        
+        public static void setCurvePath(String path){
+            curvePath = path;
+        }
+        
 	public static void loadProperties() throws IOException {
 		logger.warn(String.format("Config argument not passed, will use default config file: '%s'",
 				Constants.DEFAULT_CONFIG_FILE));

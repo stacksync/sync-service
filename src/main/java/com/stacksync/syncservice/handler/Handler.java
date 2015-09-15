@@ -2,8 +2,11 @@ package com.stacksync.syncservice.handler;
 
 import com.ast.cloudABE.kpabe.AttributeUpdate;
 import com.ast.cloudABE.kpabe.AttributeUpdateForUser;
+import com.ast.cloudABE.kpabe.KPABE;
 import com.ast.cloudABE.kpabe.KPABESecretKey;
 import com.ast.cloudABE.kpabe.RevokeMessage;
+import com.ast.cloudABE.kpabe.RevokeMessage.RevokeComponent;
+import com.ast.cloudABE.kpabe.SystemKey;
 import com.google.gson.Gson;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -50,6 +53,7 @@ import com.stacksync.syncservice.storage.StorageFactory;
 import com.stacksync.syncservice.storage.StorageManager;
 import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
+import java.util.LinkedList;
 import java.util.Map;
 
 public class Handler {
@@ -257,7 +261,7 @@ public class Handler {
                     ArrayList<AttributeUpdate> attributesVersions = new ArrayList<AttributeUpdate>();
 
                     for (Integer attributeId : attributeUniverse.keySet()) {
-                        attributesVersions.add(new AttributeUpdate(attributeUniverse.get(attributeId), 1, null, null, null));
+                        attributesVersions.add(new AttributeUpdate(attributeUniverse.get(attributeId), 1, null));
                     }
 
                     workspaceDAO.addAttributeVersions(workspace.getId(), attributesVersions);
@@ -349,7 +353,7 @@ public class Handler {
     }
 
     public Workspace doRevokeFolder(User user, UUID workspaceId, List<RevokeMessage> revokeMessages)
-            throws UserNotFoundException, UnshareProposalNotCreatedException {
+            throws UserNotFoundException, UnshareProposalNotCreatedException, DAOException {
         
         // Check the owner
         try {
@@ -384,6 +388,7 @@ public class Handler {
             User addressee;
             try {
                 addressee = userDao.getByEmail(revokeMessage.getUser_id());
+                revokeMessage.setUser_id(addressee.getId().toString());
                 if (!addressee.getId().equals(user.getId())) {
                     addressees.add(addressee);
                 }
@@ -399,6 +404,26 @@ public class Handler {
         if (addressees.isEmpty()) {
             throw new UnshareProposalNotCreatedException("No addressees found");
         }
+               
+        Gson gson = new Gson();
+        SystemKey publicKey = gson.fromJson(new String(((ABEWorkspace) sourceWorkspace).getPublicKey()), SystemKey.class);
+        ArrayList<AttributeUpdate> attributeVersions = new ArrayList<AttributeUpdate>();
+        //Deleting user attributes for each revocation and updating workspace information
+        for (RevokeMessage revokeMessage:revokeMessages){
+            workspaceDAO.deleteUserAttributes(sourceWorkspace.getId(), UUID.fromString(revokeMessage.getUser_id()), revokeMessage.getMinimal_set());
+                    
+            for(RevokeComponent component:revokeMessage.getPkComponents().values()){
+                publicKey.getAttribute_map().put(component.getName(), component.getPk_ti());
+                //component.getVersion()-1 as the reencryption key corresponds to the previous version in order to get the new one
+                attributeVersions.add(new AttributeUpdate(component.getName(), component.getVersion()-1, component.getRe_key()));
+            }
+
+        }
+        
+        ((ABEWorkspace) sourceWorkspace).setPublicKey(gson.toJson(publicKey).getBytes());
+        workspaceDAO.addAttributeVersions(workspaceId, attributeVersions);
+        workspaceDAO.updateWorkspacePublicKey(workspaceId, ((ABEWorkspace) sourceWorkspace).getPublicKey());
+        
         
         // get workspace members
         List<UserWorkspace> workspaceMembers;
@@ -407,8 +432,42 @@ public class Handler {
         } catch (InternalServerError e1) {
             throw new UnshareProposalNotCreatedException(e1.toString());
         }
+ 
+        HashMap<String,LinkedList<AttributeUpdate>> getAttributeVersions = workspaceDAO.getAttributeVersions(workspaceId);
+        Map<String,Integer> attributeUniverse = workspaceDAO.getAttributeUniverse(workspaceId);
         
-        return null;
+        KPABE kpabe = new KPABE (Config.getCurvePath());
+        
+        for(UserWorkspace workspaceMember:workspaceMembers){
+                        
+            HashMap<String,AttributeUpdateForUser> userAttributes = workspaceDAO.getUserAttributes(workspaceId, workspaceMember.getUser().getId());
+            
+            for(RevokeMessage revokeMessage:revokeMessages){
+                for(RevokeComponent component:revokeMessage.getPkComponents().values()){
+                    byte[] updatedSk = kpabe.updateSK(userAttributes.get(component.getName()).getVersion(), userAttributes.get(component.getName()).getSk_ti(), getAttributeVersions.get(component.getName()));
+                    
+                    //component.getName()).size()+1 as there isn't a reencryption key for the newest version.
+                    userAttributes.put(component.getName(), new AttributeUpdateForUser(component.getName(),getAttributeVersions.get(component.getName()).size()+1,updatedSk));
+                }
+            }
+            
+            workspaceDAO.updateUserAttributes(workspaceId, workspaceMember.getUser().getId(), userAttributes.values());
+            
+            byte[] secretKeyBytes = workspaceDAO.getWorkspaceUserSecretKey(workspaceId, workspaceMember.getUser().getId());
+            
+            KPABESecretKey secretKey = gson.fromJson(new String(secretKeyBytes), KPABESecretKey.class);
+            
+            for(AttributeUpdateForUser updateForUser:userAttributes.values()){
+                secretKey.getLeaf_keys().put(attributeUniverse.get(updateForUser.getAttribute()), updateForUser.getSk_ti());
+            }
+            
+            secretKeyBytes = gson.toJson(secretKey).getBytes();
+            
+            workspaceDAO.updateWorkspaceUserSecretKey(workspaceId, workspaceMember.getUser().getId(), secretKeyBytes);
+            
+        }
+        
+        return sourceWorkspace;
         
     }
 

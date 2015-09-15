@@ -58,6 +58,7 @@ public class SyncServiceDaemon implements Daemon {
 			}
 			
 			String configPath = argv[0];
+                        String curvePath = argv[1];
 
 			File file = new File(configPath);
 			if (!file.exists()) {
@@ -66,6 +67,8 @@ public class SyncServiceDaemon implements Daemon {
 			}
 
 			Config.loadProperties(configPath);
+                        Config.setCurvePath(curvePath);
+                        
 
 		} catch (IOException e) {
 			logger.error("Could not load properties file.", e);

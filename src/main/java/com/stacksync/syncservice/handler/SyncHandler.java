@@ -43,7 +43,7 @@ public interface SyncHandler {
 			throws ShareProposalNotCreatedException, UserNotFoundException;
 
         public Workspace doRevokeFolder(User user, UUID workspace, List<RevokeMessage> revokeMessages)
-			throws UnshareProposalNotCreatedException, UserNotFoundException;
+			throws UnshareProposalNotCreatedException, UserNotFoundException, DAOException;
             
 	public void doUpdateWorkspace(User user, Workspace workspace) throws UserNotFoundException,
 			WorkspaceNotUpdatedException;

@@ -21,7 +21,10 @@ import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.WorkspaceDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
+import java.util.Collection;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.logging.Level;
 
 public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDAO {
@@ -360,14 +363,65 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
     }
     
     @Override
+    public Map<String, Integer> getAttributeUniverse(UUID workspaceId) throws DAOException {
+    
+        String query = "SELECT * FROM workspace_attribute_universe WHERE workspace_id = ?::uuid";
+        
+        ResultSet resultSet = executeQuery(query, new Object[]{workspaceId});
+
+        Map<String,Integer> attributeUniverse = new HashMap<String,Integer>();
+        
+        try {
+            
+            while (resultSet.next()) {
+                attributeUniverse.put(resultSet.getString("attribute"), resultSet.getInt("id"));
+            }
+            
+        } catch (SQLException ex) {
+            java.util.logging.Logger.getLogger(PostgresqlWorkspaceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return attributeUniverse;
+        
+    }
+    
+    @Override
     public void addAttributeVersions(UUID workspaceId, ArrayList<AttributeUpdate> attributeVersions) throws DAOException {
         for(AttributeUpdate attribute:attributeVersions){
             insertNewAttributeVersion(workspaceId, attribute.getAttribute(), attribute.getVersion(), attribute.getReencryptionKey());
         }
     }
+    
+    @Override
+    public HashMap<String,LinkedList<AttributeUpdate>> getAttributeVersions(UUID workspaceId) throws DAOException {
+        
+        String query = "SELECT * FROM workspace_reencryption_key_history WHERE workspace_id = ?::uuid ORDER BY attribute ASC, version ASC";
+        
+        ResultSet resultSet = executeQuery(query, new Object[]{workspaceId});
+
+        HashMap<String,LinkedList<AttributeUpdate>> attributeVersions = new HashMap<String,LinkedList<AttributeUpdate>>();
+        
+        try {
+            
+            while (resultSet.next()) {
+                
+                if(attributeVersions.get(resultSet.getString("attribute")) == null){
+                    attributeVersions.put(resultSet.getString("attribute"), new LinkedList<AttributeUpdate>());
+                }
+                
+                attributeVersions.get(resultSet.getString("attribute")).add(new AttributeUpdate(resultSet.getString("attribute"),resultSet.getLong("version"),resultSet.getBytes("reencryption_key")));
+            }
+            
+        } catch (SQLException ex) {
+            java.util.logging.Logger.getLogger(PostgresqlWorkspaceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return attributeVersions;
+      
+    }
 
     @Override
-    public void updateUserAttributes(UUID workspaceId, UUID userId, ArrayList<AttributeUpdateForUser> attributeVersions) throws DAOException {
+    public void updateUserAttributes(UUID workspaceId, UUID userId, Collection<AttributeUpdateForUser> attributeVersions) throws DAOException {
         for(AttributeUpdateForUser attribute:attributeVersions){
                 try {
                     ResultSet resultSet = null;
@@ -389,5 +443,77 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
                 }
         }
     }
+    
+    @Override
+    public void deleteUserAttributes(UUID workspaceId, UUID userId, ArrayList<String> attributes) throws DAOException {
+        
+        String query;
+        
+        for(String attribute:attributes){
+            query = "DELETE FROM workspace_user_key_components WHERE workspace_id = ?:uuid AND user_id = ?:uuid AND attribute = ?";
+            executeUpdate(query, new Object[]{workspaceId, userId, attribute});
+        }
+        
+    }
+    
+    @Override
+    public HashMap<String,AttributeUpdateForUser> getUserAttributes(UUID workspaceId, UUID userId) throws DAOException {
 
+        String query = "SELECT * workspace_user_key_components WHERE workspace_id = ?::uuid AND user_id = ?::uuid";
+        
+        ResultSet resultSet = executeQuery(query, new Object[]{workspaceId, userId});
+        
+        HashMap<String,AttributeUpdateForUser> userAttributes = new HashMap<String,AttributeUpdateForUser>();
+        
+        try {
+            
+            while (resultSet.next()) {
+                userAttributes.put(resultSet.getString("attribute"), new AttributeUpdateForUser(resultSet.getString("attribute"),resultSet.getLong("version"), resultSet.getBytes("reencryption_key")));
+            }
+            
+        } catch (SQLException ex) {
+            java.util.logging.Logger.getLogger(PostgresqlWorkspaceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+               
+        return userAttributes;
+    }
+
+    @Override
+    public void updateWorkspacePublicKey(UUID workspaceId, byte[] publicKey) throws DAOException {
+        
+         String query = "UPDATE workspace " + " SET public_key = ? "
+                + " WHERE workspace_id = ?::uuid ";
+
+        executeUpdate(query, new Object[]{publicKey, workspaceId});
+    }
+    
+    @Override
+    public void updateWorkspaceUserSecretKey(UUID workspaceId, UUID userId, byte[] secretKey) throws DAOException {
+        
+         String query = "UPDATE workspace_user " + " SET secret_key = ? "
+                + " WHERE workspace_id = ?::uuid AND user_id = ?::uuid";
+
+        executeUpdate(query, new Object[]{secretKey, workspaceId, userId});
+    }
+    
+    @Override
+    public byte[] getWorkspaceUserSecretKey(UUID workspaceId, UUID userId) throws DAOException{
+        
+        String query = "SELECT secret_key FROM workspace_user WHERE workspace_id = ?::uuid AND user_id = ?::uuid";
+
+        ResultSet resultSet = executeQuery(query, new Object[]{workspaceId, userId});
+        
+        try {
+            
+            resultSet.next();
+            return resultSet.getBytes("secret_key");
+            
+        } catch (SQLException ex) {
+            java.util.logging.Logger.getLogger(PostgresqlWorkspaceDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return null;
+    }
+    
+    
 }
