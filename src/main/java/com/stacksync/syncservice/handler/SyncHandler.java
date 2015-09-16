@@ -14,11 +14,12 @@ import com.stacksync.commons.exceptions.DeviceNotUpdatedException;
 import com.stacksync.commons.exceptions.DeviceNotValidException;
 import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
-import com.stacksync.commons.exceptions.UnshareProposalNotCreatedException;
+import com.stacksync.commons.exceptions.RevokeProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.commons.models.UserWorkspace;
+import com.stacksync.commons.notifications.RevokeNotification;
 import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import java.util.HashMap;
@@ -42,8 +43,8 @@ public interface SyncHandler {
         public Workspace doShareFolder(User user, List<String> emails, Item item, boolean isEncrypted, boolean abeEncryption)
 			throws ShareProposalNotCreatedException, UserNotFoundException;
 
-        public Workspace doRevokeFolder(User user, UUID workspace, List<RevokeMessage> revokeMessages)
-			throws UnshareProposalNotCreatedException, UserNotFoundException, DAOException;
+        public Map<UUID,RevokeNotification> doRevokeFolder(User user, UUID workspace, List<RevokeMessage> revokeMessages)
+			throws RevokeProposalNotCreatedException, UserNotFoundException, DAOException;
             
 	public void doUpdateWorkspace(User user, Workspace workspace) throws UserNotFoundException,
 			WorkspaceNotUpdatedException;

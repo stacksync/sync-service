@@ -18,7 +18,7 @@ import java.util.UUID;
 import org.apache.log4j.Logger;
 
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
-import com.stacksync.commons.exceptions.UnshareProposalNotCreatedException;
+import com.stacksync.commons.exceptions.RevokeProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.models.ABEWorkspace;
 import com.stacksync.commons.models.abe.ABEItem;
@@ -33,6 +33,7 @@ import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.commons.models.User;
 import com.stacksync.commons.models.UserWorkspace;
 import com.stacksync.commons.models.Workspace;
+import com.stacksync.commons.notifications.RevokeNotification;
 import com.stacksync.syncservice.db.ABEItemDAO;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOFactory;
@@ -352,8 +353,8 @@ public class Handler {
         return workspace;
     }
 
-    public Workspace doRevokeFolder(User user, UUID workspaceId, List<RevokeMessage> revokeMessages)
-            throws UserNotFoundException, UnshareProposalNotCreatedException, DAOException {
+    public Map<UUID,RevokeNotification> doRevokeFolder(User user, UUID workspaceId, List<RevokeMessage> revokeMessages)
+            throws UserNotFoundException, RevokeProposalNotCreatedException, DAOException {
         
         // Check the owner
         try {
@@ -363,7 +364,7 @@ public class Handler {
             throw new UserNotFoundException(e);
         } catch (DAOException e) {
             logger.error(e);
-            throw new UnshareProposalNotCreatedException(e);
+            throw new RevokeProposalNotCreatedException(e);
         }
         
          // Get the source workspace
@@ -372,13 +373,13 @@ public class Handler {
             sourceWorkspace = workspaceDAO.getById(workspaceId);
         } catch (DAOException e) {
             logger.error(e);
-            throw new UnshareProposalNotCreatedException(e);
+            throw new RevokeProposalNotCreatedException(e);
         }
         if (sourceWorkspace == null) {
-            throw new UnshareProposalNotCreatedException("Workspace not found.");
+            throw new RevokeProposalNotCreatedException("Workspace not found.");
         }
         if (!sourceWorkspace.isShared()) {
-            throw new UnshareProposalNotCreatedException("This workspace is not shared.");
+            throw new RevokeProposalNotCreatedException("This workspace is not shared.");
         }
         
         
@@ -395,14 +396,14 @@ public class Handler {
 
             } catch (IllegalArgumentException e) {
                 logger.error(e);
-                throw new UnshareProposalNotCreatedException(e);
+                throw new RevokeProposalNotCreatedException(e);
             } catch (DAOException e) {
                 logger.warn(String.format("Email '%s' does not correspond with any user. ", revokeMessage.getUser_id()), e);
             }
         }
 
         if (addressees.isEmpty()) {
-            throw new UnshareProposalNotCreatedException("No addressees found");
+            throw new RevokeProposalNotCreatedException("No addressees found");
         }
                
         Gson gson = new Gson();
@@ -430,11 +431,12 @@ public class Handler {
         try {
             workspaceMembers = doGetWorkspaceMembers(user, sourceWorkspace);
         } catch (InternalServerError e1) {
-            throw new UnshareProposalNotCreatedException(e1.toString());
+            throw new RevokeProposalNotCreatedException(e1.toString());
         }
  
         HashMap<String,LinkedList<AttributeUpdate>> getAttributeVersions = workspaceDAO.getAttributeVersions(workspaceId);
         Map<String,Integer> attributeUniverse = workspaceDAO.getAttributeUniverse(workspaceId);
+        Map<UUID,RevokeNotification> usersNotifications = new HashMap<UUID,RevokeNotification>();
         
         KPABE kpabe = new KPABE (Config.getCurvePath());
         
@@ -463,11 +465,13 @@ public class Handler {
             
             secretKeyBytes = gson.toJson(secretKey).getBytes();
             
+            usersNotifications.put(workspaceMember.getUser().getId(), new RevokeNotification(workspaceId, ((ABEWorkspace)sourceWorkspace).getPublicKey(), secretKeyBytes));
+            
             workspaceDAO.updateWorkspaceUserSecretKey(workspaceId, workspaceMember.getUser().getId(), secretKeyBytes);
             
         }
         
-        return sourceWorkspace;
+        return usersNotifications;
         
     }
 

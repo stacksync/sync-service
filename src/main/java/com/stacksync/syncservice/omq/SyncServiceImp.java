@@ -32,17 +32,21 @@ import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.commons.exceptions.DeviceNotUpdatedException;
 import com.stacksync.commons.exceptions.DeviceNotValidException;
 import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
+import com.stacksync.commons.exceptions.RevokeProposalNotCreatedException;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.commons.models.UserWorkspace;
+import com.stacksync.commons.notifications.RevokeNotification;
 import com.stacksync.commons.requests.ShareProposalRequest;
 import com.stacksync.commons.requests.RevokeProposalRequest;
 import com.stacksync.syncservice.exceptions.InternalServerError;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.handler.SyncHandler;
 import com.stacksync.syncservice.util.Config;
+import java.util.Map;
 import java.util.logging.Level;
 
 public class SyncServiceImp extends RemoteObject implements ISyncService {
@@ -269,12 +273,29 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
     @Override
     public void createRevokeProposal(RevokeProposalRequest request) throws UserNotFoundException {
         
+            Map<UUID,RevokeNotification> usersNotifications=null;
+            
             try {
-                getHandler().doRevokeFolder(new User(request.getUserId()), request.getWorkspaceId(), request.getRevokeMessages());
-            } catch (Exception ex) {
+                usersNotifications = getHandler().doRevokeFolder(new User(request.getUserId()), request.getWorkspaceId(), request.getRevokeMessages());
+            } catch (RevokeProposalNotCreatedException ex) {
+                java.util.logging.Logger.getLogger(SyncServiceImp.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (UserNotFoundException ex) {
+                java.util.logging.Logger.getLogger(SyncServiceImp.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (DAOException ex) {
                 java.util.logging.Logger.getLogger(SyncServiceImp.class.getName()).log(Level.SEVERE, null, ex);
             }
-                
+             
+            RemoteClient client;
+            
+            // Send notifications to users
+            for (UUID userId:usersNotifications.keySet()) {
+                    try {
+                            client = broker.lookupMulti(userId.toString(), RemoteClient.class);
+                            client.notifyRevokation(usersNotifications.get(userId));
+                    } catch (RemoteException e) {
+                            logger.error(String.format("Could not notify user: '%s'", userId), e);
+                    }
+            }
     }
         
 }
