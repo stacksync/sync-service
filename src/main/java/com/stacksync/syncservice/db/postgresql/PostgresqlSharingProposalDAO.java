@@ -52,7 +52,7 @@ public class PostgresqlSharingProposalDAO extends PostgresqlDAO implements Shari
 		String query = "SELECT * FROM cloudspaces_sharing_proposal WHERE key = ?";
 
 		try {
-			resultSet = executeQuery(query, new Object[]{key});
+			resultSet = executeQuery(query, new Object[]{key.toString()});
 
 			if (resultSet.next()) {
 				sharingProposal = DAOUtil.getSharingProposalFromResultSet(resultSet);

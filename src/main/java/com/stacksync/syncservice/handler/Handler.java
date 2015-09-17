@@ -255,11 +255,14 @@ public class Handler {
 		Item item;
 
 		try {
+                    logger.info("Adding an external user with proposal key: "+proposal.getKey());
 			proposal = sharingProposalDao.findByKey(proposal.getKey());
+                    logger.info("Proposal found!");
+                    logger.info("Find item by id: "+ proposal.getFolder());
 			item = itemDao.findById(proposal.getFolder());
-
+                    logger.info("Item found!");
 		} catch (DAOException e) {
-			logger.error(e);
+			logger.error("Error finding proposal by key or item by id!: " + e);
 			throw new ShareProposalNotCreatedException(e);
 		} catch (NullPointerException e) {
 			logger.error(e);
