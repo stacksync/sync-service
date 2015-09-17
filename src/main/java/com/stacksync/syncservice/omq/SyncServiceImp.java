@@ -279,8 +279,6 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
                 usersNotifications = getHandler().doRevokeFolder(new User(request.getUserId()), request.getWorkspaceId(), request.getRevokeMessages());
             } catch (RevokeProposalNotCreatedException ex) {
                 java.util.logging.Logger.getLogger(SyncServiceImp.class.getName()).log(Level.SEVERE, null, ex);
-            } catch (UserNotFoundException ex) {
-                java.util.logging.Logger.getLogger(SyncServiceImp.class.getName()).log(Level.SEVERE, null, ex);
             } catch (DAOException ex) {
                 java.util.logging.Logger.getLogger(SyncServiceImp.class.getName()).log(Level.SEVERE, null, ex);
             }

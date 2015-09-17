@@ -450,7 +450,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
         String query;
         
         for(String attribute:attributes){
-            query = "DELETE FROM workspace_user_key_components WHERE workspace_id = ?:uuid AND user_id = ?:uuid AND attribute = ?";
+            query = "DELETE FROM workspace_user_key_components WHERE workspace_id = ?::uuid AND user_id = ?::uuid AND attribute = ?";
             executeUpdate(query, new Object[]{workspaceId, userId, attribute});
         }
         
@@ -459,7 +459,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
     @Override
     public HashMap<String,AttributeUpdateForUser> getUserAttributes(UUID workspaceId, UUID userId) throws DAOException {
 
-        String query = "SELECT * workspace_user_key_components WHERE workspace_id = ?::uuid AND user_id = ?::uuid";
+        String query = "SELECT * FROM workspace_user_key_components WHERE workspace_id = ?::uuid AND user_id = ?::uuid";
         
         ResultSet resultSet = executeQuery(query, new Object[]{workspaceId, userId});
         
@@ -468,7 +468,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
         try {
             
             while (resultSet.next()) {
-                userAttributes.put(resultSet.getString("attribute"), new AttributeUpdateForUser(resultSet.getString("attribute"),resultSet.getLong("version"), resultSet.getBytes("reencryption_key")));
+                userAttributes.put(resultSet.getString("attribute"), new AttributeUpdateForUser(resultSet.getString("attribute"),resultSet.getLong("version"), resultSet.getBytes("component")));
             }
             
         } catch (SQLException ex) {
@@ -482,7 +482,7 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
     public void updateWorkspacePublicKey(UUID workspaceId, byte[] publicKey) throws DAOException {
         
          String query = "UPDATE workspace " + " SET public_key = ? "
-                + " WHERE workspace_id = ?::uuid ";
+                + " WHERE id = ?::uuid ";
 
         executeUpdate(query, new Object[]{publicKey, workspaceId});
     }
@@ -505,8 +505,11 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
         
         try {
             
-            resultSet.next();
-            return resultSet.getBytes("secret_key");
+            if(resultSet.next()){
+                byte[] secretKey = resultSet.getBytes("secret_key");
+                return secretKey;
+            }
+
             
         } catch (SQLException ex) {
             java.util.logging.Logger.getLogger(PostgresqlWorkspaceDAO.class.getName()).log(Level.SEVERE, null, ex);

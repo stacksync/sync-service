@@ -48,6 +48,7 @@ import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
+import com.stacksync.syncservice.exceptions.dao.NoRowsAffectedDAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.exceptions.storage.ObjectNotFoundException;
 import com.stacksync.syncservice.storage.StorageFactory;
@@ -259,13 +260,16 @@ public class Handler {
                     workspaceDAO.add((ABEWorkspace) workspace);
                     workspaceDAO.addAttributeUniverse(workspace.getId(), attributeUniverse);
 
+                    /* Not necessary
+                    
                     ArrayList<AttributeUpdate> attributesVersions = new ArrayList<AttributeUpdate>();
 
                     for (Integer attributeId : attributeUniverse.keySet()) {
                         attributesVersions.add(new AttributeUpdate(attributeUniverse.get(attributeId), 1, null));
                     }
-
+                    
                     workspaceDAO.addAttributeVersions(workspace.getId(), attributesVersions);
+                    */
 
                 } else {
                     workspaceDAO.add(workspace);
@@ -410,9 +414,15 @@ public class Handler {
         SystemKey publicKey = gson.fromJson(new String(((ABEWorkspace) sourceWorkspace).getPublicKey()), SystemKey.class);
         ArrayList<AttributeUpdate> attributeVersions = new ArrayList<AttributeUpdate>();
         //Deleting user attributes for each revocation and updating workspace information
+        
         for (RevokeMessage revokeMessage:revokeMessages){
-            workspaceDAO.deleteUserAttributes(sourceWorkspace.getId(), UUID.fromString(revokeMessage.getUser_id()), revokeMessage.getMinimal_set());
-                    
+            try{
+                workspaceDAO.deleteUserAttributes(sourceWorkspace.getId(), UUID.fromString(revokeMessage.getUser_id()), revokeMessage.getMinimal_set());
+                   
+            } catch (NoRowsAffectedDAOException e){
+                
+            }
+ 
             for(RevokeComponent component:revokeMessage.getPkComponents().values()){
                 publicKey.getAttribute_map().put(component.getName(), component.getPk_ti());
                 //component.getVersion()-1 as the reencryption key corresponds to the previous version in order to get the new one
@@ -420,11 +430,10 @@ public class Handler {
             }
 
         }
-        
+                
         ((ABEWorkspace) sourceWorkspace).setPublicKey(gson.toJson(publicKey).getBytes());
         workspaceDAO.addAttributeVersions(workspaceId, attributeVersions);
         workspaceDAO.updateWorkspacePublicKey(workspaceId, ((ABEWorkspace) sourceWorkspace).getPublicKey());
-        
         
         // get workspace members
         List<UserWorkspace> workspaceMembers;
@@ -441,34 +450,37 @@ public class Handler {
         KPABE kpabe = new KPABE (Config.getCurvePath());
         
         for(UserWorkspace workspaceMember:workspaceMembers){
-                        
-            HashMap<String,AttributeUpdateForUser> userAttributes = workspaceDAO.getUserAttributes(workspaceId, workspaceMember.getUser().getId());
-            
-            for(RevokeMessage revokeMessage:revokeMessages){
-                for(RevokeComponent component:revokeMessage.getPkComponents().values()){
-                    byte[] updatedSk = kpabe.updateSK(userAttributes.get(component.getName()).getVersion(), userAttributes.get(component.getName()).getSk_ti(), getAttributeVersions.get(component.getName()));
-                    
-                    //component.getName()).size()+1 as there isn't a reencryption key for the newest version.
-                    userAttributes.put(component.getName(), new AttributeUpdateForUser(component.getName(),getAttributeVersions.get(component.getName()).size()+1,updatedSk));
+                if(!workspaceMember.getUser().getId().equals(user.getId())){
+                    HashMap<String,AttributeUpdateForUser> userAttributes = workspaceDAO.getUserAttributes(workspaceId, workspaceMember.getUser().getId());
+
+                for(RevokeMessage revokeMessage:revokeMessages){
+                    for(RevokeComponent component:revokeMessage.getPkComponents().values()){
+                        if(userAttributes.get(component.getName())!=null){
+                            byte[] updatedSk = kpabe.updateSK(userAttributes.get(component.getName()).getVersion(), userAttributes.get(component.getName()).getSk_ti(), getAttributeVersions.get(component.getName()));
+
+                            //component.getName()).size()+1 as there isn't a reencryption key for the newest version.
+                            userAttributes.put(component.getName(), new AttributeUpdateForUser(component.getName(),getAttributeVersions.get(component.getName()).size()+1,updatedSk));
+
+                        }
+                     }
                 }
-            }
-            
-            workspaceDAO.updateUserAttributes(workspaceId, workspaceMember.getUser().getId(), userAttributes.values());
-            
-            byte[] secretKeyBytes = workspaceDAO.getWorkspaceUserSecretKey(workspaceId, workspaceMember.getUser().getId());
-            
-            KPABESecretKey secretKey = gson.fromJson(new String(secretKeyBytes), KPABESecretKey.class);
-            
-            for(AttributeUpdateForUser updateForUser:userAttributes.values()){
-                secretKey.getLeaf_keys().put(attributeUniverse.get(updateForUser.getAttribute()), updateForUser.getSk_ti());
-            }
-            
-            secretKeyBytes = gson.toJson(secretKey).getBytes();
-            
-            usersNotifications.put(workspaceMember.getUser().getId(), new RevokeNotification(workspaceId, ((ABEWorkspace)sourceWorkspace).getPublicKey(), secretKeyBytes));
-            
-            workspaceDAO.updateWorkspaceUserSecretKey(workspaceId, workspaceMember.getUser().getId(), secretKeyBytes);
-            
+
+                workspaceDAO.updateUserAttributes(workspaceId, workspaceMember.getUser().getId(), userAttributes.values());
+
+                byte[] secretKeyBytes = workspaceDAO.getWorkspaceUserSecretKey(workspaceId, workspaceMember.getUser().getId());
+
+                KPABESecretKey secretKey = gson.fromJson(new String(secretKeyBytes), KPABESecretKey.class);
+
+                for(AttributeUpdateForUser updateForUser:userAttributes.values()){
+                    secretKey.getLeaf_keys().put(attributeUniverse.get(updateForUser.getAttribute()), updateForUser.getSk_ti());
+                }
+
+                secretKeyBytes = gson.toJson(secretKey).getBytes();
+
+                usersNotifications.put(workspaceMember.getUser().getId(), new RevokeNotification(workspaceId, ((ABEWorkspace)sourceWorkspace).getPublicKey(), secretKeyBytes));
+
+                workspaceDAO.updateWorkspaceUserSecretKey(workspaceId, workspaceMember.getUser().getId(), secretKeyBytes);
+            }            
         }
         
         return usersNotifications;
