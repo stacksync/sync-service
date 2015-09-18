@@ -456,7 +456,7 @@ public class Handler {
                 for(RevokeMessage revokeMessage:revokeMessages){
                     for(RevokeComponent component:revokeMessage.getPkComponents().values()){
                         if(userAttributes.get(component.getName())!=null){
-                            byte[] updatedSk = kpabe.updateSK(userAttributes.get(component.getName()).getVersion(), userAttributes.get(component.getName()).getSk_ti(), getAttributeVersions.get(component.getName()));
+                            byte[] updatedSk = kpabe.updateSK(userAttributes.get(component.getName()).getVersion()-1, userAttributes.get(component.getName()).getSk_ti(), getAttributeVersions.get(component.getName()));
 
                             //component.getName()).size()+1 as there isn't a reencryption key for the newest version.
                             userAttributes.put(component.getName(), new AttributeUpdateForUser(component.getName(),getAttributeVersions.get(component.getName()).size()+1,updatedSk));
