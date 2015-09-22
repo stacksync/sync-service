@@ -13,8 +13,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.logging.Level;
 import org.apache.log4j.Logger;
 
 /**
@@ -184,5 +186,104 @@ public class PostgresqlABEItemDAO extends PostgresqlItemDAO implements ABEItemDA
             }
             
             return items;
+        }
+        
+                
+        @Override
+        public ArrayList<Long> getItemsIDWithAttributeInWorkspace(UUID workspaceId, String attribute) throws DAOException{
+            ArrayList<Long> itemsIds = new ArrayList<Long>();
+            
+            Object[] values = { workspaceId, attribute };
+            
+            String query = "SELECT abe_component.item_id FROM abe_component INNER JOIN item ON item.id=abe_component.item_id WHERE item.workspace_id=? AND abe_component.attribute=?";
+            
+            ResultSet result = executeQuery(query, values);
+            
+            try {
+                while(result.next()){
+                    itemsIds.add(result.getLong("item_id"));
+                }
+            } catch (SQLException ex) {
+                java.util.logging.Logger.getLogger(PostgresqlItemDAO.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            return itemsIds;
+        }
+        
+        @Override
+        public void setNotUpdatedItemInWorkspace(Long itemId) throws DAOException{
+
+            Object[] values = { itemId };
+            
+            String query = "UPDATE item SET " + "updated = false WHERE id=?";
+            
+            executeUpdate(query, values);
+            
+        }
+        
+        @Override
+        public void setUpdatedItem(Long itemId) throws DAOException{
+            
+            Object[] values = {itemId };
+            
+            String query = "UPDATE item SET " + "updated = true WHERE id=?";
+            
+            executeUpdate(query, values);
+            
+        }
+        
+        @Override
+        public HashMap<Long,ArrayList<ABEMetaComponent>> getNotUpdatedABEComponentsInWorkspace(UUID workspaceId) throws DAOException{
+            
+            Object[] values = { workspaceId };
+            
+            String query = "SELECT workspace_attribute_universe.id, abe_component.item_id, abe_component.attribute, abe_component.version, abe_component.encrypted_pk_component FROM"
+                    + " item INNER JOIN abe_component ON item.id=abe_component.item_id INNER JOIN workspace_attribute_universe ON workspace_attribute_universe.attribute = abe_component.attribute WHERE item.workspace_id=? AND item.updated = false";
+
+            ResultSet result = executeQuery(query, values);
+            
+            HashMap<Long,ArrayList<ABEMetaComponent>> fileComps = new HashMap<Long,ArrayList<ABEMetaComponent>>();
+            
+            try {
+                
+                while(result.next()){
+                    
+                    if(fileComps.get(result.getLong("item_id"))==null){
+                        fileComps.put(result.getLong("item_id"), new ArrayList<ABEMetaComponent>());        
+                    }
+                                         
+                    fileComps.get(result.getLong("item_id")).add(new ABEMetaComponent(result.getLong("id"), result.getString("attribute"), result.getBytes("encrypted_pk_component"), result.getLong("version")));
+                }
+                
+            } catch (SQLException ex) {
+                java.util.logging.Logger.getLogger(PostgresqlABEItemDAO.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            return fileComps;
+            
+        }
+        
+        @Override
+        public void setUpdatedABEComponents(HashMap<Long,ArrayList<ABEMetaComponent>> fileComponents) throws DAOException{
+            
+            
+            for(Long file:fileComponents.keySet()){
+                
+                for(ABEMetaComponent component:fileComponents.get(file)){
+                    
+                    Object[] values = {component.getEncryptedPKComponent(), component.getVersion(), file, component.getAttributeId()};
+                    
+                    String query = "UPDATE abe_component SET encrypted_pk_component=?, version=? WHERE item_id=? AND attribute=?";
+                    
+                    executeUpdate(query, values);
+                            
+                }
+               
+                setUpdatedItem(file);
+            }
+            
+            
+            
+            
         }
 }

@@ -517,6 +517,4 @@ public class PostgresqlWorkspaceDAO extends PostgresqlDAO implements WorkspaceDA
         
         return null;
     }
-    
-    
 }

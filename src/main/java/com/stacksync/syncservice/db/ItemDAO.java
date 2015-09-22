@@ -6,6 +6,7 @@ import com.stacksync.commons.models.Item;
 import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.SyncMetadata;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
+import java.util.ArrayList;
 
 public interface ItemDAO {
     

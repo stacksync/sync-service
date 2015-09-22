@@ -165,6 +165,7 @@ CREATE TABLE public.item (
     filename varchar(100) NOT NULL,
     mimetype varchar(45) NOT NULL,
     is_folder boolean NOT NULL,
+    updated boolean NOT NULL DEFAULT true,
     client_parent_file_version bigint
 );
 

@@ -329,8 +329,16 @@ public class Handler {
 
                     ArrayList<AttributeUpdateForUser> attributeVersions = new ArrayList<AttributeUpdateForUser>();
 
+                    HashMap<String,LinkedList<AttributeUpdate>> versions = workspaceDAO.getAttributeVersions(workspace.getId());
+                    
                     for (Integer leaf : secretKey.getLeaf_keys().keySet()) {
-                        attributeVersions.add(new AttributeUpdateForUser(attributeUniverse.get(leaf), 1, secretKey.getLeaf_keys().get(leaf)));
+                        
+                        if(versions.get(attributeUniverse.get(leaf))==null){
+                            attributeVersions.add(new AttributeUpdateForUser(attributeUniverse.get(leaf), 1, secretKey.getLeaf_keys().get(leaf)));
+                        } else {
+                            attributeVersions.add(new AttributeUpdateForUser(attributeUniverse.get(leaf), versions.get(attributeUniverse.get(leaf)).size()+1, secretKey.getLeaf_keys().get(leaf)));
+                        }
+
                     }
 
                     workspaceDAO.updateUserAttributes(workspace.getId(), addressee.getId(), attributeVersions);
@@ -427,6 +435,13 @@ public class Handler {
                 publicKey.getAttribute_map().put(component.getName(), component.getPk_ti());
                 //component.getVersion()-1 as the reencryption key corresponds to the previous version in order to get the new one
                 attributeVersions.add(new AttributeUpdate(component.getName(), component.getVersion()-1, component.getRe_key()));
+                
+                ArrayList<Long> affectedFiles = abeItemDao.getItemsIDWithAttributeInWorkspace(workspaceId, component.getName());
+                
+                for(Long fileId:affectedFiles){
+                    abeItemDao.setNotUpdatedItemInWorkspace(fileId);
+                }
+                
             }
 
         }

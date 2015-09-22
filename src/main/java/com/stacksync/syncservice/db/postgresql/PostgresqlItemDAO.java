@@ -1,6 +1,5 @@
 package com.stacksync.syncservice.db.postgresql;
 
-import com.stacksync.commons.models.abe.ABEItemMetadata;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,6 +17,7 @@ import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.ItemDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler.Status;
+import java.util.logging.Level;
 
 public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	private static final Logger logger = Logger

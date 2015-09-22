@@ -1,5 +1,8 @@
 package com.stacksync.syncservice.handler;
 
+import com.ast.cloudABE.kpabe.AttributeUpdate;
+import com.ast.cloudABE.kpabe.AttributeUpdateForUser;
+import com.ast.cloudABE.kpabe.KPABE;
 import com.ast.cloudABE.kpabe.RevokeMessage;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,10 +21,14 @@ import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
 import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
 import com.stacksync.commons.models.SyncMetadata;
+import com.stacksync.commons.models.abe.ABEMetaComponent;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.dao.NoResultReturnedDAOException;
 import com.stacksync.syncservice.exceptions.dao.NoRowsAffectedDAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
+import com.stacksync.syncservice.util.Config;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 public class SQLSyncHandler extends Handler implements SyncHandler {
 
@@ -37,10 +44,34 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 
 		try {
                         if(workspaceDAO.getById(workspace.getId()).isAbeEncrypted()) {
-                                responseObjects = abeItemDao.getABEItemsByWorkspaceId(workspace.getId());
+                            
+                            HashMap<String,LinkedList<AttributeUpdate>> attributeVersions = workspaceDAO.getAttributeVersions(workspace.getId());
+                            KPABE kpabe = new KPABE (Config.getCurvePath());
+
+                            HashMap<Long,ArrayList<ABEMetaComponent>> abeFileComponents = abeItemDao.getNotUpdatedABEComponentsInWorkspace(workspace.getId());
+                            
+                            for(Long fileId:abeFileComponents.keySet()){
+                                for(ABEMetaComponent component:abeFileComponents.get(fileId)){
+                                    
+                                    if(attributeVersions.get(component.getAttributeId())!=null && component.getVersion()<attributeVersions.get(component.getAttributeId()).size()+1){
+                                        byte[] updatedComponent = kpabe.updateAttributeForFile(component.getVersion()-1, component.getEncryptedPKComponent(), attributeVersions.get(component.getAttributeId()));
+                                    
+                                        //size()+1 as there isn't a reencryption key for the newest version.
+                                        component.setEncryptedPKComponent(updatedComponent);
+                                        component.setVersion(new Long(attributeVersions.size()+1));
+                                    }
+
+                                }
+                            }
+                            
+                            abeItemDao.setUpdatedABEComponents(abeFileComponents);
+                                                            
+                            responseObjects = abeItemDao.getABEItemsByWorkspaceId(workspace.getId());    
+                            
                         } else {
                                 responseObjects = itemDao.getItemsByWorkspaceId(workspace.getId());
                         }
+
 		} catch (DAOException e) {
 			logger.error(e.toString(), e);
 		}
