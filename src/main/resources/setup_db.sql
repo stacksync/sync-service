@@ -274,16 +274,15 @@ ALTER TABLE public.attribute ADD CONSTRAINT pk_attribute PRIMARY KEY (id);
 --
 -- NOTE: on bring up - set FK to item
 CREATE TABLE public.abe_component (
-    id uuid NOT NULL default uuid_generate_v4(),
     item_id bigint NOT NULL,
-    attribute uuid NOT NULL,
+    attribute character varying(255) NOT NULL,
+    version bigint NOT NULL,
     encrypted_pk_component bytea NOT NULL,
-    version integer NOT NULL
+    item_version bigint NOT NULL
 );
 
-ALTER TABLE public.abe_component ADD CONSTRAINT pk_abe_component PRIMARY KEY (id);
---ALTER TABLE public.abe_component ADD CONSTRAINT fk1_abe_component FOREIGN KEY (item_id) REFERENCES public.item (id) ON DELETE CASCADE;
-ALTER TABLE public.abe_component ADD CONSTRAINT fk2_abe_component FOREIGN KEY (attribute) REFERENCES public.attribute (id) ON DELETE CASCADE;
+ALTER TABLE public.abe_component ADD CONSTRAINT pk_abe_component PRIMARY KEY (item_id, attribute, version);
+ALTER TABLE public.abe_component ADD CONSTRAINT fk1_abe_component FOREIGN KEY (item_id) REFERENCES public.item (id) ON DELETE CASCADE;
 
 --
 -- FUNCTIONS
