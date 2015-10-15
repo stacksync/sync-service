@@ -77,7 +77,7 @@ public class FillDBWithUsers {
 	}
 
 	public static void main(String[] args) throws Exception {
-		args = new String[] { "day_users.csv" };
+		args = new String[] { "day_users_from12to18.csv" };
 
 		if (args.length != 1) {
 			System.err.println("Usage: file_path");

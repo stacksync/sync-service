@@ -22,74 +22,74 @@ import com.stacksync.syncservice.handler.SQLSyncHandler;
 
 /**
  * @author Sergi Toda <sergi.toda@estudiants.urv.cat>
- * 
+ *
  */
 public class WorkloadFromFileBenchmarkThread extends Thread {
 
-	private final Logger logger = Logger.getLogger(WorkloadFromFileBenchmarkThread.class.getName());
-	private File file;
-	private Handler handler;
+    private final Logger logger = Logger.getLogger(WorkloadFromFileBenchmarkThread.class.getName());
+    private File file;
+    private Handler handler;
 
-	public WorkloadFromFileBenchmarkThread(ConnectionPool pool, File file) throws SQLException, NoStorageManagerAvailable {
-		handler = new SQLSyncHandler(pool);
-		this.file = file;
-	}
+    public WorkloadFromFileBenchmarkThread(ConnectionPool pool, File file) throws SQLException, NoStorageManagerAvailable {
+        handler = new SQLSyncHandler(pool);
+        this.file = file;
+    }
 
-	@Override
-	public void run() {
+    @Override
+    public void run() {
 
-		try {
-			String line;
-			BufferedReader buff = new BufferedReader(new FileReader(file));
+        try {
+            String line;
+            BufferedReader buff = new BufferedReader(new FileReader(file));
 
-			long execTime = 0L;
+            long execTime = 0L;
 
-			long start = System.currentTimeMillis();
-			line = buff.readLine();
-			if (line != null) {
-				do {
-					try {
-						String[] words = line.split(",");
-						double timestamp = Double.parseDouble(words[0]);
-						long t = (long) (timestamp * 1000);
-						String op = words[1];
-						Long fileId = Long.parseLong(words[2]);
-						String fileType = words[3];
-						String fileMime = words[4];
-						Long fileSize = tryParseLong(words[5]);
-						Long fileVersion = tryParseLong(words[6]);
-						UUID userId = UUID.fromString(words[8]);
+            long start = System.currentTimeMillis();
+            line = buff.readLine();
+            if (line != null) {
+                do {
+                    try {
+                        String[] words = line.split(",");
+                        double timestamp = Double.parseDouble(words[0]);
+                        long t = (long) (timestamp * 1000);
+                        String op = words[1];
+                        Long fileId = Long.parseLong(words[2]);
+                        String fileType = words[3];
+                        String fileMime = words[4];
+                        Long fileSize = tryParseLong(words[5]);
+                        Long fileVersion = tryParseLong(words[6]);
+                        UUID userId = UUID.fromString(words[8]);
 
-						long sleep = t - execTime;
-						if (sleep > 0) {
-							Thread.sleep(sleep);
-						}
+                        long sleep = t - execTime;
+                        if (sleep > 0) {
+                            Thread.sleep(sleep);
+                        }
 
-						Action action = ActionFactory.getNewAction(op, handler, userId, fileId, fileSize, fileType, fileMime, fileVersion);
-						action.doCommit();
+                        Action action = ActionFactory.getNewAction(op, handler, userId, fileId, fileSize, fileType, fileMime, fileVersion);
+                        action.doCommit();
 
-						long end = System.currentTimeMillis();
+                        long end = System.currentTimeMillis();
 
-						execTime = end - start;
-					} catch (Exception e) {
-						logger.error(e);
-					}
+                        execTime = end - start;
+                    } catch (Exception e) {
+                        logger.error(e);
+                    }
 
-				} while ((line = buff.readLine()) != null);
-			}
+                } while ((line = buff.readLine()) != null);
+            }
 
-			buff.close();
+            buff.close();
 
-		} catch (Exception e) {
-			logger.error(e);
-		}
-	}
+        } catch (Exception e) {
+            logger.error(e);
+        }
+    }
 
-	private long tryParseLong(String num) {
-		try {
-			return Long.parseLong(num);
-		} catch (NumberFormatException e) {
-			return 0;
-		}
-	}
+    private long tryParseLong(String num) {
+        try {
+            return Long.parseLong(num);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
 }
