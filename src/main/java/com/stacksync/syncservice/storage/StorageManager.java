@@ -6,7 +6,7 @@ import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 public abstract class StorageManager {
 	
 	public enum StorageType {
-	    SWIFT, FTP 
+	    SWIFT, DUMMY, FTP
 	}
 	
 	public abstract void login() throws Exception; 
