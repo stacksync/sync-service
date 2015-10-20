@@ -13,7 +13,7 @@ public class InfinispanConnection implements Connection {
     private AtomicObjectFactory factory;
     
     public InfinispanConnection(BasicCache cache) {
-        this.factory = new AtomicObjectFactory(cache,0);
+        this.factory = AtomicObjectFactory.forCache(cache);
     }
     
     public AtomicObjectFactory getFactory() {
