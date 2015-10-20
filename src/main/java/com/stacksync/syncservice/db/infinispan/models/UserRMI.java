@@ -1,13 +1,14 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
+
 import java.io.Serializable;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
 
 @Distributed
 public class UserRMI implements Serializable, Remote {
@@ -15,7 +16,7 @@ public class UserRMI implements Serializable, Remote {
     private static final long serialVersionUID = -8827608629982195900L;
 
     @Key
-    private UUID id;
+    public UUID id;
     private String name;
     private String swiftUser;
     private String swiftAccount;

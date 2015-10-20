@@ -1,61 +1,64 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
-import org.infinispan.atomic.Distributed;
 
 @Distributed
 public class UserWorkspaceRMI implements Serializable {
 
-    private static final long serialVersionUID = 7732224675365732811L;
-    
-    private UUID id;
-    private UserRMI user;
-    private WorkspaceRMI workspace;
-    private boolean isOwner;
-    private Date joinedAt;
+   private static final long serialVersionUID = 7732224675365732811L;
 
-    public UserWorkspaceRMI(UserRMI user, WorkspaceRMI workspace) {
-        super();
-        this.id = UUID.randomUUID();
-        this.user = user;
-        this.workspace = workspace;
-    }
+   @Key
+   public UUID id;
+   private UserRMI user;
+   private WorkspaceRMI workspace;
+   private boolean isOwner;
+   private Date joinedAt;
 
-    public UserRMI getUser() {
-        return user;
-    }
+   public UserWorkspaceRMI(UserRMI user, WorkspaceRMI workspace) {
+      super();
+      this.id = UUID.randomUUID();
+      this.user = user;
+      this.workspace = workspace;
+   }
 
-    public void setUser(UserRMI user) {
-        this.user = user;
-    }
+   public UserRMI getUser() {
+      return user;
+   }
 
-    public WorkspaceRMI getWorkspace() {
-        return workspace;
-    }
+   public void setUser(UserRMI user) {
+      this.user = user;
+   }
 
-    public void setWorkspace(WorkspaceRMI workspace) {
-        this.workspace = workspace;
-    }
+   public WorkspaceRMI getWorkspace() {
+      return workspace;
+   }
 
-    public boolean isOwner() {
-        return isOwner;
-    }
+   public void setWorkspace(WorkspaceRMI workspace) {
+      this.workspace = workspace;
+   }
 
-    public void setOwner(boolean isOwner) {
-        this.isOwner = isOwner;
-    }
+   public boolean isOwner() {
+      return isOwner;
+   }
 
-    public Date getJoinedAt() {
-        return joinedAt;
-    }
+   public void setOwner(boolean isOwner) {
+      this.isOwner = isOwner;
+   }
 
-    public void setJoinedAt(Date joinedAt) {
-        this.joinedAt = joinedAt;
-    }
+   public Date getJoinedAt() {
+      return joinedAt;
+   }
 
-    public static long getSerialversionuid() {
-        return serialVersionUID;
-    }
+   public void setJoinedAt(Date joinedAt) {
+      this.joinedAt = joinedAt;
+   }
+
+   public static long getSerialversionuid() {
+      return serialVersionUID;
+   }
 }

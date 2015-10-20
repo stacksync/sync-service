@@ -12,7 +12,7 @@ public class ItemRMI implements Serializable {
     private static final long serialVersionUID = 1482457936400001556L;
 
     @Key
-    private Long id;
+    public Long id;
     private Long latestVersion;
     private ItemRMI parent;
     private String filename;
@@ -30,8 +30,8 @@ public class ItemRMI implements Serializable {
     }
 
     public ItemRMI(Long id, WorkspaceRMI workspace, Long latestVersion, ItemRMI parent, Long clientFileId,
-            String filename, String mimetype, Boolean isFolder,
-            Long clientParentFileVersion) {
+          String filename, String mimetype, Boolean isFolder,
+          Long clientParentFileVersion) {
 
         this.id = id;
         this.latestVersion = latestVersion;
@@ -154,8 +154,8 @@ public class ItemRMI implements Serializable {
     @Override
     public String toString() {
         String format = "Item[id=%s, parentId=%s, latestVersion=%s, "
-                + "Filename=%s, mimetype=%s, isFolder=%s, "
-                + "clientParentFileVersion=%s, versions=%s]";
+              + "Filename=%s, mimetype=%s, isFolder=%s, "
+              + "clientParentFileVersion=%s, versions=%s]";
 
         Long parentId = null;
         if (parent != null) {
@@ -168,10 +168,10 @@ public class ItemRMI implements Serializable {
         }
 
         String result = String.format(format, id, parentId, latestVersion,
-                filename, mimetype, isFolder,
-                clientParentFileVersion, versionsSize);
+              filename, mimetype, isFolder,
+              clientParentFileVersion, versionsSize);
 
         return result;
     }
-    
+
 }

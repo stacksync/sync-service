@@ -1,212 +1,213 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import java.io.Serializable;
-import java.util.*;
 import org.infinispan.atomic.Distributed;
 import org.infinispan.atomic.Key;
+
+import java.io.Serializable;
+import java.util.*;
 
 @Distributed
 public class WorkspaceRMI implements Serializable {
 
-    private static final long serialVersionUID = 243350300638953723L;
-    
-    @Key
-    private UUID id;
-    
-    private String name;
-    private ItemRMI parentItem;
-    private Integer latestRevision;
-    private UUID owner;
-    private String swiftContainer;
-    private String swiftUrl;
-    private boolean isShared;
-    private boolean isEncrypted;
-    private HashMap<Long, ItemRMI> items;
-    private List<UUID> users;
-    private long itemIdCounter, itemVersionIdCounter;
-    private Random random = new Random();
+   private static final long serialVersionUID = 243350300638953723L;
 
-    public WorkspaceRMI() {
-        this(null);
-        this.itemIdCounter = 0;
-        this.itemVersionIdCounter = 0;
-    }
+   @Key
+   public UUID id;
 
-    public WorkspaceRMI(UUID id) {
-        this(id, 0, null, false, false);
-    }
+   private String name;
+   private ItemRMI parentItem;
+   private Integer latestRevision;
+   private UUID owner;
+   private String swiftContainer;
+   private String swiftUrl;
+   private boolean isShared;
+   private boolean isEncrypted;
+   private HashMap<Long, ItemRMI> items;
+   private List<UUID> users;
+   private long itemIdCounter, itemVersionIdCounter;
+   private Random random = new Random();
 
-    public WorkspaceRMI(UUID id, Integer latestRevision, UUID owner, boolean isShared, boolean isEncrypted) {
-        this.id = id;
-        this.latestRevision = latestRevision;
-        this.owner = owner;
-        this.isShared = isShared;
-        this.isEncrypted = isEncrypted;
-        this.items = new HashMap<Long, ItemRMI>();
-        this.users = new ArrayList<UUID>();
-    }
+   public WorkspaceRMI() {
+      this(null);
+      this.itemIdCounter = 0;
+      this.itemVersionIdCounter = 0;
+   }
 
-    public void setWorkspace(WorkspaceRMI workspace) {
-        this.id = workspace.getId();
-        this.latestRevision = workspace.getLatestRevision();
-        this.owner = workspace.getOwner();
-        this.isShared = workspace.isShared();
-        this.isEncrypted = workspace.isEncrypted();
-        this.items = workspace.getItems();
-        this.users = workspace.getUsers();
-    }
+   public WorkspaceRMI(UUID id) {
+      this(id, 0, null, false, false);
+   }
 
-    public UUID getId() {
-        return id;
-    }
+   public WorkspaceRMI(UUID id, Integer latestRevision, UUID owner, boolean isShared, boolean isEncrypted) {
+      this.id = id;
+      this.latestRevision = latestRevision;
+      this.owner = owner;
+      this.isShared = isShared;
+      this.isEncrypted = isEncrypted;
+      this.items = new HashMap<Long, ItemRMI>();
+      this.users = new ArrayList<UUID>();
+   }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+   public void setWorkspace(WorkspaceRMI workspace) {
+      this.id = workspace.getId();
+      this.latestRevision = workspace.getLatestRevision();
+      this.owner = workspace.getOwner();
+      this.isShared = workspace.isShared();
+      this.isEncrypted = workspace.isEncrypted();
+      this.items = workspace.getItems();
+      this.users = workspace.getUsers();
+   }
 
-    public Integer getLatestRevision() {
-        return latestRevision;
-    }
+   public UUID getId() {
+      return id;
+   }
 
-    public void setLatestRevision(Integer latestRevision) {
-        this.latestRevision = latestRevision;
-    }
+   public void setId(UUID id) {
+      this.id = id;
+   }
 
-    public UUID getOwner() {
-        return owner;
-    }
+   public Integer getLatestRevision() {
+      return latestRevision;
+   }
 
-    public void setOwner(UUID owner) {
-        this.owner = owner;
-    }
+   public void setLatestRevision(Integer latestRevision) {
+      this.latestRevision = latestRevision;
+   }
 
-    public boolean isShared() {
-        return isShared;
-    }
+   public UUID getOwner() {
+      return owner;
+   }
 
-    public boolean isEncrypted() {
-        return isEncrypted;
-    }
+   public void setOwner(UUID owner) {
+      this.owner = owner;
+   }
 
-    public void setEncrypted(Boolean isEncrypted) {
-        this.isEncrypted = isEncrypted;
-    }
+   public boolean isShared() {
+      return isShared;
+   }
 
-    public void setShared(Boolean isShared) {
-        this.isShared = isShared;
-    }
+   public boolean isEncrypted() {
+      return isEncrypted;
+   }
 
-    public String getName() {
-        return name;
-    }
+   public void setEncrypted(Boolean isEncrypted) {
+      this.isEncrypted = isEncrypted;
+   }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+   public void setShared(Boolean isShared) {
+      this.isShared = isShared;
+   }
 
-    public String getSwiftContainer() {
-        return swiftContainer;
-    }
+   public String getName() {
+      return name;
+   }
 
-    public void setSwiftContainer(String swiftContainer) {
-        this.swiftContainer = swiftContainer;
-    }
+   public void setName(String name) {
+      this.name = name;
+   }
 
-    public String getSwiftUrl() {
-        return swiftUrl;
-    }
+   public String getSwiftContainer() {
+      return swiftContainer;
+   }
 
-    public void setSwiftUrl(String swiftUrl) {
-        this.swiftUrl = swiftUrl;
-    }
+   public void setSwiftContainer(String swiftContainer) {
+      this.swiftContainer = swiftContainer;
+   }
 
-    public ItemRMI getParentItem() {
-        return parentItem;
-    }
+   public String getSwiftUrl() {
+      return swiftUrl;
+   }
 
-    public void setParentItem(ItemRMI parentItem) {
-        this.parentItem = parentItem;
-    }
+   public void setSwiftUrl(String swiftUrl) {
+      this.swiftUrl = swiftUrl;
+   }
 
-    public HashMap<Long, ItemRMI> getItems() {
-        return items;
-    }
+   public ItemRMI getParentItem() {
+      return parentItem;
+   }
 
-    public void setItems(HashMap<Long, ItemRMI> items) {
-        this.items = items;
-    }
+   public void setParentItem(ItemRMI parentItem) {
+      this.parentItem = parentItem;
+   }
 
-    public void addItem(ItemRMI item) {
-        this.items.put(item.getId(), item);
-    }
+   public HashMap<Long, ItemRMI> getItems() {
+      return items;
+   }
 
-    public List<UUID> getUsers() {
-        return users;
-    }
+   public void setItems(HashMap<Long, ItemRMI> items) {
+      this.items = items;
+   }
 
-    public void setUsers(List<UUID> users) {
-        this.users = users;
-    }
+   public void addItem(ItemRMI item) {
+      this.items.put(item.getId(), item);
+   }
 
-    public void addUser(UUID user) {
-        this.users.add(user);
-    }
+   public List<UUID> getUsers() {
+      return users;
+   }
 
-    public void removeUser(UUID user) {
-        int index = 0;
-        for (UUID id : users) {
-            if (id.equals(user)) {
-                users.remove(index);
-                break;
-            }
-            index++;
-        }
-    }
+   public void setUsers(List<UUID> users) {
+      this.users = users;
+   }
 
-    /**
-     * Checks whether the user contains all required attributes (ID is not required since it is assigned automatically
-     * when a user is inserted to the database)
-     *
-     * @return Boolean True if the user is valid. False otherwise.
-     */
-    public boolean isValid() {
-        return this.owner != null;
-    }
+   public void addUser(UUID user) {
+      this.users.add(user);
+   }
 
-    @Override
-    public String toString() {
-        return String.format(
-                "workspace[id=%s, latestRevision=%s, owner=%s, items=%s, users=%s]", id,
-                latestRevision, owner, items, users);
-    }
+   public void removeUser(UUID user) {
+      int index = 0;
+      for (UUID id : users) {
+         if (id.equals(user)) {
+            users.remove(index);
+            break;
+         }
+         index++;
+      }
+   }
 
-    //*******InfinispanDAO*******
-    public long addVersionRMI(ItemVersionRMI itemVersion) {
-        ItemRMI item = items.get(itemVersion.getItemId());
-        if (item != null) {
-            itemVersion.setId(this.random.nextLong());
-            item.addVersion(itemVersion);
-            item.setLatestVersionNumber(itemVersion.getVersion());
-        }
-        return itemVersion.getId();
-    }
+   /**
+    * Checks whether the user contains all required attributes (ID is not required since it is assigned automatically
+    * when a user is inserted to the database)
+    *
+    * @return Boolean True if the user is valid. False otherwise.
+    */
+   public boolean isValid() {
+      return this.owner != null;
+   }
 
-    public void insertChunks(Long id, List chunks, Long itemVersionId) {
-        ItemRMI item = items.get(id);
-        List<ItemVersionRMI> versions;
-        versions = item.getVersions();
-        for (ItemVersionRMI version : versions) {
-            if (version.getId().equals(itemVersionId)) {
-                version.setChunks(chunks);
-            }
-        }
-    }
+   @Override
+   public String toString() {
+      return String.format(
+            "workspace[id=%s, latestRevision=%s, owner=%s, items=%s, users=%s]", id,
+            latestRevision, owner, items, users);
+   }
 
-    public ItemRMI finddById(Long id) {
-        return items.get(id);
-    }
-    //*******InfinispanDAO*******
-    //*******InfinispanDAO*******
+   //*******InfinispanDAO*******
+   public long addVersionRMI(ItemVersionRMI itemVersion) {
+      ItemRMI item = items.get(itemVersion.getItemId());
+      if (item != null) {
+         itemVersion.setId(this.random.nextLong());
+         item.addVersion(itemVersion);
+         item.setLatestVersionNumber(itemVersion.getVersion());
+      }
+      return itemVersion.getId();
+   }
+
+   public void insertChunks(Long id, List chunks, Long itemVersionId) {
+      ItemRMI item = items.get(id);
+      List<ItemVersionRMI> versions;
+      versions = item.getVersions();
+      for (ItemVersionRMI version : versions) {
+         if (version.getId().equals(itemVersionId)) {
+            version.setChunks(chunks);
+         }
+      }
+   }
+
+   public ItemRMI finddById(Long id) {
+      return items.get(id);
+   }
+   //*******InfinispanDAO*******
+   //*******InfinispanDAO*******
     /*
      public ItemMetadata findById(Long id, Boolean includeList, Long version, Boolean includeDeleted, Boolean includeChunks) throws RemoteException {
 
