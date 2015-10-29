@@ -1,22 +1,17 @@
 package com.stacksync.syncservice.dummy.infinispan.actions;
 
+import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import com.stacksync.syncservice.handler.Handler;
+import org.apache.log4j.Logger;
+
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-
-import org.apache.log4j.Logger;
-
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
-import com.stacksync.syncservice.handler.Handler;
+import java.util.*;
 
 /**
  * @author Sergi Toda <sergi.toda@estudiants.urv.cat>
@@ -51,7 +46,7 @@ public abstract class Action {
 
     }
 
-    protected ItemMetadata createItemMetadata(Random ran) {
+    protected ItemMetadataRMI createItemMetadata(Random ran) {
 
         Date modifiedAt = new Date();
         Long checksum = (long) ran.nextInt(Integer.MAX_VALUE);
@@ -69,7 +64,7 @@ public abstract class Action {
             }
         }
 
-        ItemMetadata itemMetadata = new ItemMetadata(fileId, fileVersion, userId, null, null, status, modifiedAt, checksum, fileSize,
+        ItemMetadataRMI itemMetadata = new ItemMetadataRMI(fileId, fileVersion, userId, null, null, status, modifiedAt, checksum, fileSize,
                 false, fileId.toString(), fileMime, chunks);
         itemMetadata.setChunks(chunks);
 
@@ -85,7 +80,7 @@ public abstract class Action {
         WorkspaceRMI workspace = new WorkspaceRMI(userId);
 
         Random ran = new Random(System.currentTimeMillis());
-        List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+        List<ItemMetadataRMI> items = new ArrayList<>();
         items.add(createItemMetadata(ran));
         logger.info("hander_doCommit_start,commitID=" + idCommit);
         handler.doCommit(user, workspace, device, items);

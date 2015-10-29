@@ -1,21 +1,20 @@
 package com.stacksync.syncservice.db.postgresql;
 
+import com.stacksync.commons.models.Item;
+import com.stacksync.syncservice.db.Connection;
+import com.stacksync.syncservice.db.DAOError;
+import com.stacksync.syncservice.db.DAOUtil;
+import com.stacksync.syncservice.db.ItemDAO;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.handler.Handler.Status;
+import org.apache.log4j.Logger;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-
-import org.apache.log4j.Logger;
-
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.syncservice.db.Connection;
-import com.stacksync.syncservice.db.DAOError;
-import com.stacksync.syncservice.db.DAOUtil;
-import com.stacksync.syncservice.db.ItemDAO;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
-import com.stacksync.syncservice.handler.Handler.Status;
 
 public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	private static final Logger logger = Logger
@@ -113,7 +112,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId)
+	public List<ItemMetadataRMI> getItemsByWorkspaceId(UUID workspaceId)
 			throws DAOException {
 
 		Object[] values = { workspaceId, workspaceId };
@@ -147,14 +146,14 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 				+ " ORDER BY level_array ASC";
 
 		ResultSet result = null;
-		List<ItemMetadata> items;
+		List<ItemMetadataRMI> items;
 		try {
 			result = executeQuery(query, values);
 
-			items = new ArrayList<ItemMetadata>();
+			items = new ArrayList<>();
 
 			while (result.next()) {
-				ItemMetadata item = DAOUtil
+				ItemMetadataRMI item = DAOUtil
 						.getItemMetadataFromResultSet(result);
 				items.add(item);
 			}
@@ -168,7 +167,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public List<ItemMetadata> getItemsById(Long id) throws DAOException {
+	public List<ItemMetadataRMI> getItemsById(Long id) throws DAOException {
 		Object[] values = { id };
 		
 		String query = "WITH    RECURSIVE "
@@ -200,7 +199,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 				+ "       level_array ASC";
 
 		ResultSet result = null;
-		List<ItemMetadata> list = new ArrayList<ItemMetadata>();
+		List<ItemMetadataRMI> list = new ArrayList<>();
 
 		try {
 			result = executeQuery(query, values);
@@ -210,7 +209,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 			}
 
 			while (result.next()) {
-				ItemMetadata itemMetadata = DAOUtil
+				ItemMetadataRMI itemMetadata = DAOUtil
 						.getItemMetadataFromResultSet(result);
 				list.add(itemMetadata);
 			}
@@ -224,7 +223,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public ItemMetadata findById(Long id, Boolean includeList,
+	public ItemMetadataRMI findById(Long id, Boolean includeList,
 			Long version, Boolean includeDeleted, Boolean includeChunks)
 			throws DAOException {
 		int maxLevel = includeList ? 2 : 1;
@@ -263,7 +262,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 						+ "       level_array ASC", targetVersion);
 
 		ResultSet result = null;
-		ItemMetadata item = null;
+		ItemMetadataRMI item = null;
 
 		try {
 			result = executeQuery(query, values);
@@ -273,7 +272,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 			}
 
 			while (result.next()) {
-				ItemMetadata itemMetadata = DAOUtil
+				ItemMetadataRMI itemMetadata = DAOUtil
 						.getItemMetadataFromResultSet(result);
 
 				if (itemMetadata.getLevel() == 1) {
@@ -304,7 +303,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public ItemMetadata findByUserId(UUID userId,
+	public ItemMetadataRMI findByUserId(UUID userId,
 			Boolean includeDeleted) throws DAOException {
 		// TODO: check include_deleted
 		Object[] values = { userId };
@@ -337,7 +336,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		ResultSet result = null;
 
 		// create the virtual ItemMetadata for the root folder
-		ItemMetadata rootMetadata = new ItemMetadata();
+		ItemMetadataRMI rootMetadata = new ItemMetadataRMI();
 		rootMetadata.setIsFolder(true);
 		rootMetadata.setFilename("root");
 		rootMetadata.setIsRoot(true);
@@ -346,7 +345,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 			result = executeQuery(query, values);
 
 			while (result.next()) {
-				ItemMetadata itemMetadata = DAOUtil
+				ItemMetadataRMI itemMetadata = DAOUtil
 						.getItemMetadataFromResultSet(result);
 
 				if (itemMetadata.getStatus().compareTo(
@@ -368,7 +367,7 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 	}
 
 	@Override
-	public ItemMetadata findItemVersionsById(Long fileId) throws DAOException {
+	public ItemMetadataRMI findItemVersionsById(Long fileId) throws DAOException {
 		// TODO: check include_deleted
 		Object[] values = { fileId };
 		
@@ -380,13 +379,13 @@ public class PostgresqlItemDAO extends PostgresqlDAO implements ItemDAO {
 		ResultSet result = null;
 
 		// create the virtual ItemMetadata for the root folder
-		ItemMetadata rootMetadata = new ItemMetadata();
+		ItemMetadataRMI rootMetadata = new ItemMetadataRMI();
 
 		try {
 			result = executeQuery(query, values);
 
 			while (result.next()) {
-				ItemMetadata itemMetadata = DAOUtil
+				ItemMetadataRMI itemMetadata = DAOUtil
 						.getItemMetadataFromResultSet(result);
 
 				if (rootMetadata.getChildren().isEmpty()) {

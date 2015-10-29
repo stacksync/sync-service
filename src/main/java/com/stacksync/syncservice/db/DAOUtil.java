@@ -1,23 +1,14 @@
 package com.stacksync.syncservice.db;
 
-import java.sql.Array;
+import com.stacksync.commons.models.*;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+
+import java.sql.*;
 import java.sql.Connection;
-import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
-
-import com.stacksync.commons.models.Chunk;
-import com.stacksync.commons.models.Item;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.UserWorkspace;
-import com.stacksync.commons.models.Workspace;
 
 /**
  * Utility class for DAO's. This class contains commonly used DAO logic which is
@@ -64,9 +55,7 @@ public final class DAOUtil {
 
 	/**
 	 * Set the given parameter values in the given PreparedStatement.
-	 * 
-	 * @param connection
-	 *            The PreparedStatement to set the given parameter values in.
+	 *
 	 * @param values
 	 *            The parameter values to be set in the created
 	 *            PreparedStatement.
@@ -257,10 +246,10 @@ public final class DAOUtil {
 	}
 
 	
-	public static ItemMetadata getItemMetadataFromResultSet(ResultSet result)
+	public static ItemMetadataRMI getItemMetadataFromResultSet(ResultSet result)
 			throws SQLException {
 
-		ItemMetadata metadata = new ItemMetadata();
+		ItemMetadataRMI metadata = new ItemMetadataRMI();
 		metadata.setId(getLongFromResultSet(result, "item_id"));
 		metadata.setParentId(getLongFromResultSet(result, "parent_id"));
 		metadata.setParentVersion((getLongFromResultSet(result, "client_parent_file_version")));

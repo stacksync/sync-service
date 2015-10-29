@@ -5,14 +5,13 @@
  */
 package com.stacksync.syncservice.db.infinispan;
 
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.UUID;
-
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserWorkspaceRMI;
-import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 
 /**
  *
@@ -38,6 +37,6 @@ public interface InfinispanWorkspaceDAO extends Remote {
 
     public void deleteWorkspace(UUID id) throws RemoteException;
 
-    public List<UserWorkspaceRMI> getMembersById(UUID workspaceId) throws RemoteException;
+    public List<UserRMI> getMembersById(UUID workspaceId) throws RemoteException;
 
 }

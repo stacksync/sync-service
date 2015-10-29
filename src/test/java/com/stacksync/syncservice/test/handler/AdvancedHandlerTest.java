@@ -1,22 +1,10 @@
 package com.stacksync.syncservice.test.handler;
 
-import java.util.UUID;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanItemDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanItemVersionDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.*;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
@@ -24,7 +12,10 @@ import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.rpc.parser.IParser;
 import com.stacksync.syncservice.rpc.parser.JSONParser;
 import com.stacksync.syncservice.util.Config;
+import org.junit.*;
+
 import java.rmi.RemoteException;
+import java.util.UUID;
 
 public class AdvancedHandlerTest {
 
@@ -52,7 +43,7 @@ public class AdvancedHandlerTest {
 			reader = new JSONParser();
 
 			DAOFactory factory = new DAOFactory(datasource);
-
+			connection = pool.getConnection();
 			workspaceDAO = factory.getWorkspaceDao(connection);
 			userDao = factory.getUserDao(connection);
 			deviceDao = factory.getDeviceDAO(connection);
@@ -63,10 +54,10 @@ public class AdvancedHandlerTest {
 			UserRMI user = new UserRMI(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			userDao.add(user);
 
-			WorkspaceRMI workspace = new WorkspaceRMI(null,  1, user.getId(), false, false);
+			WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID(),  1, user.getId(), false, false);
 			workspaceDAO.add(workspace);
 
-			DeviceRMI device = new DeviceRMI(null, "junitdevice");
+			DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "junitdevice");
 			deviceDao.add(device);
 
 		} catch (Exception e) {

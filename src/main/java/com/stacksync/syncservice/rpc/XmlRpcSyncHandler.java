@@ -1,400 +1,371 @@
 package com.stacksync.syncservice.rpc;
 
-import com.stacksync.commons.models.ItemMetadata;
-import java.util.ArrayList;
+import com.stacksync.syncservice.db.ConnectionPool;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import com.stacksync.syncservice.handler.Handler.Status;
+import com.stacksync.syncservice.handler.SQLAPIHandler;
+import com.stacksync.syncservice.rpc.messages.*;
+import com.stacksync.syncservice.rpc.parser.IParser;
+import com.stacksync.syncservice.util.Constants;
+import omq.common.broker.Broker;
+import omq.exception.RemoteException;
+import org.apache.log4j.Logger;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
-import omq.common.broker.Broker;
-import omq.exception.RemoteException;
-
-import org.apache.log4j.Logger;
-
-import com.stacksync.commons.notifications.CommitNotification;
-import com.stacksync.commons.notifications.ShareProposalNotification;
-import com.stacksync.commons.notifications.UnshareNotification;
-import com.stacksync.commons.omq.RemoteClient;
-import com.stacksync.commons.omq.RemoteWorkspace;
-import com.stacksync.syncservice.db.ConnectionPool;
-import com.stacksync.syncservice.db.infinispan.models.CommitInfoRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
-import com.stacksync.syncservice.handler.SQLAPIHandler;
-import com.stacksync.syncservice.handler.Handler.Status;
-import com.stacksync.syncservice.rpc.messages.APICommitResponse;
-import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
-import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
-import com.stacksync.syncservice.rpc.messages.APIGetFolderMembersResponse;
-import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
-import com.stacksync.syncservice.rpc.messages.APIGetVersions;
-import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
-import com.stacksync.syncservice.rpc.messages.APIResponse;
-import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
-import com.stacksync.syncservice.rpc.messages.APIShareFolderResponse;
-import com.stacksync.syncservice.rpc.messages.APIUnshareFolderResponse;
-import com.stacksync.syncservice.rpc.parser.IParser;
-import com.stacksync.syncservice.util.Constants;
-
 public class XmlRpcSyncHandler {
 
-	private static final Logger logger = Logger.getLogger(XmlRpcSyncHandler.class.getName());
-	private SQLAPIHandler apiHandler;
-	private IParser parser;
-	private Broker broker;
+   private static final Logger logger = Logger.getLogger(XmlRpcSyncHandler.class.getName());
+   private SQLAPIHandler apiHandler;
+   private IParser parser;
+   private Broker broker;
 
-	public XmlRpcSyncHandler(Broker broker, ConnectionPool pool) {
-		try {
-			this.apiHandler = new SQLAPIHandler(pool);
-			this.broker = broker;
-			this.parser = Reader.getInstance("com.stacksync.syncservice.rpc.parser.JSONParser");
+   public XmlRpcSyncHandler(Broker broker, ConnectionPool pool) {
+      try {
+         this.apiHandler = new SQLAPIHandler(pool);
+         this.broker = broker;
+         this.parser = Reader.getInstance("com.stacksync.syncservice.rpc.parser.JSONParser");
 
-			logger.info("XMLRPC server set up done.");
-		} catch (Exception e) {
-			logger.error("XMLRPC server could not initiliaze.");
-		}
-	}
+         logger.info("XMLRPC server set up done.");
+      } catch (Exception e) {
+         logger.error("XMLRPC server could not initiliaze.");
+      }
+   }
 
-	public String getMetadata(String strUserId, String strItemId, String strIncludeChunks, String strVersion,
-			String strIsFolder) {
+   public String getMetadata(String strUserId, String strItemId, String strIncludeChunks, String strVersion,
+         String strIsFolder) {
 
-		logger.debug(String.format("XMLRPC Request. getMetadata [userId: %s, fileId: %s, chunks: %s, version: %s]",
-				strUserId, strItemId, strIncludeChunks, strVersion));
+      logger.debug(String.format("XMLRPC Request. getMetadata [userId: %s, fileId: %s, chunks: %s, version: %s]",
+            strUserId, strItemId, strIncludeChunks, strVersion));
 
-		Long fileId = null;
-		try {
-			fileId = Long.parseLong(strItemId);
-		} catch (NumberFormatException ex) {
-		}
+      Long fileId = null;
+      try {
+         fileId = Long.parseLong(strItemId);
+      } catch (NumberFormatException ex) {
+      }
 
-		Boolean isFolder = Boolean.parseBoolean(strIsFolder);
+      Boolean isFolder = Boolean.parseBoolean(strIsFolder);
 
-		Boolean includeChunks = Boolean.parseBoolean(strIncludeChunks);
+      Boolean includeChunks = Boolean.parseBoolean(strIncludeChunks);
 
-		Long version = null;
-		try {
-			version = Long.parseLong(strVersion);
-		} catch (NumberFormatException ex) {
-		}
+      Long version = null;
+      try {
+         version = Long.parseLong(strVersion);
+      } catch (NumberFormatException ex) {
+      }
 
-		UserRMI user = new UserRMI();
-		user.setId(UUID.fromString(strUserId));
+      UserRMI user = new UserRMI(UUID.fromString(strUserId));
 
-		APIGetMetadata response = this.apiHandler.getMetadata(user, fileId, includeChunks, version, isFolder);
+      APIGetMetadata response = this.apiHandler.getMetadata(user, fileId, includeChunks, version, isFolder);
 
-		logger.debug(String.format("XMLRPC Response. %s", response.toString()));
+      logger.debug(String.format("XMLRPC Response. %s", response.toString()));
 
-		return response.toString();
-	}
+      return response.toString();
+   }
 
-	public String getFolderContents(String strUserId, String strFolderId, String strIncludeDeleted) {
+   public String getFolderContents(String strUserId, String strFolderId, String strIncludeDeleted) {
 
-		Boolean includeList = true;
+      Boolean includeList = true;
 
-		logger.debug(String.format("XMLRPC Request. getMetadata [userId: %s, fileId: %s, includeList: %s]", strUserId,
-				strFolderId, includeList, strIncludeDeleted));
+      logger.debug(String.format("XMLRPC Request. getMetadata [userId: %s, fileId: %s, includeList: %s]", strUserId,
+            strFolderId, includeList, strIncludeDeleted));
 
-		Long folderId = null;
-		try {
-			folderId = Long.parseLong(strFolderId);
-		} catch (NumberFormatException ex) {
-		}
+      Long folderId = null;
+      try {
+         folderId = Long.parseLong(strFolderId);
+      } catch (NumberFormatException ex) {
+      }
 
-		Boolean includeDeleted = Boolean.parseBoolean(strIncludeDeleted);
+      Boolean includeDeleted = Boolean.parseBoolean(strIncludeDeleted);
 
-		UserRMI user = new UserRMI();
-		user.setId(UUID.fromString(strUserId));
+      UserRMI user = new UserRMI(UUID.fromString(strUserId));
 
-		APIGetMetadata response = this.apiHandler.getFolderContent(user, folderId, includeDeleted);
+      APIGetMetadata response = this.apiHandler.getFolderContent(user, folderId, includeDeleted);
 
-		logger.debug(String.format("XMLRPC Response. %s", response.toString()));
+      logger.debug(String.format("XMLRPC Response. %s", response.toString()));
 
-		return response.toString();
-	}
+      return response.toString();
+   }
 
-	public String getVersions(String strUserId, String strFileId) {
+   public String getVersions(String strUserId, String strFileId) {
 
-		Long itemId = null;
-		try {
-			itemId = Long.parseLong(strFileId);
-		} catch (NumberFormatException ex) {
-		}
+      Long itemId = null;
+      try {
+         itemId = Long.parseLong(strFileId);
+      } catch (NumberFormatException ex) {
+      }
 
-		// TODO: filtrar versiones borradas!!
-		logger.debug("XMLRPC -> get_versions -->[User:" + strUserId + ", itemId:" + itemId + "]");
+      // TODO: filtrar versiones borradas!!
+      logger.debug("XMLRPC -> get_versions -->[User:" + strUserId + ", itemId:" + itemId + "]");
 
-		UserRMI user = new UserRMI();
-		user.setId(UUID.fromString(strUserId));
+      UserRMI user = new UserRMI(UUID.fromString(strUserId));
+      ItemMetadataRMI item = new ItemMetadataRMI();
+      item.setId(itemId);
 
-                ItemMetadata item = new ItemMetadata();
-		item.setId(itemId);
+      APIGetVersions response = this.apiHandler.getVersions(user, item);
 
-		APIGetVersions response = this.apiHandler.getVersions(user, item);
+      logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
+      return response.toString();
+   }
 
-		logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
-		return response.toString();
-	}
+   public String newFolder(String strUserId, String strFolderName, String strParentId) {
 
-	public String newFolder(String strUserId, String strFolderName, String strParentId) {
+      logger.debug(String.format("XMLRPC Request. createFolder [userId: %s, folderName: %s, parentId: %s]",
+            strUserId, strFolderName, strParentId));
 
-		logger.debug(String.format("XMLRPC Request. createFolder [userId: %s, folderName: %s, parentId: %s]",
-				strUserId, strFolderName, strParentId));
-
-		Long parentId = null;
-		try {
-			parentId = Long.parseLong(strParentId);
-		} catch (NumberFormatException ex) {
-		}
+      Long parentId = null;
+      try {
+         parentId = Long.parseLong(strParentId);
+      } catch (NumberFormatException ex) {
+      }
 
-		if (strFolderName.length() == 0) {
-			APIResponse response = new APICreateFolderResponse(null, false, 400, "Folder name cannot be empty.");
-			String strResponse = this.parser.createResponse(response);
-			return strResponse;
-		}
-
-		UserRMI user = new UserRMI();
-		user.setId(UUID.fromString(strUserId));
-
-		ItemMetadata item = new ItemMetadata();
-		item.setFilename(strFolderName);
-		item.setIsFolder(true);
-		item.setParentId(parentId);
-
-		APIResponse response = this.apiHandler.createFolder(user, item);
-
-		String workspace = response.getItem().getMetadata().getWorkspaceId().toString();
-
-		if (response.getSuccess()) {
-			this.sendMessageToClients(workspace, response);
-		}
-
-		logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
-
-		return response.toString();
-	}
-
-	public String newFile(String strUserId, String strFileName, String strParentId, String strChecksum,
-			String strFileSize, String strMimetype, List<String> chunks) {
-
-		Long parentId = null;
-		try {
-			parentId = Long.parseLong(strParentId);
-		} catch (NumberFormatException ex) {
-		}
-
-		Long checksum = null;
-		try {
-			checksum = Long.parseLong(strChecksum);
-		} catch (NumberFormatException ex) {
-		}
-
-		Long fileSize = null;
-		try {
-			fileSize = Long.parseLong(strFileSize);
-		} catch (NumberFormatException ex) {
-		}
+      if (strFolderName.length() == 0) {
+         APIResponse response = new APICreateFolderResponse(null, false, 400, "Folder name cannot be empty.");
+         String strResponse = this.parser.createResponse(response);
+         return strResponse;
+      }
+
+      UserRMI user = new UserRMI(UUID.fromString(strUserId));
+
+      ItemMetadataRMI item = new ItemMetadataRMI();
+      item.setFilename(strFolderName);
+      item.setIsFolder(true);
+      item.setParentId(parentId);
+
+      APIResponse response = this.apiHandler.createFolder(user, item);
+
+      String workspace = response.getItem().getMetadata().getWorkspaceId().toString();
 
-		logger.debug("XMLRPC -> put_metadata_file -->[User:" + strUserId + ", FileName:" + strFileName + ", parentId: "
-				+ strParentId + "]");
+      if (response.getSuccess()) {
+         this.sendMessageToClients(workspace, response);
+      }
 
-		UUID userId = UUID.fromString(strUserId);
+      logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
+
+      return response.toString();
+   }
+
+   public String newFile(String strUserId, String strFileName, String strParentId, String strChecksum,
+         String strFileSize, String strMimetype, List<String> chunks) {
 
-		APIGetMetadata metadataResponse = getParentMetadata(userId, parentId);
-		APICommitResponse parentResponse = checkParentMetadata(parentId, metadataResponse);
+      Long parentId = null;
+      try {
+         parentId = Long.parseLong(strParentId);
+      } catch (NumberFormatException ex) {
+      }
 
-		if (!parentResponse.getSuccess()) {// error
-			logger.debug("XMLRPC -> Error resp -->[" + parentResponse.toString() + "]");
-			return parentResponse.toString();
-		}
+      Long checksum = null;
+      try {
+         checksum = Long.parseLong(strChecksum);
+      } catch (NumberFormatException ex) {
+      }
 
-		ItemMetadata item = new ItemMetadata();
+      Long fileSize = null;
+      try {
+         fileSize = Long.parseLong(strFileSize);
+      } catch (NumberFormatException ex) {
+      }
 
-		item.setId(null);
-		item.setParentId(parentId);
-		item.setTempId(new Random().nextLong());
-		item.setVersion(1L);
-		item.setDeviceId(Constants.API_DEVICE_ID);
-		item.setIsFolder(false);
-		item.setStatus(Status.NEW.toString());
-		item.setFilename(strFileName);
-		item.setSize(fileSize);
-		item.setChecksum(checksum);
-		item.setMimetype(strMimetype);
-		item.setModifiedAt(new Date());
-		item.setChunks(chunks);
+      logger.debug("XMLRPC -> put_metadata_file -->[User:" + strUserId + ", FileName:" + strFileName + ", parentId: "
+            + strParentId + "]");
 
-		UserRMI user = new UserRMI();
-		user.setId(userId);
+      UUID userId = UUID.fromString(strUserId);
 
-		APICommitResponse response = this.apiHandler.createFile(user, item);
+      APIGetMetadata metadataResponse = getParentMetadata(userId, parentId);
+      APICommitResponse parentResponse = checkParentMetadata(parentId, metadataResponse);
 
-		if (response.getSuccess()) {
-			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
-		}
+      if (!parentResponse.getSuccess()) {// error
+         logger.debug("XMLRPC -> Error resp -->[" + parentResponse.toString() + "]");
+         return parentResponse.toString();
+      }
 
-		String strResponse = this.parser.createResponse(response);
+      ItemMetadataRMI item = new ItemMetadataRMI();
 
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
-	}
+      item.setId(null);
+      item.setParentId(parentId);
+      item.setTempId(new Random().nextLong());
+      item.setVersion(1L);
+      item.setDeviceId(Constants.API_DEVICE_ID);
+      item.setIsFolder(false);
+      item.setStatus(Status.NEW.toString());
+      item.setFilename(strFileName);
+      item.setSize(fileSize);
+      item.setChecksum(checksum);
+      item.setMimetype(strMimetype);
+      item.setModifiedAt(new Date());
+      item.setChunks(chunks);
 
-	public String updateData(String strUserId, String strFileId, String strChecksum, String strFileSize,
-			String strMimetype, List<String> chunks) {
+      UserRMI user = new UserRMI(userId);
 
-		logger.debug("XMLRPC -> update data -->[User:" + strUserId + ", Checksum: " + strChecksum + ", Filesize: "
-				+ strFileSize + ", Mimetype: " + strMimetype + ", Chunks: " + chunks + "]");
+      APICommitResponse response = this.apiHandler.createFile(user, item);
 
-		Long fileId = null;
-		try {
-			fileId = Long.parseLong(strFileId);
-		} catch (NumberFormatException ex) {
-		}
+      if (response.getSuccess()) {
+         this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
+      }
 
-		Long checksum = null;
-		try {
-			checksum = Long.parseLong(strChecksum);
-		} catch (NumberFormatException ex) {
-		}
+      String strResponse = this.parser.createResponse(response);
 
-		Long fileSize = null;
-		try {
-			fileSize = Long.parseLong(strFileSize);
-		} catch (NumberFormatException ex) {
-		}
+      logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+      return strResponse;
+   }
 
-		UUID userId = UUID.fromString(strUserId);
+   public String updateData(String strUserId, String strFileId, String strChecksum, String strFileSize,
+         String strMimetype, List<String> chunks) {
 
-		ItemMetadata item = new ItemMetadata();
+      logger.debug("XMLRPC -> update data -->[User:" + strUserId + ", Checksum: " + strChecksum + ", Filesize: "
+            + strFileSize + ", Mimetype: " + strMimetype + ", Chunks: " + chunks + "]");
 
-		item.setId(fileId);
-		item.setSize(fileSize);
-		item.setChecksum(checksum);
-		item.setMimetype(strMimetype);
-		item.setChunks(chunks);
-		item.setStatus(Status.CHANGED.toString());
-		UserRMI user = new UserRMI();
-		user.setId(userId);
+      Long fileId = null;
+      try {
+         fileId = Long.parseLong(strFileId);
+      } catch (NumberFormatException ex) {
+      }
 
-		APICommitResponse response = this.apiHandler.updateData(user, item);
+      Long checksum = null;
+      try {
+         checksum = Long.parseLong(strChecksum);
+      } catch (NumberFormatException ex) {
+      }
 
-		if (response.getSuccess()) {
-			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
-		}
+      Long fileSize = null;
+      try {
+         fileSize = Long.parseLong(strFileSize);
+      } catch (NumberFormatException ex) {
+      }
 
-		String strResponse = this.parser.createResponse(response);
+      UUID userId = UUID.fromString(strUserId);
 
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
+      ItemMetadataRMI item = new ItemMetadataRMI();
 
-	}
+      item.setId(fileId);
+      item.setSize(fileSize);
+      item.setChecksum(checksum);
+      item.setMimetype(strMimetype);
+      item.setChunks(chunks);
+      item.setStatus(Status.CHANGED.toString());
+      UserRMI user = new UserRMI(userId);
 
-	public String updateMetadata(String strUserId, String strFileId, String strNewFileName, String strNewParentId) {
+      APICommitResponse response = this.apiHandler.updateData(user, item);
 
-		logger.debug("XMLRPC -> put_metadata_file -->[User:" + strUserId + ", FileName:" + strNewFileName
-				+ ", parentId: " + strNewParentId + "]");
+      if (response.getSuccess()) {
+         this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
+      }
 
-		Long parentId = null;
-		try {
-			parentId = Long.parseLong(strNewParentId);
-		} catch (NumberFormatException ex) {
-		}
+      String strResponse = this.parser.createResponse(response);
 
-		Long fileId = null;
-		try {
-			fileId = Long.parseLong(strFileId);
-		} catch (NumberFormatException ex) {
-		}
+      logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+      return strResponse;
 
-		UUID userId = UUID.fromString(strUserId);
+   }
 
-		UserRMI user = new UserRMI();
-		user.setId(userId);
+   public String updateMetadata(String strUserId, String strFileId, String strNewFileName, String strNewParentId) {
 
-		ItemMetadata file = new ItemMetadata();
-		file.setId(fileId);
-		file.setFilename(strNewFileName);
-		file.setParentId(parentId);
+      logger.debug("XMLRPC -> put_metadata_file -->[User:" + strUserId + ", FileName:" + strNewFileName
+            + ", parentId: " + strNewParentId + "]");
 
-		APICommitResponse response = this.apiHandler.updateMetadata(user, file);
+      Long parentId = null;
+      try {
+         parentId = Long.parseLong(strNewParentId);
+      } catch (NumberFormatException ex) {
+      }
 
-		if (response.getSuccess()) {
-			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
-		}
+      Long fileId = null;
+      try {
+         fileId = Long.parseLong(strFileId);
+      } catch (NumberFormatException ex) {
+      }
 
-		String strResponse = this.parser.createResponse(response);
+      UUID userId = UUID.fromString(strUserId);
 
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
-	}
+      UserRMI user = new UserRMI(userId);
 
-	public String deleteItem(String strUserId, String strFileId, String strIsFolder) {
-		Long fileId = null;
-		try {
-			fileId = Long.parseLong(strFileId);
-		} catch (NumberFormatException ex) {
-		}
+      ItemMetadataRMI file = new ItemMetadataRMI();
+      file.setId(fileId);
+      file.setFilename(strNewFileName);
+      file.setParentId(parentId);
 
-		Boolean isFolder = Boolean.parseBoolean(strIsFolder);
+      APICommitResponse response = this.apiHandler.updateMetadata(user, file);
 
-		logger.debug("XMLRPC -> delete_metadata_file -->[User:" + strUserId + ", fileId:" + fileId + "]");
+      if (response.getSuccess()) {
+         this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
+      }
 
-		ItemMetadata object = new ItemMetadata();
-		object.setId(fileId);
-		object.setIsFolder(isFolder);
+      String strResponse = this.parser.createResponse(response);
 
-		UserRMI user = new UserRMI();
-		user.setId(UUID.fromString(strUserId));
+      logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+      return strResponse;
+   }
 
-		APIDeleteResponse response = this.apiHandler.deleteItem(user, object);
+   public String deleteItem(String strUserId, String strFileId, String strIsFolder) {
+      Long fileId = null;
+      try {
+         fileId = Long.parseLong(strFileId);
+      } catch (NumberFormatException ex) {
+      }
 
-		if (response.getSuccess()) {
-			this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
-		}
+      Boolean isFolder = Boolean.parseBoolean(strIsFolder);
 
-		logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
-		return response.toString();
-	}
+      logger.debug("XMLRPC -> delete_metadata_file -->[User:" + strUserId + ", fileId:" + fileId + "]");
 
-	// necessary?
-	public String restoreMetadata(UUID userId, String strRequestId, String strFileId, String strVersion) {
-		Long fileId = null;
-		try {
-			fileId = Long.parseLong(strFileId);
-		} catch (NumberFormatException ex) {
-		}
+      ItemMetadataRMI object = new ItemMetadataRMI();
+      object.setId(fileId);
+      object.setIsFolder(isFolder);
 
-		Long version = null;
-		try {
-			version = Long.parseLong(strVersion);
-		} catch (NumberFormatException ex) {
-		}
+      UserRMI user = new UserRMI(UUID.fromString(strUserId));
 
-		logger.debug("XMLRPC -> restore_file -->[User:" + userId + ", Request:" + strRequestId + ", fileId:"
-				+ strFileId + ", version: " + strVersion + "]");
+      APIDeleteResponse response = this.apiHandler.deleteItem(user, object);
 
-		String workspace = userId + "/";
+      if (response.getSuccess()) {
+         this.sendMessageToClients(response.getMetadata().getWorkspaceId().toString(), response);
+      }
 
-		ItemMetadata object = new ItemMetadata();
-		object.setId(fileId);
-		object.setVersion(version);
+      logger.debug("XMLRPC -> resp -->[" + response.toString() + "]");
+      return response.toString();
+   }
 
-		UserRMI user = new UserRMI();
-		user.setId(userId);
+   // necessary?
+   public String restoreMetadata(UUID userId, String strRequestId, String strFileId, String strVersion) {
+      Long fileId = null;
+      try {
+         fileId = Long.parseLong(strFileId);
+      } catch (NumberFormatException ex) {
+      }
 
-		APIRestoreMetadata response = this.apiHandler.restoreMetadata(user, object);
-		String strResponse = this.parser.createResponse(response);
+      Long version = null;
+      try {
+         version = Long.parseLong(strVersion);
+      } catch (NumberFormatException ex) {
+      }
 
-		if (response.getSuccess()) {
-			this.sendMessageToClients(workspace, response);
-		}
+      logger.debug("XMLRPC -> restore_file -->[User:" + userId + ", Request:" + strRequestId + ", fileId:"
+            + strFileId + ", version: " + strVersion + "]");
 
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
-	}
+      String workspace = userId + "/";
 
-	public String shareFolder(String strUserId, String strFolderId, List<String> emails) {
+      ItemMetadataRMI object = new ItemMetadataRMI();
+      object.setId(fileId);
+      object.setVersion(version);
+
+      UserRMI user = new UserRMI(userId);
+
+      APIRestoreMetadata response = this.apiHandler.restoreMetadata(user, object);
+      String strResponse = this.parser.createResponse(response);
+
+      if (response.getSuccess()) {
+         this.sendMessageToClients(workspace, response);
+      }
+
+      logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+      return strResponse;
+   }
+
+   public String shareFolder(String strUserId, String strFolderId, List<String> emails) {
 
 		/*logger.debug("XMLRPC -> share_folder -->[User:" + strUserId + ", Folder ID:" + strFolderId + ", Emails: "
 				+ emails.toString() + "]");
@@ -407,11 +378,9 @@ public class XmlRpcSyncHandler {
 
 		UUID userId = UUID.fromString(strUserId);
 
-		UserRMI user = new UserRMI();
-		user.setId(userId);
+		UserRMI user = new UserRMI(userId);
 
-		ItemRMI item = new ItemRMI();
-		item.setId(folderId);
+		ItemRMI item = new ItemRMI(folderId);
 
 		APIShareFolderResponse response = this.apiHandler.shareFolder(user, item, emails);
 
@@ -424,128 +393,122 @@ public class XmlRpcSyncHandler {
 
 		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
 		return strResponse;*/
-            return null;
+      return null;
 
-	}
-	
-	public String unshareFolder(String strUserId, String strFolderId, List<String> emails){
-		
-		logger.debug("XMLRPC -> unshare_folder --> [User:" + strUserId + ", Folder ID:" + strFolderId
-				+ ", Emails: " + emails.toString() + "]");
+   }
 
-		Long folderId = null;
-		try {
-			folderId = Long.parseLong(strFolderId);
-		} catch (NumberFormatException ex) { }
+   public String unshareFolder(String strUserId, String strFolderId, List<String> emails){
 
-		UUID userId = UUID.fromString(strUserId);
+      logger.debug("XMLRPC -> unshare_folder --> [User:" + strUserId + ", Folder ID:" + strFolderId
+            + ", Emails: " + emails.toString() + "]");
 
-		UserRMI user = new UserRMI();
-		user.setId(userId);
+      Long folderId = null;
+      try {
+         folderId = Long.parseLong(strFolderId);
+      } catch (NumberFormatException ex) { }
 
-		ItemRMI item = new ItemRMI();
-		item.setId(folderId);
+      UUID userId = UUID.fromString(strUserId);
 
-		APIUnshareFolderResponse response = this.apiHandler.unshareFolder(user, item, emails);
-			
-		if (response.getSuccess()) {
-			//FIXME: Do the user-workspace unbindings before
-			this.unBindUsersToWorkspace(response.getWorkspace(),response.getUsersToRemove(), response.isUnshared(), folderId);
-//			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
-		}
+      UserRMI user = new UserRMI(userId);
 
-		String strResponse = response.toString();
+      ItemRMI item = new ItemRMI(folderId,null,new Long(0),null,new Long(0),"","",true,new Long(0));
 
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
-		
-	}
+      APIUnshareFolderResponse response = this.apiHandler.unshareFolder(user, item, emails);
 
-	public String getFolderMembers(String strUserId, String strFolderId) {
+      if (response.getSuccess()) {
+         //FIXME: Do the user-workspace unbindings before
+         this.unBindUsersToWorkspace(response.getWorkspace(),response.getUsersToRemove(), response.isUnshared(), folderId);
+         //			this.sendMessageToClients(response.getWorkspace().getId().toString(), response);
+      }
 
-		logger.debug("XMLRPC -> get_folder_members -->[User:" + strUserId + ", Folder ID:" + strFolderId + "]");
+      String strResponse = response.toString();
 
-		Long folderId = null;
-		try {
-			folderId = Long.parseLong(strFolderId);
-		} catch (NumberFormatException ex) {
-		}
+      logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+      return strResponse;
 
-		UUID userId = UUID.fromString(strUserId);
+   }
 
-		UserRMI user = new UserRMI();
-		user.setId(userId);
+   public String getFolderMembers(String strUserId, String strFolderId) {
 
-		ItemRMI item = new ItemRMI();
-		item.setId(folderId);
+      logger.debug("XMLRPC -> get_folder_members -->[User:" + strUserId + ", Folder ID:" + strFolderId + "]");
 
-		APIGetFolderMembersResponse response = this.apiHandler.getFolderMembers(user, item);
+      Long folderId = null;
+      try {
+         folderId = Long.parseLong(strFolderId);
+      } catch (NumberFormatException ex) {
+      }
 
-		String strResponse = response.toString();
+      UUID userId = UUID.fromString(strUserId);
 
-		logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
-		return strResponse;
+      UserRMI user = new UserRMI(userId);
 
-	}
+      ItemRMI item = new ItemRMI(folderId,null,new Long(0),null,new Long(0),"","",true,new Long(0));
 
-	public String getWorkspaceInfo(String strUserId, String strFileId) {
+      APIGetFolderMembersResponse response = this.apiHandler.getFolderMembers(user, item);
 
-		logger.debug("XMLRPC -> get workspace info -->[User:" + strUserId + ", File ID: " + strFileId + "]");
+      String strResponse = response.toString();
 
-		Long fileId = null;
-		try {
-			fileId = Long.parseLong(strFileId);
-		} catch (NumberFormatException ex) {
-		}
+      logger.debug("XMLRPC -> resp -->[" + strResponse + "]");
+      return strResponse;
 
-		UUID userId = UUID.fromString(strUserId);
+   }
 
-		ItemMetadata item = new ItemMetadata();
+   public String getWorkspaceInfo(String strUserId, String strFileId) {
 
-		item.setId(fileId);
+      logger.debug("XMLRPC -> get workspace info -->[User:" + strUserId + ", File ID: " + strFileId + "]");
 
-		UserRMI user = new UserRMI();
-		user.setId(userId);
+      Long fileId = null;
+      try {
+         fileId = Long.parseLong(strFileId);
+      } catch (NumberFormatException ex) {
+      }
 
-		APIGetWorkspaceInfoResponse response = this.apiHandler.getWorkspaceInfo(user, item);
+      UUID userId = UUID.fromString(strUserId);
 
-		logger.debug("XMLRPC -> resp --> [" + response.toString() + "]");
-		return response.toString();
+      ItemMetadataRMI item = new ItemMetadataRMI();
 
-	}
+      item.setId(fileId);
 
-	private APIGetMetadata getParentMetadata(UUID userId, Long parentId) {
-		Boolean includeDeleted = true;
+      UserRMI user = new UserRMI(userId);
 
-		UserRMI user = new UserRMI();
-		user.setId(userId);
+      APIGetWorkspaceInfoResponse response = this.apiHandler.getWorkspaceInfo(user, item);
 
-		APIGetMetadata metadataResponse = this.apiHandler.getFolderContent(user, parentId, includeDeleted);
+      logger.debug("XMLRPC -> resp --> [" + response.toString() + "]");
+      return response.toString();
 
-		return metadataResponse;
-	}
+   }
 
-	private APICommitResponse checkParentMetadata(Long parentId, APIGetMetadata metadataResponse) {
-		APICommitResponse response = new APICommitResponse(null, true, 0, null);
-		ItemMetadata parentMetadata = metadataResponse.getItemMetadata();
+   private APIGetMetadata getParentMetadata(UUID userId, Long parentId) {
+      Boolean includeDeleted = true;
 
-		if (parentId != null && parentMetadata == null) {
-			response = new APICommitResponse(null, false, 404, "Parent not found.");
-		} else if (!parentMetadata.isFolder()) {
-			response = new APICommitResponse(null, false, 400, "Incorrect parent.");
-		} else if (!parentMetadata.isRoot() && parentMetadata.getStatus().equals("DELETED")) {
-			response = new APICommitResponse(null, false, 400, "Parent is deleted.");
-		} else if (!metadataResponse.getSuccess()) {
-			response = new APICommitResponse(null, metadataResponse.getSuccess(), metadataResponse.getErrorCode(),
-					metadataResponse.getDescription());
-		}
+      UserRMI user = new UserRMI(userId);
 
-		return response;
-	}
-	
-	private void bindUsersToWorkspace(WorkspaceRMI workspace, Long folderId) throws RemoteException {
-		
-		// Create notification
+      APIGetMetadata metadataResponse = this.apiHandler.getFolderContent(user, parentId, includeDeleted);
+
+      return metadataResponse;
+   }
+
+   private APICommitResponse checkParentMetadata(Long parentId, APIGetMetadata metadataResponse) {
+      APICommitResponse response = new APICommitResponse(null, true, 0, null);
+      ItemMetadataRMI parentMetadata = metadataResponse.getItemMetadata();
+
+      if (parentId != null && parentMetadata == null) {
+         response = new APICommitResponse(null, false, 404, "Parent not found.");
+      } else if (!parentMetadata.isFolder()) {
+         response = new APICommitResponse(null, false, 400, "Incorrect parent.");
+      } else if (!parentMetadata.isRoot() && parentMetadata.getStatus().equals("DELETED")) {
+         response = new APICommitResponse(null, false, 400, "Parent is deleted.");
+      } else if (!metadataResponse.getSuccess()) {
+         response = new APICommitResponse(null, metadataResponse.getSuccess(), metadataResponse.getErrorCode(),
+               metadataResponse.getDescription());
+      }
+
+      return response;
+   }
+
+   private void bindUsersToWorkspace(WorkspaceRMI workspace, Long folderId) throws RemoteException {
+
+      // Create notification
 		/*ShareProposalNotification notification = new ShareProposalNotification(workspace.getId(),
 				workspace.getName(), folderId, workspace.getOwner(), workspace.getOwner().getName(),
 				workspace.getSwiftContainer(), workspace.getSwiftUrl(), workspace.isEncrypted());
@@ -567,8 +530,8 @@ public class XmlRpcSyncHandler {
 			}
 		}*/
 
-	}
-	private void unBindUsersToWorkspace(WorkspaceRMI workspace, List<UserRMI> usersToRemove, boolean isUnshared, Long folderId) {
+   }
+   private void unBindUsersToWorkspace(WorkspaceRMI workspace, List<UserRMI> usersToRemove, boolean isUnshared, Long folderId) {
 		
 		/*// Create notification
 		UnshareNotification notification = new UnshareNotification(workspace.getId(),
@@ -596,9 +559,9 @@ public class XmlRpcSyncHandler {
 			} catch (RemoteException e) {
 				logger.error(String.format("Could not notify user: '%s'", addressee.getId()), e);
 			}
-		} */	
-	}
-	private void sendMessageToClients(String workspaceName, APIResponse generalResponse) {
+		} */
+   }
+   private void sendMessageToClients(String workspaceName, APIResponse generalResponse) {
 
 		/*CommitInfoRMI info = generalResponse.getItem();
 		List<CommitInfoRMI> responseObjects = new ArrayList<CommitInfoRMI>();
@@ -614,5 +577,5 @@ public class XmlRpcSyncHandler {
 			logger.error("Error sending the notification to the clients: " + e);
 		}*/
 
-	}
+   }
 }

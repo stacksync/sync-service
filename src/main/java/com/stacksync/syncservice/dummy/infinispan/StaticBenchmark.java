@@ -9,6 +9,7 @@ import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.infinispan.InfinispanConnection;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
@@ -117,7 +118,7 @@ public class StaticBenchmark extends Thread {
         WorkspaceRMI workspace = new WorkspaceRMI(uuid);
 
         // Create a ItemMetadata List
-        List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+        List<ItemMetadataRMI> items = new ArrayList<>();
         items.add(TestUtil.createItemMetadata(uuid));
 
         logger.info("hander_doCommit_start,commitID=" + id);

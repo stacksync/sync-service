@@ -5,16 +5,13 @@
  */
 package com.stacksync.syncservice.dummy.infinispan;
 
-import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 /**
  *
@@ -24,7 +21,7 @@ public class TestUtil {
     
     private static final int CHUNK_SIZE = 512 * 1024;
     
-    public static ItemMetadata createItemMetadata(UUID deviceId) {
+    public static ItemMetadataRMI createItemMetadata(UUID deviceId) {
         String[] mimes = {"pdf", "php", "java", "docx", "html", "png", "jpeg", "xml"};
 
         Random random = new Random();
@@ -56,7 +53,7 @@ public class TestUtil {
             }
         }
 
-        ItemMetadata itemMetadata = new ItemMetadata(id, version, deviceId, parentId, parentVersion, status, modifiedAt, checksum, size,
+        ItemMetadataRMI itemMetadata = new ItemMetadataRMI(id, version, deviceId, parentId, parentVersion, status, modifiedAt, checksum, size,
                 isFolder, filename, mimetype, chunks);
         itemMetadata.setChunks(chunks);
         //itemMetadata.setTempId((long) random.nextLong());

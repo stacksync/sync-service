@@ -5,35 +5,29 @@
  */
 package com.stacksync.syncservice.test.dummy;
 
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-
-import org.apache.log4j.Logger;
-
-import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.infinispan.InfinispanConnection;
-import com.stacksync.syncservice.db.infinispan.InfinispanDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
+import org.apache.log4j.Logger;
+
+import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.rmi.RemoteException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
+import java.util.*;
 
 /**
  * @author Sergi Toda <sergi.toda@estudiants.urv.cat>
@@ -78,7 +72,7 @@ public abstract class AServerDummy extends Thread {
         WorkspaceRMI workspace = new WorkspaceRMI(uuid);
 
         // Create a ItemMetadata List
-        List<ItemMetadata> items = new ArrayList<ItemMetadata>();
+        List<ItemMetadataRMI> items = new ArrayList<>();
         items.add(createItemMetadata(ran, min, max, uuid));
 
         logger.info("hander_doCommit_start,commitID=" + id);
@@ -86,7 +80,7 @@ public abstract class AServerDummy extends Thread {
         logger.info("hander_doCommit_end,commitID=" + id);
     }
 
-    private ItemMetadata createItemMetadata(Random ran, int min, int max, UUID deviceId) {
+    private ItemMetadataRMI createItemMetadata(Random ran, int min, int max, UUID deviceId) {
         String[] mimes = {"pdf", "php", "java", "docx", "html", "png", "jpeg", "xml"};
 
         Long id = null;
@@ -117,7 +111,7 @@ public abstract class AServerDummy extends Thread {
             }
         }
 
-        ItemMetadata itemMetadata = new ItemMetadata(id, version, deviceId, parentId, parentVersion, status, modifiedAt, checksum, size,
+        ItemMetadataRMI itemMetadata = new ItemMetadataRMI(id, version, deviceId, parentId, parentVersion, status, modifiedAt, checksum, size,
                 isFolder, filename, mimetype, chunks);
         itemMetadata.setChunks(chunks);
         itemMetadata.setTempId((long) ran.nextInt(10));

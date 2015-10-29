@@ -1,16 +1,13 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
-
 import java.util.UUID;
 
-@Distributed
+// @Distributed
 public class AccountInfoRMI {
 
    private static final long serialVersionUID = 5231686716350716264L;
 
-   @Key
+   // @Key
    public UUID userId;
 
    private String name;

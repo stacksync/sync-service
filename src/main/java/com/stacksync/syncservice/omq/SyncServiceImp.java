@@ -1,47 +1,27 @@
 package com.stacksync.syncservice.omq;
 
-import java.util.List;
-import java.util.UUID;
-
-import omq.common.broker.Broker;
-import omq.common.util.ParameterQueue;
-import omq.exception.RemoteException;
-import omq.server.RemoteObject;
-
-import org.apache.log4j.Logger;
-
-import com.stacksync.commons.models.AccountInfo;
-import com.stacksync.commons.models.CommitInfo;
-import com.stacksync.commons.models.ItemMetadata;
+import com.stacksync.commons.exceptions.*;
+import com.stacksync.commons.models.*;
 import com.stacksync.commons.notifications.CommitNotification;
-import com.stacksync.commons.notifications.ShareProposalNotification;
 import com.stacksync.commons.notifications.UpdateWorkspaceNotification;
 import com.stacksync.commons.omq.ISyncService;
 import com.stacksync.commons.omq.RemoteClient;
 import com.stacksync.commons.omq.RemoteWorkspace;
-import com.stacksync.commons.requests.CommitRequest;
-import com.stacksync.commons.requests.GetAccountRequest;
-import com.stacksync.commons.requests.GetChangesRequest;
-import com.stacksync.commons.requests.GetWorkspacesRequest;
-import com.stacksync.commons.requests.ShareProposalRequest;
-import com.stacksync.commons.requests.UpdateDeviceRequest;
-import com.stacksync.commons.requests.UpdateWorkspaceRequest;
+import com.stacksync.commons.requests.*;
 import com.stacksync.syncservice.db.ConnectionPool;
-import com.stacksync.commons.exceptions.DeviceNotUpdatedException;
-import com.stacksync.commons.exceptions.DeviceNotValidException;
-import com.stacksync.commons.exceptions.NoWorkspacesFoundException;
-import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
-import com.stacksync.commons.exceptions.UserNotFoundException;
-import com.stacksync.commons.exceptions.WorkspaceNotUpdatedException;
-import com.stacksync.commons.models.User;
-import com.stacksync.commons.models.Workspace;
-import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import com.stacksync.syncservice.db.infinispan.models.*;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.handler.SyncHandler;
 import com.stacksync.syncservice.util.Config;
+import omq.common.broker.Broker;
+import omq.common.util.ParameterQueue;
+import omq.exception.RemoteException;
+import omq.server.RemoteObject;
+import org.apache.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class SyncServiceImp extends RemoteObject implements ISyncService {
 
@@ -77,9 +57,11 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		user.setId(request.getUserId());
                 WorkspaceRMI workspace = new WorkspaceRMI(request.getWorkspaceId());
 
-		List<ItemMetadata> list = getHandler().doGetChanges(user, workspace);
-
-		return list;
+      List<ItemMetadata> result = new ArrayList<>();
+      for (ItemMetadataRMI metadataRMI : getHandler().doGetChanges(user, workspace)) {
+         result.add(metadataRMI.toMetadataItem());
+      }
+		return result;
 	}
 
 	@Override
@@ -101,13 +83,17 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 		logger.debug(request);
 
 		try {
-                    logger.info("Start:"+request.getRequestId());
+                    logger.info("Start:" + request.getRequestId());
 			UserRMI user = new UserRMI();
 			user.setId(request.getUserId());
 			DeviceRMI device = new DeviceRMI(request.getDeviceId());
 			WorkspaceRMI workspace = new WorkspaceRMI(request.getWorkspaceId());
 
-			List<CommitInfo> committedItems = getHandler().doCommit(user, workspace, device, request.getItems());
+			List<ItemMetadataRMI> itemMetadataRMIList = new ArrayList<>();
+			for (ItemMetadata metadata : request.getItems()){
+				itemMetadataRMIList.add(new ItemMetadataRMI(metadata));
+			}
+			List<CommitInfo> committedItems = getHandler().doCommit(user, workspace, device,itemMetadataRMIList);
 
 			CommitNotification result = new CommitNotification(request.getRequestId(), committedItems);
 			UUID id = workspace.getId();

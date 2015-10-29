@@ -1,13 +1,5 @@
 package com.stacksync.syncservice.test.handler;
 
-import java.util.UUID;
-
-import static org.junit.Assert.*;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
@@ -20,6 +12,10 @@ import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.util.Config;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+
+import java.util.UUID;
 
 public class UpdateDeviceTest {
 

@@ -1,21 +1,19 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
+import com.stacksync.commons.models.ItemMetadata;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.*;
 
-@Distributed
+// @Distributed
 public class ItemMetadataRMI implements Serializable {
 
    private static final long serialVersionUID = -2494445120408291949L;
 
-   @Key
+   private static Random random = new Random(System.currentTimeMillis());
+
+  // @Key
    public Long id;
    private Long tempId;
    private Long version;
@@ -38,15 +36,16 @@ public class ItemMetadataRMI implements Serializable {
    private List<ItemMetadataRMI> children;
 
    public ItemMetadataRMI() {
-      this.isRoot = false;
-      this.chunks = new ArrayList<String>();
+      this(random.nextLong(), new Long(1), null, null,
+            null, null, Date.from(Instant.now()), null,
+            null, false, null, null,
+            new ArrayList<String>());
    }
 
    public ItemMetadataRMI(Long id, Long version, UUID deviceId, Long parentId,
          Long parentVersion, String status, Date modifiedAt, Long checksum,
          Long size, boolean isFolder, String filename, String mimetype,
          List<String> chunks) {
-
       this.id = id;
       this.version = version;
       this.deviceId = deviceId;
@@ -60,6 +59,25 @@ public class ItemMetadataRMI implements Serializable {
       this.isFolder = isFolder;
       this.filename = filename;
       this.mimetype = mimetype;
+
+      this.isRoot = false;
+      this.chunks =  (chunks == null ? new ArrayList<String>() : chunks);
+   }
+
+   public ItemMetadataRMI(ItemMetadata metadata) {
+      this.id = metadata.getId();
+      this.version = metadata.getVersion();
+      this.deviceId = metadata.getDeviceId();
+      this.parentId = metadata.getParentId();
+      this.parentVersion = metadata.getParentVersion();
+
+      this.status = metadata.getStatus();
+      this.modifiedAt = metadata.getModifiedAt();
+      this.checksum = metadata.getChecksum();
+      this.size = metadata.getSize();
+      this.isFolder = metadata.isFolder();
+      this.filename = metadata.getFilename();
+      this.mimetype = metadata.getMimetype();
 
       this.isRoot = false;
 
@@ -287,9 +305,43 @@ public class ItemMetadataRMI implements Serializable {
    public String toString() {
 
       String format = "ItemMetadata: {id=%s, filename=%s, chunks=%s, content=%s}";
-      String result = String.format(format, id, filename, chunks.size(),
-            (children == null) ? 0 : children.size());
+      String result = String.format(
+            format, id==null ? "null":id,
+            filename==null ? "null" : filename,
+            chunks == null ? "0" : chunks.size(),
+            children == null ? 0 : children.size());
 
       return result;
    }
+
+   public ItemMetadata toMetadataItem() {
+      ItemMetadata ret = new ItemMetadata(
+            id,version,deviceId,parentId,
+            parentVersion,status,modifiedAt,checksum,size,isFolder,filename,mimetype,chunks);
+      return ret;
+   }
+
+   // Helpers
+
+   public static ItemMetadataRMI createItemMetadataFromItemAndItemVersion(ItemRMI item, ItemVersionRMI itemVersion) {
+      return createItemMetadataFromItemAndItemVersion(item, itemVersion, false);
+   }
+
+   public static ItemMetadataRMI createItemMetadataFromItemAndItemVersion(ItemRMI item, ItemVersionRMI itemVersion, Boolean includeChunks) {
+      ArrayList<String> chunks = new ArrayList<>();
+      if (includeChunks) {
+         for (ChunkRMI chunk : itemVersion.getChunks()) {
+            chunks.add(chunk.toString());
+         }
+      } else {
+         chunks = null;
+      }
+      ItemMetadataRMI ret = new ItemMetadataRMI(item.getId(), itemVersion.getVersion(),
+            itemVersion.getDevice()==null ? null : itemVersion.getDevice().getId(), item.getParentId(), item.getClientParentFileVersion(),
+            itemVersion.getStatus(), itemVersion.getModifiedAt(), itemVersion.getChecksum(),
+            itemVersion.getSize(), item.isFolder(), item.getFilename(), item.getMimetype(), chunks);
+      ret.setWorkspaceId(item.getWorkspace().getId());
+      return ret;
+   }
+
 }

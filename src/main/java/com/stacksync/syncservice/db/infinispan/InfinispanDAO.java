@@ -5,12 +5,14 @@
  */
 package com.stacksync.syncservice.db.infinispan;
 
-import com.stacksync.commons.models.*;
 import com.stacksync.syncservice.db.infinispan.models.*;
-import org.infinispan.atomic.AtomicObjectFactory;
+import com.stacksync.syncservice.handler.Handler;
 
 import java.rmi.RemoteException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  *
@@ -24,20 +26,26 @@ public class InfinispanDAO
       InfinispanUserDAO,
       InfinispanDeviceDAO {
 
-   private final AtomicObjectFactory factory;
    private Map<UUID,DeviceRMI> deviceMap;
    private Map<UUID,UserRMI> userMap;
    private Map<UUID,UserRMI> mailMap;
    private Map<UUID,WorkspaceRMI> workspaceMap;
    private Map<Long,ItemRMI> itemMap;
+   private Map<Long,ItemVersionRMI> itemVersionMap;
 
-   public InfinispanDAO(AtomicObjectFactory factory) {
-      this.factory = factory;
-      deviceMap = factory.getInstanceOf(HashMap.class,"deviceMap");
-      userMap = factory.getInstanceOf(HashMap.class,"userMap");
-      mailMap = factory.getInstanceOf(HashMap.class,"mailMap");
-      workspaceMap = factory.getInstanceOf(HashMap.class,"workspaceMap");
-      itemMap = factory.getInstanceOf(HashMap.class,"itemMap");
+   public InfinispanDAO(
+         Map<UUID,DeviceRMI> deviceMap,
+         Map<UUID,UserRMI> userMap,
+         Map<UUID,UserRMI> mailMap,
+         Map<UUID,WorkspaceRMI> workspaceMap,
+         Map<Long,ItemRMI> itemMap,
+         Map<Long,ItemVersionRMI> itemVersionMap){
+      this.deviceMap = deviceMap;
+      this.userMap = userMap;
+      this.mailMap = mailMap;
+      this.workspaceMap = workspaceMap;
+      this.itemMap = itemMap;
+      this.itemVersionMap = itemVersionMap;
    }
 
    // Device
@@ -71,7 +79,7 @@ public class InfinispanDAO
 
    @Override
    public void add(ItemRMI item) throws RemoteException {
-      itemMap.put(item.getId(),item);
+      itemMap.put(item.getId(), item);
    }
 
    @Override
@@ -92,28 +100,48 @@ public class InfinispanDAO
    // metadata
 
    @Override
-   public List<ItemMetadata> getItemsByWorkspaceId(UUID workspaceId) throws RemoteException {
+   public List<ItemMetadataRMI> getItemsByWorkspaceId(UUID workspaceId) throws RemoteException {
+      return workspaceMap.get(workspaceId).getItemsMetadata();
+   }
+
+   @Override
+   public List<ItemMetadataRMI> getItemsById(Long id) throws RemoteException {
       throw new RemoteException("NYI");
    }
 
    @Override
-   public List<ItemMetadata> getItemsById(Long id) throws RemoteException {
-      throw new RemoteException("NYI");
-   }
-
-   @Override
-   public ItemMetadata findById(Long id, Boolean includeList, Long version, Boolean includeDeleted,
+   public ItemMetadataRMI findById(Long id, Boolean includeList, Long version, Boolean includeDeleted,
          Boolean includeChunks) throws RemoteException {
-      throw new RemoteException("NYI");
+      ItemRMI itemRMI = itemMap.get(id);
+      assert itemRMI!=null;
+      return itemRMI.getWorkspace().findById(id, includeList, version, includeDeleted, includeChunks);
    }
 
    @Override
-   public ItemMetadata findByUserId(UUID serverUserId, Boolean includeDeleted) throws RemoteException {
-      throw new RemoteException("NYI");
+   public ItemMetadataRMI findByUserId(UUID serverUserId, Boolean includeDeleted) throws RemoteException {
+      ItemMetadataRMI rootMetadata = new ItemMetadataRMI();
+      rootMetadata.setIsFolder(true);
+      rootMetadata.setFilename("root");
+      rootMetadata.setIsRoot(true);
+      rootMetadata.setVersion(new Long(0));
+
+      WorkspaceRMI userWorkspace = getDefaultWorkspaceByUserId(serverUserId);
+      System.out.println("workspace " + userWorkspace + " with " + userWorkspace.getItemsMetadata());
+      for (ItemMetadataRMI itemMetadata : userWorkspace.getItemsMetadata()) {
+         if (itemMetadata.getStatus().compareTo(Handler.Status.DELETED.toString()) == 0) {
+            if (includeDeleted) {
+               rootMetadata.addChild(itemMetadata);
+            }
+         } else {
+            rootMetadata.addChild(itemMetadata);
+         }
+      }
+
+      return rootMetadata;
    }
 
    @Override
-   public ItemMetadata findItemVersionsById(Long id) throws RemoteException {
+   public ItemMetadataRMI findItemVersionsById(Long id) throws RemoteException {
       throw new RemoteException("NYI");
    }
 
@@ -126,12 +154,18 @@ public class InfinispanDAO
 
    @Override
    public void add(ItemVersionRMI itemVersion) throws RemoteException {
-      throw new RemoteException("NYI");
+      System.out.println("Adding "+itemVersion.getId());
+      ItemRMI itemRMI = itemMap.get(itemVersion.getItemId());
+      itemRMI.addVersion(itemVersion);
+      itemVersionMap.put(itemVersion.getId(), itemVersion);
    }
 
    @Override
-   public ItemMetadata findByItemIdAndVersion(Long id, Long version) throws RemoteException {
-      throw new RemoteException("NYI");
+   public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version) throws RemoteException {
+      ItemRMI item = itemMap.get(id);
+      ItemVersionRMI itemVersion = item.getVersion(version);
+      assert item!=null && itemVersion != null;
+      return ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(item,itemVersion);
    }
 
    @Override
@@ -139,13 +173,18 @@ public class InfinispanDAO
       throw new RemoteException("NYI");
    }
 
-   @Override public void insertChunks(long itemId, List<ChunkRMI> chunks, long itemVersionId) throws RemoteException {
-      throw new RemoteException("NYI");
+   @Override
+   public void insertChunks(long itemId, List<ChunkRMI> chunks, long itemVersionId) throws RemoteException {
+      ItemRMI itemRMI = itemMap.get(itemId);
+      ItemVersionRMI itemVersionRMI = itemRMI.getVersion(itemVersionId);
+      if (itemVersionRMI==null)
+         throw new RemoteException("Unable to find "+itemVersionId+"  in "+itemId);
+      itemVersionRMI.addChunks(chunks);
    }
 
    @Override
    public List<ChunkRMI> findChunks(Long itemVersionId) throws RemoteException {
-      return null;  // TODO: Customise this generated block
+      return itemVersionMap.get(itemVersionId).getChunks();
    }
 
    @Override
@@ -206,25 +245,36 @@ public class InfinispanDAO
 
    @Override
    public List<WorkspaceRMI> getByUserId(UUID userId) throws RemoteException {
+      List<WorkspaceRMI> ret = new ArrayList<>();
       UserRMI user = userMap.get(userId);
-      return (List) user.getWorkspaces();
+      for (UUID uuid : user.getWorkspaces()){
+         ret.add(workspaceMap.get(uuid));
+      }
+      return ret;
    }
 
    @Override
    public WorkspaceRMI getDefaultWorkspaceByUserId(UUID userId) throws RemoteException {
       UserRMI user = userMap.get(userId);
       List<UUID> list = user.getWorkspaces();
+      if (list.isEmpty())
+         throw new RemoteException("No workspace for "+userId);
       return workspaceMap.get(list.get(0));
    }
 
    @Override
    public WorkspaceRMI getByItemId(Long itemId) throws RemoteException {
-      throw new RemoteException("NIY");
+      return itemMap.get(itemId).getWorkspace();
    }
 
    @Override
    public void add(WorkspaceRMI workspace) throws RemoteException {
       workspaceMap.put(workspace.getId(),workspace);
+      for (UUID userId: workspace.getUsers()) {
+         UserRMI user = userMap.get(userId);
+         user.addWorkspace(workspace.getId());
+         System.out.println("adding user "+user.getId()+" to "+workspace.getId());
+      }
    }
 
    @Override
@@ -244,12 +294,16 @@ public class InfinispanDAO
 
    @Override public
    void deleteWorkspace(UUID id) throws RemoteException {
-      throw new RemoteException("NIY");
+      workspaceMap.remove(id);
    }
 
    @Override
-   public List<UserWorkspaceRMI> getMembersById(UUID workspaceId) throws RemoteException {
-      throw new RemoteException("NIY");
+   public List<UserRMI> getMembersById(UUID workspaceId) throws RemoteException {
+      List<UserRMI> ret = new ArrayList<>();
+      for(UUID user : workspaceMap.get(workspaceId).getUsers()){
+         ret.add(userMap.get(user));
+      }
+      return ret;
    }
 
 

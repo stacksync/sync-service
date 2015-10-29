@@ -4,8 +4,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.infinispan.models.CommitInfoRMI;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserWorkspaceRMI;
 
@@ -42,7 +42,7 @@ public abstract class APIResponse {
 		return item;
 	}
 	
-	public ItemMetadata getMetadata(){
+	public ItemMetadataRMI getMetadata(){
 		return item.getMetadata();
 	}
 	
@@ -55,14 +55,14 @@ public abstract class APIResponse {
 			jResponse.addProperty("error", getErrorCode());
 			jResponse.addProperty("description", getDescription());
 		} else {
-			ItemMetadata file = getItem().getMetadata();
+			ItemMetadataRMI file = getItem().getMetadata();
 			jResponse = this.parseItemMetadata(file);
 		}
 
 		return jResponse.toString();
 	}
 	
-	private JsonObject parseItemMetadata(ItemMetadata metadata) {
+	private JsonObject parseItemMetadata(ItemMetadataRMI metadata) {
 		JsonObject jMetadata = parseMetadata(metadata);
 
 		if (metadata.getParentId() == null) {
@@ -91,7 +91,7 @@ public abstract class APIResponse {
 		return jMetadata;
 	}
 	
-	protected JsonObject parseObjectMetadataForAPI(ItemMetadata metadata) {
+	protected JsonObject parseObjectMetadataForAPI(ItemMetadataRMI metadata) {
 		JsonObject jMetadata = parseMetadata(metadata);
 
 		if (metadata.isFolder()) {
@@ -110,7 +110,7 @@ public abstract class APIResponse {
 		return jMetadata;
 	}
 	
-	protected JsonObject parseMetadata(ItemMetadata metadata) {
+	protected JsonObject parseMetadata(ItemMetadataRMI metadata) {
 		JsonObject jMetadata = new JsonObject();
 
 		if (metadata == null) {
@@ -155,7 +155,7 @@ public abstract class APIResponse {
 			return new JsonObject();
 		}
 		
-		JsonObject jUser = parseUser(userWorkspace.getUser());
+		JsonObject jUser = parseUser((UserRMI) userWorkspace.getUser());
 		jUser.addProperty("is_owner", userWorkspace.isOwner());
 		jUser.addProperty("joined_at", userWorkspace.getJoinedAt().toString());
 		

@@ -1,17 +1,14 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
-
 import java.io.Serializable;
 import java.util.*;
 
-@Distributed
+//@Distributed
 public class WorkspaceRMI implements Serializable {
 
    private static final long serialVersionUID = 243350300638953723L;
 
-   @Key
+//   @Key
    public UUID id;
 
    private String name;
@@ -28,7 +25,7 @@ public class WorkspaceRMI implements Serializable {
    private Random random = new Random();
 
    public WorkspaceRMI() {
-      this(null);
+      this(UUID.randomUUID());
       this.itemIdCounter = 0;
       this.itemVersionIdCounter = 0;
    }
@@ -43,8 +40,9 @@ public class WorkspaceRMI implements Serializable {
       this.owner = owner;
       this.isShared = isShared;
       this.isEncrypted = isEncrypted;
-      this.items = new HashMap<Long, ItemRMI>();
-      this.users = new ArrayList<UUID>();
+      this.items = new HashMap<>();
+      this.users = new ArrayList<>();
+      this.users.add(owner);
    }
 
    public void setWorkspace(WorkspaceRMI workspace) {
@@ -181,7 +179,6 @@ public class WorkspaceRMI implements Serializable {
             latestRevision, owner, items, users);
    }
 
-   //*******InfinispanDAO*******
    public long addVersionRMI(ItemVersionRMI itemVersion) {
       ItemRMI item = items.get(itemVersion.getItemId());
       if (item != null) {
@@ -206,274 +203,202 @@ public class WorkspaceRMI implements Serializable {
    public ItemRMI finddById(Long id) {
       return items.get(id);
    }
-   //*******InfinispanDAO*******
-   //*******InfinispanDAO*******
-    /*
-     public ItemMetadata findById(Long id, Boolean includeList, Long version, Boolean includeDeleted, Boolean includeChunks) throws RemoteException {
 
-     ItemMetadata itemMetadata = null;
-     ItemRMI item = items.get(id);
-     if (item != null) {
-     itemMetadata = getItemMetadataFromItem(item, version, includeList, includeDeleted, includeChunks);
-     }
-     return itemMetadata;
-     }
+   public List<ItemMetadataRMI> getItemsMetadata() {
+      List<ItemMetadataRMI> ret = new ArrayList<>();
+      for (ItemRMI item : getItems().values()){
+         ret.add(ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(item, item.getLatestVersion()));
+      }
+      return ret;
+   }
 
-     private ItemMetadata getItemMetadataFromItem(ItemRMI item) {
+   public ItemMetadataRMI findById(Long id, Boolean includeList, Long version, Boolean includeDeleted, Boolean includeChunks){
+      ItemMetadataRMI itemMetadata = null;
+      ItemRMI item = items.get(id);
+      if (item != null) {
+         itemMetadata = getItemMetadataFromItem(item, version, includeList, includeDeleted, includeChunks);
+      }
+      return itemMetadata;
+   }
 
-     return getItemMetadataFromItem(item, item.getLatestVersionNumber(), false, false, false);
+   private ItemMetadataRMI getItemMetadataFromItem(ItemRMI item) {
+      return getItemMetadataFromItem(item, item.getLatestVersionNumber(), false, false, false);
+   }
 
-     }
+   /**
+    *
+    * If version is <i>null</i> return the latest.
+    *
+    * @param item
+    * @param version
+    * @param includeList
+    * @param includeDeleted
+    * @param includeChunks
+    * @return
+    */
+   private ItemMetadataRMI getItemMetadataFromItem(ItemRMI item, Long version, Boolean includeList,
+         Boolean includeDeleted, Boolean includeChunks) {
 
-     private ItemMetadata getItemMetadataFromItem(ItemRMI item, Long version, Boolean includeList, Boolean includeDeleted, Boolean includeChunks) {
+      ItemMetadataRMI itemMetadata = null;
+      List<ItemVersionRMI> versions = item.getVersions();
+      if (version==null) {
+         itemMetadata = ItemMetadataRMI
+               .createItemMetadataFromItemAndItemVersion(item, versions.get(versions.size() - 1), includeChunks);
+      } else {
+         for (ItemVersionRMI itemVersion : versions) {
+            if (itemVersion.getVersion().equals(version)) {
+               itemMetadata = ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(item, itemVersion, includeChunks);
+               break;
+            }
+         }
+      }
 
-     ItemMetadata itemMetadata = null;
+      if (includeList && item.isFolder()) {
+         // Get children :D
+         itemMetadata = addChildrenFromItemMetadata(itemMetadata, includeDeleted);
+      }
 
-     List<ItemVersionRMI> versions = item.getVersions();
-     for (ItemVersionRMI itemVersion : versions) {
-     if (itemVersion.getVersion().equals(version)) {
-     itemMetadata = createItemMetadataFromItemAndItemVersion(item, itemVersion, includeChunks);
-     if (includeList && item.isFolder()) {
-     // Get children :D
-     itemMetadata = addChildrenFromItemMetadata(itemMetadata, includeDeleted);
-     }
-     break;
-     }
-     }
+      return itemMetadata;
 
-     return itemMetadata;
+   }
 
-     }
+   private ItemMetadataRMI addChildrenFromItemMetadata(ItemMetadataRMI itemMetadata, Boolean includeDeleted) {
+      for (ItemRMI thisItem : items.values()) {
+         if (itemMetadata.getId().equals(thisItem.getParentId())
+               && ((includeDeleted && itemMetadata.getStatus().equals("DELETED"))
+               || !itemMetadata.getStatus().equals("DELETED"))) {
+            ItemVersionRMI thisItemVersion = thisItem.getLatestVersion();
+            ItemMetadataRMI child = ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(thisItem, thisItemVersion);
+            itemMetadata.addChild(child);
+         }
+      }
 
-     private ItemMetadata addChildrenFromItemMetadata(ItemMetadata itemMetadata, Boolean includeDeleted) {
+      return itemMetadata;
 
-        
-     for (ItemRMI thisItem : items) {
-     if (itemMetadata.getId().equals(thisItem.getParentId()) && ((includeDeleted && itemMetadata.getStatus().equals("DELETED")) || !itemMetadata.getStatus().equals("DELETED"))) {
-     ItemVersionRMI thisItemVersion = thisItem.getLatestVersion();
-     ItemMetadata child = createItemMetadataFromItemAndItemVersion(thisItem, thisItemVersion);
-     itemMetadata.addChild(child);
-     }
-     }
+   }
 
-     return itemMetadata;
+   public ItemRMI findById(Long id) {
+      return items.get(id);
+   }
 
-     }
+   public void add(ItemRMI item) {
+      items.put(item.getId(),item);
+   }
 
-     private ItemMetadata createItemMetadataFromItemAndItemVersion(ItemRMI item, ItemVersionRMI itemVersion) {
+   public void put(ItemRMI item) {
+      boolean exist = items.containsKey(item.getId());
+      if (!exist) {
+         item.setId(this.itemIdCounter++);
+         add(item);
+      }
+   }
 
-     return createItemMetadataFromItemAndItemVersion(item, itemVersion, false);
+   public void delete(Long id) {
+      items.remove(id);
+   }
 
-     }
+   public ItemMetadataRMI findItemVersionsById(Long id) {
 
-     private ItemMetadata createItemMetadataFromItemAndItemVersion(ItemRMI item, ItemVersionRMI itemVersion, Boolean includeChunks) {
+      ItemMetadataRMI itemMetadata = null;
+      ItemRMI item = null;
 
-     ArrayList<String> chunks = new ArrayList<String>();
-     if (includeChunks) {
-     for (ChunkRMI chunk : itemVersion.getChunks()) {
-     chunks.add(chunk.toString());
-     }
-     } else {
-     chunks = null;
-     }
+      for (ItemRMI currentItem : items.values()) {
+         if (currentItem.getId().equals(id)) {
+            item = currentItem;
+         }
+      }
 
-     return new ItemMetadata(item.getId(), itemVersion.getVersion(), itemVersion.getDevice().getId(), item.getParentId(), item.getClientParentFileVersion(), itemVersion.getStatus(), itemVersion.getModifiedAt(), itemVersion.getChecksum(), itemVersion.getSize(), item.isFolder(), item.getFilename(), item.getMimetype(), chunks);
+      if (item == null) {
+         return null;
+      }
 
-     }
+      for (ItemVersionRMI itemVersion : item.getVersions()) {
+         if (itemVersion.getVersion().equals(item.getLatestVersionNumber())) {
+            itemMetadata = ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(item, itemVersion);
+            break;
+         }
+      }
 
-     //************************************
-     //************************************
-     //*************** ITEM ***************
-     //************************************
-     //************************************
-     public ItemRMI findById(Long id) throws RemoteException {
+      if (itemMetadata == null) {
+         return null;
+      }
 
-     for (ItemRMI i : items) {
-     if (i.getId().equals(id)) {
-     return i;
-     }
-     }
-     return null;
-     }
+      for (ItemVersionRMI itemVersion : item.getVersions()) {
+         if (!itemVersion.getVersion().equals(item.getLatestVersionNumber())) {
+            ItemMetadataRMI version = ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(item, itemVersion);
+            if (version != null) {
+               itemMetadata.addChild(version);
+            }
+         }
+      }
+      return itemMetadata;
+   }
 
-     public void add(ItemRMI item) throws RemoteException {
+   public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version) {
+      return findById(id, Boolean.FALSE, version, Boolean.FALSE, Boolean.FALSE);
+   }
 
-     items.add(item);
-     }
+   public void add(ItemVersionRMI itemVersion) {
+      for (ItemRMI item : items.values()) {
+         if (item.getId().equals(itemVersion.getItemId())) {
+            itemVersion.setId(itemVersionIdCounter++);
+            item.addVersion(itemVersion);
+            item.setLatestVersionNumber(itemVersion.getVersion());
+            break;
+         }
+      }
+   }
 
-     public void update(ItemRMI item) throws RemoteException {
+   public void insertChunks(List<ChunkRMI> chunks, long itemVersionId) {
+      List<ItemVersionRMI> versions;
+      for (ItemRMI item : items.values()) {
+         versions = item.getVersions();
+         for (ItemVersionRMI version : versions) {
+            if (version.getId().equals(itemVersionId)) {
+               version.setChunks(chunks);
+            }
+         }
+      }
+   }
 
-     for (ItemRMI i : items) {
-     if (i.getId().equals(item.getId())) {
-     items.remove(i);
-     items.add(item);
-     break;
-     }
-     }
-     }
+   public List<ChunkRMI> findChunks(Long itemVersionId) {
+      List<ItemVersionRMI> versions;
+      for (ItemRMI item : items.values()) {
+         versions = item.getVersions();
+         for (ItemVersionRMI version : versions) {
+            if (version.getId().equals(itemVersionId)) {
+               return version.getChunks();
+            }
+         }
+      }
+      return null;
+   }
 
-     public void put(ItemRMI item) throws RemoteException {
+   public void update(ItemVersionRMI itemVersion){
+      for (ItemRMI item : items.values()) {
+         if (item.getId().equals(itemVersion.getItemId())) {
+            List<ItemVersionRMI> versions = item.getVersions();
+            for (ItemVersionRMI version : versions) {
+               if (version.getVersion().equals(itemVersion.getVersion())) {
+                  item.removeVersion(version);
+                  item.addVersion(itemVersion);
+                  break;
+               }
+            }
+            break;
+         }
+      }
+   }
 
-     boolean exist = false;
-
-     for (ItemRMI i : items) {
-     if (i.getId().equals(item.getId())) {
-     update(item);
-     exist = true;
-     break;
-     }
-     }
-
-     if (!exist) {
-     item.setId(this.itemIdCounter++);
-     add(item);
-     }
-     }
-
-     public void delete(Long id) throws RemoteException {
-
-     for (ItemRMI i : items) {
-     if (i.getId().equals(id)) {
-     items.remove(i);
-     break;
-     }
-     }
-     }
-
-     public List<ItemMetadata> getItemsById(Long id) throws RemoteException {
-
-     List<ItemMetadata> result = new ArrayList<ItemMetadata>();
-     ItemMetadata itemMetadata;
-
-     for (ItemRMI item : items) {
-     if (item.getId().equals(id) || (item.getParentId() != null && item.getParentId().equals(id))) {
-     itemMetadata = getItemMetadataFromItem(item);
-     if (itemMetadata != null) {
-     result.add(itemMetadata);
-     }
-     }
-     }
-
-     return result;
-
-     }
-
-     public ItemMetadata findItemVersionsById(Long id) throws RemoteException {
-
-     ItemMetadata itemMetadata = null;
-     ItemRMI item = null;
-
-     for (ItemRMI currentItem : items) {
-     if (currentItem.getId().equals(id)) {
-     item = currentItem;
-     }
-     }
-
-     if (item == null) {
-     return null;
-     }
-
-     for (ItemVersionRMI itemVersion : item.getVersions()) {
-     if (itemVersion.getVersion().equals(item.getLatestVersionNumber())) {
-     itemMetadata = createItemMetadataFromItemAndItemVersion(item, itemVersion);
-     break;
-     }
-     }
-
-     if (itemMetadata == null) {
-     return null;
-     }
-
-     for (ItemVersionRMI itemVersion : item.getVersions()) {
-     if (!itemVersion.getVersion().equals(item.getLatestVersionNumber())) {
-     ItemMetadata version = createItemMetadataFromItemAndItemVersion(item, itemVersion);
-     if (version != null) {
-     itemMetadata.addChild(version);
-     }
-     }
-     }
-     return itemMetadata;
-     }
-
-     //************************************
-     //************************************
-     //************ ITEMVERSION ***********
-     //************************************
-     //************************************
-     public ItemMetadata findByItemIdAndVersion(Long id, Long version) throws RemoteException {
-
-     return findById(id, Boolean.FALSE, version, Boolean.FALSE, Boolean.FALSE);
-
-     }
-
-     public void add(ItemVersionRMI itemVersion) throws RemoteException {
-
-     for (ItemRMI item : items) {
-     if (item.getId().equals(itemVersion.getItemId())) {
-     itemVersion.setId(itemVersionIdCounter++);
-     item.addVersion(itemVersion);
-     item.setLatestVersionNumber(itemVersion.getVersion());
-     break;
-     }
-     }
-     }
-
-     public void insertChunks(List<ChunkRMI> chunks, long itemVersionId) throws RemoteException {
-
-     List<ItemVersionRMI> versions;
-
-     for (ItemRMI item : items) {
-     versions = item.getVersions();
-     for (ItemVersionRMI version : versions) {
-     if (version.getId().equals(itemVersionId)) {
-     version.setChunks(chunks);
-     }
-     }
-     }
-     }
-
-     public List<ChunkRMI> findChunks(Long itemVersionId) throws RemoteException {
-
-     List<ItemVersionRMI> versions;
-
-     for (ItemRMI item : items) {
-     versions = item.getVersions();
-     for (ItemVersionRMI version : versions) {
-     if (version.getId().equals(itemVersionId)) {
-     return version.getChunks();
-     }
-     }
-     }
-     return null;
-     }
-
-     public void update(ItemVersionRMI itemVersion) throws RemoteException {
-
-     for (ItemRMI item : items) {
-     if (item.getId().equals(itemVersion.getItemId())) {
-     List<ItemVersionRMI> versions = item.getVersions();
-     for (ItemVersionRMI version : versions) {
-     if (version.getVersion().equals(itemVersion.getVersion())) {
-     item.removeVersion(version);
-     item.addVersion(itemVersion);
-     break;
-     }
-     }
-     break;
-     }
-     }
-     }
-
-     public void delete(ItemVersionRMI itemVersion) throws RemoteException {
-
-     for (ItemRMI item : items) {
-     if (item.getId().equals(itemVersion.getItemId())) {
-     item.removeVersion(itemVersion);
-     if (item.getLatestVersionNumber().equals(itemVersion.getVersion())) {
-     item.setLatestVersionNumber(itemVersion.getVersion() - 1L);
-     }
-     break;
-     }
-     }
-     }*/
+   public void delete(ItemVersionRMI itemVersion) {
+      for (ItemRMI item : items.values()) {
+         if (item.getId().equals(itemVersion.getItemId())) {
+            item.removeVersion(itemVersion);
+            if (item.getLatestVersionNumber().equals(itemVersion.getVersion())) {
+               item.setLatestVersionNumber(itemVersion.getVersion() - 1L);
+            }
+            break;
+         }
+      }
+   }
 }

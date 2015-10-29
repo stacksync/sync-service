@@ -1,21 +1,5 @@
 package com.stacksync.syncservice.test.dao;
 
-import com.stacksync.commons.models.ItemMetadata;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.math.BigInteger;
-import java.net.URL;
-import java.security.SecureRandom;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
-
-import org.apache.log4j.xml.DOMConfigurator;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
@@ -23,329 +7,345 @@ import com.stacksync.syncservice.db.infinispan.InfinispanItemDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanItemVersionDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.util.Config;
+import org.apache.log4j.xml.DOMConfigurator;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.math.BigInteger;
+import java.net.URL;
 import java.rmi.RemoteException;
+import java.security.SecureRandom;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class PostgresqlDAOTest {
 
-	private static Connection connection;
-	private static InfinispanWorkspaceDAO workspaceDAO;
-	private static InfinispanUserDAO userDao;
-	private static InfinispanItemDAO objectDao;
-	private static InfinispanItemVersionDAO oversionDao;
-	private static SecureRandom random = new SecureRandom();
+   private static Connection connection;
+   private static InfinispanWorkspaceDAO workspaceDAO;
+   private static InfinispanUserDAO userDao;
+   private static InfinispanItemDAO objectDao;
+   private static InfinispanItemVersionDAO oversionDao;
+   private static SecureRandom random = new SecureRandom();
 
-	@BeforeClass
-	public static void testSetup() throws IOException, SQLException, DAOConfigurationException, Exception {
+   @BeforeClass
+   public static void testSetup() throws IOException, SQLException, DAOConfigurationException, Exception {
 
-		URL configFileResource = PostgresqlDAOTest.class.getResource("/com/ast/processserver/resources/log4j.xml");
-		DOMConfigurator.configure(configFileResource);
+      URL configFileResource = PostgresqlDAOTest.class.getResource("/com/ast/processserver/resources/log4j.xml");
+      DOMConfigurator.configure(configFileResource);
 
-		Config.loadProperties();
+      Config.loadProperties();
 
-		String dataSource = "postgresql";
-		DAOFactory factory = new DAOFactory(dataSource);
-		connection = ConnectionPoolFactory.getConnectionPool(dataSource).getConnection();
-		workspaceDAO = factory.getWorkspaceDao(connection);
-		userDao = factory.getUserDao(connection);
-		objectDao = factory.getItemDAO(connection);
-		oversionDao = factory.getItemVersionDAO(connection);
-	}
+      String dataSource = "postgresql";
+      DAOFactory factory = new DAOFactory(dataSource);
+      connection = ConnectionPoolFactory.getConnectionPool(dataSource).getConnection();
+      workspaceDAO = factory.getWorkspaceDao(connection);
+      userDao = factory.getUserDao(connection);
+      objectDao = factory.getItemDAO(connection);
+      oversionDao = factory.getItemVersionDAO(connection);
+   }
 
-	protected String nextString() {
-		return new BigInteger(130, random).toString(32);
-	}
+   protected String nextString() {
+      return new BigInteger(130, random).toString(32);
+   }
 
-	@Test
-	public void testCreateNewValidUser() throws IllegalArgumentException, DAOException, RemoteException {
-		UserRMI user = new UserRMI();
-		user.setName(nextString());
-		user.setId(UUID.randomUUID());
-		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
+   @Test
+   public void testCreateNewValidUser() throws IllegalArgumentException, DAOException, RemoteException {
+      UserRMI user = new UserRMI();
+      user.setName(nextString());
+      user.setId(UUID.randomUUID());
+      user.setEmail(nextString());
+      user.setQuotaLimit(2048);
+      user.setQuotaUsed(1403);
 
-		userDao.add(user);
+      userDao.add(user);
 
-		if (user.getId() == null) {
-			assertTrue("Could not retrieve the User ID", false);
-		} else {
-			assertTrue(true);
-		}
+      if (user.getId() == null) {
+         assertTrue("Could not retrieve the User ID", false);
+      } else {
+         assertTrue(true);
+      }
 
-	}
+   }
 
-	@Test
-	public void testCreateNewUserSameId() throws IllegalArgumentException, DAOException, RemoteException {
+   @Test
+   public void testCreateNewUserSameId() throws IllegalArgumentException, DAOException, RemoteException {
 
-		UUID userId = UUID.randomUUID();
+      UUID userId = UUID.randomUUID();
 
-		UserRMI user = new UserRMI();
-		user.setName(nextString());
-		user.setId(userId);
-		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
+      UserRMI user = new UserRMI();
+      user.setName(nextString());
+      user.setId(userId);
+      user.setEmail(nextString());
+      user.setQuotaLimit(2048);
+      user.setQuotaUsed(1403);
 
-		userDao.add(user);
+      userDao.add(user);
 
-		if (user.getId() == null) {
-			assertTrue("Could not retrieve the User ID", false);
-		} else {
-			UserRMI user2 = new UserRMI();
-			user2.setName(nextString());
-			user2.setId(userId);
-			user2.setEmail(nextString());
-			user2.setQuotaLimit(2048);
-			user2.setQuotaUsed(1403);
+      if (user.getId() == null) {
+         assertTrue("Could not retrieve the User ID", false);
+      } else {
+         UserRMI user2 = new UserRMI();
+         user2.setName(nextString());
+         user2.setId(userId);
+         user2.setEmail(nextString());
+         user2.setQuotaLimit(2048);
+         user2.setQuotaUsed(1403);
 
-                        userDao.add(user2);
-                        assertTrue("User should not have been created", false);
-		}
-	}
+         userDao.add(user2);
+         assertTrue("User should not have been created", false);
+      }
+   }
 
-	@Test
-	public void testUpdateExistingUserOk() throws IllegalArgumentException, DAOException, RemoteException {
+   @Test
+   public void testUpdateExistingUserOk() throws IllegalArgumentException, DAOException, RemoteException {
 
-		UserRMI user = new UserRMI();
-		user.setName(nextString());
-		user.setId(UUID.randomUUID());
-		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
+      UserRMI user = new UserRMI();
+      user.setName(nextString());
+      user.setId(UUID.randomUUID());
+      user.setEmail(nextString());
+      user.setQuotaLimit(2048);
+      user.setQuotaUsed(1403);
 
-		userDao.add(user);
+      userDao.add(user);
 
-		if (user.getId() == null) {
-			assertTrue("Could not retrieve the User ID", false);
-		} else {
+      if (user.getId() == null) {
+         assertTrue("Could not retrieve the User ID", false);
+      } else {
 
-			UUID id = user.getId();
-			String newName = nextString();
-			UUID newUserId = UUID.randomUUID();
-			String newEmail = nextString();
-			Integer newQuotaLimit = 123;
-			Integer newQuotaUsed = 321;
+         UUID id = user.getId();
+         String newName = nextString();
+         UUID newUserId = UUID.randomUUID();
+         String newEmail = nextString();
+         Integer newQuotaLimit = 123;
+         Integer newQuotaUsed = 321;
 
-			user.setName(newName);
-			user.setId(newUserId);
-			user.setEmail(newEmail);
-			user.setQuotaLimit(newQuotaLimit);
-			user.setQuotaUsed(newQuotaUsed);
+         user.setName(newName);
+         user.setId(newUserId);
+         user.setEmail(newEmail);
+         user.setQuotaLimit(newQuotaLimit);
+         user.setQuotaUsed(newQuotaUsed);
 
-                        userDao.add(user);
-                        UserRMI user2 = userDao.findById(id);
-                        assertEquals(user, user2);
-		}
-	}
+         userDao.add(user);
+         UserRMI user2 = userDao.findById(id);
+         assertEquals(user, user2);
+      }
+   }
 
-	@Test
-	public void testGetNonExistingUserById() throws RemoteException {
-            UserRMI user = userDao.findById(UUID.randomUUID());
-            if (user == null) {
-                assertTrue(true);
+   @Test
+   public void testGetNonExistingUserById() throws RemoteException {
+      UserRMI user = userDao.findById(UUID.randomUUID());
+      if (user == null) {
+         assertTrue(true);
+      } else {
+         assertTrue("User should not exist", false);
+      }
+   }
+
+   @Test
+   public void testGetExistingUserById() throws IllegalArgumentException, DAOException, RemoteException {
+
+      UserRMI user = new UserRMI();
+      user.setName(nextString());
+      user.setId(UUID.randomUUID());
+      user.setEmail(nextString());
+      user.setQuotaLimit(2048);
+      user.setQuotaUsed(1403);
+
+      userDao.add(user);
+
+      if (user.getId() == null) {
+         assertTrue("Could not retrieve the User ID", false);
+      } else {
+
+         UserRMI user2 = userDao.findById(user.getId());
+         if (user2 == null) {
+            assertTrue("User should exist", false);
+         } else {
+            if (user2.getId() != null && user2.isValid()) {
+               assertTrue(true);
             } else {
-                assertTrue("User should not exist", false);
+               assertTrue("User is not valid", false);
             }
-	}
+         }
+      }
+   }
 
-	@Test
-	public void testGetExistingUserById() throws IllegalArgumentException, DAOException, RemoteException {
+   @Test
+   public void testCreateNewWorkspaceInvalidOwner() throws RemoteException {
 
-		UserRMI user = new UserRMI();
-		user.setName(nextString());
-		user.setId(UUID.randomUUID());
-		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
+      UserRMI user = new UserRMI(UUID.randomUUID());
 
-		userDao.add(user);
+      WorkspaceRMI workspace = new WorkspaceRMI();
+      workspace.setOwner(user.getId());
 
-		if (user.getId() == null) {
-			assertTrue("Could not retrieve the User ID", false);
-		} else {
+      workspaceDAO.add(workspace);
+      assertTrue("User should not have been created", false);
+   }
 
-                    UserRMI user2 = userDao.findById(user.getId());
-                    if (user2 == null) {
-                        assertTrue("User should exist", false);
-                    } else {
-                        if (user2.getId() != null && user2.isValid()) {
-                            assertTrue(true);
-                        } else {
-                            assertTrue("User is not valid", false);
-                        }
-                    }
-		}
-	}
+   @Test
+   public void testCreateNewWorkspaceValidOwner() throws IllegalArgumentException, DAOException, RemoteException {
 
-	@Test
-	public void testCreateNewWorkspaceInvalidOwner() throws RemoteException {
+      UserRMI user = new UserRMI();
+      user.setName(nextString());
+      user.setId(UUID.randomUUID());
+      user.setEmail(nextString());
+      user.setQuotaLimit(2048);
+      user.setQuotaUsed(1403);
+      userDao.add(user);
 
-		UserRMI user = new UserRMI(UUID.randomUUID());
+      WorkspaceRMI workspace = new WorkspaceRMI();
+      workspace.setLatestRevision(0);
+      workspace.setOwner(user.getId());
 
-		WorkspaceRMI workspace = new WorkspaceRMI();
-		workspace.setOwner(user.getId());
+      workspaceDAO.add(workspace);
+      assertTrue(true);
+   }
 
-                workspaceDAO.add(workspace);
-                assertTrue("User should not have been created", false);
-	}
+   @Test
+   public void testCreateObjectInvalidWorkspace() throws IllegalArgumentException, DAOException, RemoteException {
 
-	@Test
-	public void testCreateNewWorkspaceValidOwner() throws IllegalArgumentException, DAOException, RemoteException {
+      UserRMI user = new UserRMI();
+      user.setName(nextString());
+      user.setId(UUID.randomUUID());
+      user.setEmail(nextString());
+      user.setQuotaLimit(2048);
+      user.setQuotaUsed(1403);
+      userDao.add(user);
 
-		UserRMI user = new UserRMI();
-		user.setName(nextString());
-		user.setId(UUID.randomUUID());
-		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
-		userDao.add(user);
+      WorkspaceRMI workspace = new WorkspaceRMI();
+      workspace.setOwner(user.getId());
+      workspace.setLatestRevision(0);
 
-		WorkspaceRMI workspace = new WorkspaceRMI();
-		workspace.setLatestRevision(0);
-		workspace.setOwner(user.getId());
+      ItemRMI object = new ItemRMI(
+            random.nextLong(),
+            workspace,
+            1L,
+            null,
+            1331432L,
+            nextString(),
+            "image/jpeg",
+            false,
+            1L);
 
-                workspaceDAO.add(workspace);
-                assertTrue(true);
-	}
+      objectDao.put(object);
+      assertTrue("Object should not have been created", false);
 
-	@Test
-	public void testCreateObjectInvalidWorkspace() throws IllegalArgumentException, DAOException, RemoteException {
-
-		UserRMI user = new UserRMI();
-		user.setName(nextString());
-		user.setId(UUID.randomUUID());
-		user.setEmail(nextString());
-		user.setQuotaLimit(2048);
-		user.setQuotaUsed(1403);
-		userDao.add(user);
-
-		WorkspaceRMI workspace = new WorkspaceRMI();
-		workspace.setOwner(user.getId());
-		workspace.setLatestRevision(0);
-
-		ItemRMI object = new ItemRMI();
-		//object.setWorkspace(workspace);
-		object.setLatestVersionNumber(1L);
-		object.setParent(null);
-		object.setId(1331432L);
-		object.setFilename(nextString());
-		object.setMimetype("image/jpeg");
-		object.setIsFolder(false);
-		object.setClientParentFileVersion(1L);
-
-                objectDao.put(object);
-                assertTrue("Object should not have been created", false);
-
-	}
+   }
 
 
-	@Test
-	public void testGetObjectByClientFileIdAndWorkspace() throws DAOException, RemoteException {
+   @Test
+   public void testGetObjectByClientFileIdAndWorkspace() throws DAOException, RemoteException {
 
-		long fileId = 4852407995043916970L;
-		objectDao.findById(fileId);
+      long fileId = 4852407995043916970L;
+      objectDao.findById(fileId);
 
-		// TODO Check if the returned obj is correct
-	}
+      // TODO Check if the returned obj is correct
+   }
 
-	@Test
-	public void testGetWorkspaceById() {
+   @Test
+   public void testGetWorkspaceById() {
 
-	}
+   }
 
-	@Test
-	public void testGetObjectMetadataByWorkspaceName() throws DAOException, RemoteException {
+   @Test
+   public void testGetObjectMetadataByWorkspaceName() throws DAOException, RemoteException {
 
-		List<ItemMetadata> objects = objectDao.getItemsByWorkspaceId(UUID.randomUUID());
+      List<ItemMetadataRMI> objects = objectDao.getItemsByWorkspaceId(UUID.randomUUID());
 
-		if (objects != null && !objects.isEmpty()) {
+      if (objects != null && !objects.isEmpty()) {
 
-			for (ItemMetadata object : objects) {
-				System.out.println(object.toString());
-			}
+         for (ItemMetadataRMI object : objects) {
+            System.out.println(object.toString());
+         }
 
-			assertTrue(true);
-		} else {
-			assertTrue(false);
-		}
-	}
+         assertTrue(true);
+      } else {
+         assertTrue(false);
+      }
+   }
 
-	@Test
-	public void testGetObjectMetadataByClientFileIdWithoutChunks() throws DAOException, RemoteException {
+   @Test
+   public void testGetObjectMetadataByClientFileIdWithoutChunks() throws DAOException, RemoteException {
 
-		Long fileId = 538757639L;
-		boolean includeDeleted = false;
-		boolean includeChunks = false;
-		Long version = 1L;
-		boolean list = true;
+      Long fileId = 538757639L;
+      boolean includeDeleted = false;
+      boolean includeChunks = false;
+      Long version = 1L;
+      boolean list = true;
 
-		ItemMetadata object = objectDao.findById(fileId, list, version, includeDeleted, includeChunks);
+      ItemMetadataRMI object = objectDao.findById(fileId, list, version, includeDeleted, includeChunks);
 
-		if (object != null) {
-			System.out.println(object.toString());
+      if (object != null) {
+         System.out.println(object.toString());
 
-			if (object.getChildren() != null) {
-				for (ItemMetadata child : object.getChildren()) {
-					System.out.println(child.toString());
-				}
-			}
-			assertTrue(true);
-		} else {
-			assertTrue(false);
-		}
-	}
+         if (object.getChildren() != null) {
+            for (ItemMetadataRMI child : object.getChildren()) {
+               System.out.println(child.toString());
+            }
+         }
+         assertTrue(true);
+      } else {
+         assertTrue(false);
+      }
+   }
 
-	@Test
-	public void testGetObjectMetadataByClientFileIdWithChunks() throws DAOException, RemoteException {
+   @Test
+   public void testGetObjectMetadataByClientFileIdWithChunks() throws DAOException, RemoteException {
 
-		Long fileId = 538757639L;
-		boolean includeDeleted = false;
-		boolean includeChunks = true;
-		Long version = 1L;
-		boolean list = true;
+      Long fileId = 538757639L;
+      boolean includeDeleted = false;
+      boolean includeChunks = true;
+      Long version = 1L;
+      boolean list = true;
 
-		ItemMetadata object = objectDao.findById(fileId, list, version, includeDeleted, includeChunks);
+      ItemMetadataRMI object = objectDao.findById(fileId, list, version, includeDeleted, includeChunks);
 
-		if (object != null) {
-			System.out.println(object.toString());
+      if (object != null) {
+         System.out.println(object.toString());
 
-			if (object.getChildren() != null) {
-				for (ItemMetadata child : object.getChildren()) {
-					System.out.println(child.toString());
-				}
-			}
-			assertTrue(true);
-		} else {
-			assertTrue(false);
-		}
-	}
+         if (object.getChildren() != null) {
+            for (ItemMetadataRMI child : object.getChildren()) {
+               System.out.println(child.toString());
+            }
+         }
+         assertTrue(true);
+      } else {
+         assertTrue(false);
+      }
+   }
 
-	@Test
-	public void testGetObjectMetadataByServerUserId() throws DAOException, RemoteException {
+   @Test
+   public void testGetObjectMetadataByServerUserId() throws DAOException, RemoteException {
 
-		UUID userId = UUID.randomUUID();
-		boolean includeDeleted = false;
+      UUID userId = UUID.randomUUID();
+      boolean includeDeleted = false;
 
-		ItemMetadata object = objectDao.findByUserId(userId, includeDeleted);
+      ItemMetadataRMI object = objectDao.findByUserId(userId, includeDeleted);
 
-		if (object != null) {
-			System.out.println(object.toString());
+      if (object != null) {
+         System.out.println(object.toString());
 
-			if (object.getChildren() != null) {
-				for (ItemMetadata child : object.getChildren()) {
-					System.out.println(child.toString());
-				}
-			}
-			assertTrue(true);
-		} else {
-			assertTrue(false);
-		}
-	}
+         if (object.getChildren() != null) {
+            for (ItemMetadataRMI child : object.getChildren()) {
+               System.out.println(child.toString());
+            }
+         }
+         assertTrue(true);
+      } else {
+         assertTrue(false);
+      }
+   }
 
 }

@@ -8,13 +8,14 @@ package com.stacksync.syncservice.dummy.infinispan;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.util.Config;
-import java.io.FileReader;
-import java.util.Properties;
 import omq.client.annotation.AsyncMethod;
 import omq.client.annotation.MultiMethod;
 import omq.common.broker.Broker;
 import omq.server.RemoteObject;
 import org.apache.log4j.Logger;
+
+import java.io.FileReader;
+import java.util.Properties;
 
 /**
  *

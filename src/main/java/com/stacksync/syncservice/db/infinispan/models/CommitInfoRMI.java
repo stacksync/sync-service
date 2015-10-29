@@ -1,25 +1,20 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import com.stacksync.commons.models.ItemMetadata;
-import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
-
 import java.io.Serializable;
 import java.util.UUID;
 
-@Distributed
+// @Distributed
 public class CommitInfoRMI implements Serializable {
 
    private static final long serialVersionUID = -1205107021066864318L;
 
-   @Key
+   // @Key
    public UUID id;
    private Long committedVersion;
    private boolean commitSucceed;
-   private ItemMetadata metadata;
+   private ItemMetadataRMI metadata;
 
-   public CommitInfoRMI(Long committedVersion, boolean commitSucceed,
-         ItemMetadata metadata) {
+   public CommitInfoRMI(Long committedVersion, boolean commitSucceed,ItemMetadataRMI metadata) {
       this.id = UUID.randomUUID();
       this.committedVersion = committedVersion;
       this.commitSucceed = commitSucceed;
@@ -43,11 +38,11 @@ public class CommitInfoRMI implements Serializable {
       this.commitSucceed = commitSucceed;
    }
 
-   public ItemMetadata getMetadata() {
+   public ItemMetadataRMI getMetadata() {
       return metadata;
    }
 
-   public void setMetadata(ItemMetadata metadata) {
+   public void setMetadata(ItemMetadataRMI metadata) {
       this.metadata = metadata;
    }
 

@@ -1,20 +1,19 @@
 package com.stacksync.syncservice.db.postgresql;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-
 import com.stacksync.commons.models.Chunk;
-import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.DAOError;
 import com.stacksync.syncservice.db.DAOUtil;
 import com.stacksync.syncservice.db.ItemVersionDAO;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
+import org.apache.log4j.Logger;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersionDAO {
 
@@ -25,7 +24,7 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 	}
 
 	@Override
-	public ItemMetadata findByItemIdAndVersion(Long id, Long version) throws DAOException {
+	public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version) throws DAOException {
 		Object[] values = { id, version };
 
 		String query = "SELECT i.id AS item_id, i.parent_id, i.client_parent_file_version, i.filename, i.is_folder, i.mimetype, i.workspace_id, "
@@ -36,14 +35,13 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 				+ " WHERE iv.item_id = ? and iv.version = ?";
 
 		ResultSet result = null;
-		ItemMetadata metadata = null;
+		ItemMetadataRMI metadata = null;
 
 		try {
 
 			result = executeQuery(query, values);
 
 			if (result.next()) {
-
 				metadata = DAOUtil.getItemMetadataFromResultSet(result);
 			} else {
 				// TODO error, no ha encontrado nada el perroo

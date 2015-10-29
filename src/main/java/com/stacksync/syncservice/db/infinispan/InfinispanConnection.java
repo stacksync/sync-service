@@ -9,29 +9,32 @@ import org.infinispan.commons.api.BasicCache;
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
 public class InfinispanConnection implements Connection {
-    
-    private AtomicObjectFactory factory;
-    
-    public InfinispanConnection(BasicCache cache) {
-        this.factory = AtomicObjectFactory.forCache(cache);
-    }
-    
-    public AtomicObjectFactory getFactory() {
-        return this.factory;
-    }
-    
-    @Override
-    public void setAutoCommit(boolean autoCommit) throws Exception { }
 
-    @Override
-    public void commit() throws Exception { }
+   private AtomicObjectFactory factory;
+   private BasicCache basicCache;
 
-    @Override
-    public void rollback() throws Exception { }
+   public InfinispanConnection(BasicCache cache) {
+      this.factory = AtomicObjectFactory.forCache(cache);
+      this.basicCache = cache;
+   }
 
-    @Override
-    public void close() throws Exception { }
-    
-    
-    
+   public AtomicObjectFactory getFactory() {
+      return this.factory;
+   }
+
+   @Override
+   public void setAutoCommit(boolean autoCommit) throws Exception { }
+
+   @Override
+   public void commit() throws Exception { }
+
+   @Override
+   public void rollback() throws Exception { }
+
+   @Override
+   public void close() throws Exception { }
+
+   public void cleanup() {
+      basicCache.clear();
+   }
 }

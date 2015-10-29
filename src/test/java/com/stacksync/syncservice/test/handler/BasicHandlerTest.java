@@ -1,11 +1,5 @@
 package com.stacksync.syncservice.test.handler;
 
-import java.util.UUID;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
@@ -20,7 +14,12 @@ import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.rpc.parser.IParser;
 import com.stacksync.syncservice.rpc.parser.JSONParser;
 import com.stacksync.syncservice.util.Config;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import java.rmi.RemoteException;
+import java.util.UUID;
 
 public class BasicHandlerTest {
 
@@ -55,10 +54,10 @@ public class BasicHandlerTest {
 			UserRMI user = new UserRMI(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			userDao.add(user);
 
-			WorkspaceRMI workspace = new WorkspaceRMI(null, 1, user.getId(), false, false);
+			WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID(), 1, user.getId(), false, false);
 			workspaceDAO.add(workspace);
 
-			DeviceRMI device = new DeviceRMI(null, "junitdevice");
+			DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "junitdevice");
 			deviceDao.add(device);
 
 		} catch (Exception e) {

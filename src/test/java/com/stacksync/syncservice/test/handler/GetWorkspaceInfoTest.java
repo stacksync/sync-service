@@ -1,25 +1,22 @@
 package com.stacksync.syncservice.test.handler;
 
-import com.stacksync.commons.models.ItemMetadata;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.UUID;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.handler.APIHandler;
 import com.stacksync.syncservice.handler.SQLAPIHandler;
-import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.rpc.messages.APIGetWorkspaceInfoResponse;
 import com.stacksync.syncservice.util.Config;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.UUID;
 
 public class GetWorkspaceInfoTest {
 
@@ -42,31 +39,27 @@ public class GetWorkspaceInfoTest {
 
 		Connection connection = pool.getConnection();
 
-		
+
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		userDao = factory.getUserDao(connection);
 
 		user1 = new UserRMI(UUID.fromString("159a1286-33df-4453-bf80-cff4af0d97b0"), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
-		
-		/*
 		userDao.add(user1);
-		Workspace workspace1 = new Workspace(null, 1, user1, false, false);
+		WorkspaceRMI workspace1 = new WorkspaceRMI(UUID.randomUUID(), 1, user1.getId(), false, false);
 		workspaceDAO.add(workspace1);
 
-		user2 = new User(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
-
+		user2 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 		userDao.add(user2);
-		Workspace workspace2 = new Workspace(null, 1, user2, false, false);
+		WorkspaceRMI workspace2 = new WorkspaceRMI(UUID.randomUUID(), 1, user2.getId(), false, false);
 		workspaceDAO.add(workspace2);
-		*/
 	}
-	
+
 	@Test
 	public void registerNewDevice() throws Exception {
-		
-		ItemMetadata file = new ItemMetadata();
+
+		ItemMetadataRMI file = new ItemMetadataRMI();
 		file.setId(null);
-		
+
 		APIGetWorkspaceInfoResponse response = handler.getWorkspaceInfo(user1, file);
 		System.out.println(response.toString());
 	}

@@ -1,18 +1,17 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import com.stacksync.commons.models.ItemMetadata;
-import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Distributed
+//@Distributed
 public class ItemVersionRMI implements Serializable {
 
-    @Key
+//    @Key
     public Long id;
     private Long itemId;
     private DeviceRMI device;
@@ -23,10 +22,6 @@ public class ItemVersionRMI implements Serializable {
     private String status;
     private Long size;
     private List<ChunkRMI> chunks;
-
-    public ItemVersionRMI() {
-        this.id = null;
-    }
 
     public ItemVersionRMI(Long id, Long itemId, DeviceRMI device, Long version, Date committedAt,
             Date modifiedAt, Long checksum, String status, Long size) {
@@ -39,9 +34,21 @@ public class ItemVersionRMI implements Serializable {
         this.checksum = checksum;
         this.status = status;
         this.size = size;
+        this.chunks = new ArrayList<>();
     }
 
     public ItemVersionRMI(ItemMetadata metadata) {
+        this.id = metadata.getVersion();
+        this.itemId = metadata.getParentId();
+        this.device = new DeviceRMI(metadata.getDeviceId());
+        this.version = metadata.getVersion();
+        this.modifiedAt = metadata.getModifiedAt();
+        this.checksum = metadata.getChecksum();
+        this.status = metadata.getStatus();
+        this.size = metadata.getSize();
+    }
+
+    public ItemVersionRMI(ItemMetadataRMI metadata) {
         this.id = metadata.getVersion();
         this.itemId = metadata.getParentId();
         this.device = new DeviceRMI(metadata.getDeviceId());
@@ -158,5 +165,9 @@ public class ItemVersionRMI implements Serializable {
                 committedAt, checksum, status, size);
 
         return result;
+    }
+
+    public void addChunks(List<ChunkRMI> chunks) {
+        chunks.addAll(chunks);
     }
 }

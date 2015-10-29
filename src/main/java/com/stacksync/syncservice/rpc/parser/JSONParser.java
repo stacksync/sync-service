@@ -1,19 +1,12 @@
 package com.stacksync.syncservice.rpc.parser;
 
-import org.apache.log4j.Logger;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import com.stacksync.commons.models.ItemMetadata;
-import com.stacksync.syncservice.rpc.messages.APICommitResponse;
-import com.stacksync.syncservice.rpc.messages.APICreateFolderResponse;
-import com.stacksync.syncservice.rpc.messages.APIDeleteResponse;
-import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
-import com.stacksync.syncservice.rpc.messages.APIGetVersions;
-import com.stacksync.syncservice.rpc.messages.APIResponse;
-import com.stacksync.syncservice.rpc.messages.APIRestoreMetadata;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.rpc.messages.*;
+import org.apache.log4j.Logger;
 
 public class JSONParser implements IParser {
 
@@ -52,13 +45,13 @@ public class JSONParser implements IParser {
 		JsonObject jResponse = new JsonObject();
 
 		if (response.getSuccess()) {
-                        ItemMetadata metadata = response.getItemMetadata();
+			ItemMetadataRMI metadata = response.getItemMetadata();
 			jResponse = parseObjectMetadataForAPI(metadata);
 
 			if (metadata.getChildren() != null) {
 				JsonArray contents = new JsonArray();
 
-				for (ItemMetadata entry : metadata.getChildren()) {
+				for (ItemMetadataRMI entry : metadata.getChildren()) {
 					JsonObject entryJson = parseObjectMetadataForAPI(entry);
 					contents.add(entryJson);
 				}
@@ -81,7 +74,7 @@ public class JSONParser implements IParser {
 			jResponse.addProperty("description", response.getDescription());
 			jResponse.addProperty("error", response.getErrorCode());
 		} else {
-			ItemMetadata file = response.getItem().getMetadata();
+			ItemMetadataRMI file = response.getItem().getMetadata();
 			jResponse = this.parseItemMetadata(file);
 		}
 
@@ -92,13 +85,13 @@ public class JSONParser implements IParser {
 		JsonObject jResponse = new JsonObject();
 
 		if (response.getSuccess()) {
-			ItemMetadata metadata = response.getItemMetadata();
+			ItemMetadataRMI metadata = response.getItemMetadata();
 			jResponse = parseObjectMetadataForAPI(metadata);
 
 			if (metadata.getChildren() != null) {
 				JsonArray contents = new JsonArray();
 
-				for (ItemMetadata entry : metadata.getChildren()) {
+				for (ItemMetadataRMI entry : metadata.getChildren()) {
 					JsonObject entryJson = parseObjectMetadataForAPI(entry);
 					contents.add(entryJson);
 				}
@@ -113,7 +106,7 @@ public class JSONParser implements IParser {
 		return jResponse;
 	}
 
-	private JsonObject parseMetadata(ItemMetadata metadata) {
+	private JsonObject parseMetadata(ItemMetadataRMI metadata) {
 		JsonObject jMetadata = new JsonObject();
 
 		if (metadata == null) {
@@ -138,7 +131,7 @@ public class JSONParser implements IParser {
 		return jMetadata;
 	}
 
-	private JsonObject parseObjectMetadataForAPI(ItemMetadata metadata) {
+	private JsonObject parseObjectMetadataForAPI(ItemMetadataRMI metadata) {
 		JsonObject jMetadata = parseMetadata(metadata);
 
 		if (metadata.isFolder()) {
@@ -157,7 +150,7 @@ public class JSONParser implements IParser {
 		return jMetadata;
 	}
 
-	private JsonObject parseItemMetadata(ItemMetadata metadata) {
+	private JsonObject parseItemMetadata(ItemMetadataRMI metadata) {
 		JsonObject jMetadata = parseMetadata(metadata);
 
 		if (metadata.getParentId() == null) {

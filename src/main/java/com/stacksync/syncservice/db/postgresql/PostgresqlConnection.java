@@ -24,6 +24,10 @@ public class PostgresqlConnection implements Connection {
         this.connection.close();
     }
 
+    @Override public void cleanup() throws Exception {
+        // TODO: Customise this generated block
+    }
+
     @Override
     public void setAutoCommit(boolean autoCommit) throws Exception {
         this.connection.setAutoCommit(autoCommit);

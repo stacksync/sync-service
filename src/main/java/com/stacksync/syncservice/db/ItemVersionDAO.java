@@ -1,15 +1,15 @@
 package com.stacksync.syncservice.db;
 
-import java.util.List;
-
 import com.stacksync.commons.models.Chunk;
-import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.commons.models.ItemVersion;
+import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
+
+import java.util.List;
 
 public interface ItemVersionDAO {
 
-	public ItemMetadata findByItemIdAndVersion(Long id, Long version) throws DAOException;;
+	public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version) throws DAOException;;
 
 	public void add(ItemVersion itemVersion) throws DAOException;
 

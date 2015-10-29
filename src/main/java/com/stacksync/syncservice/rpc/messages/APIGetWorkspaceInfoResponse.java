@@ -48,7 +48,7 @@ public class APIGetWorkspaceInfoResponse extends APIResponse {
 		jMetadata.addProperty("is_shared", workspace.isShared());
 		jMetadata.addProperty("owner", workspace.getOwner().toString());
 		jMetadata.addProperty("latest_revision", workspace.getLatestRevision());
-		jMetadata.addProperty("parent_item_id", workspace.getParentItem().getId());
+		if (workspace.getParentItem()!=null) jMetadata.addProperty("parent_item_id", workspace.getParentItem().getId());
 		jMetadata.addProperty("is_encrypted", workspace.isEncrypted());
 
 		return jMetadata;
