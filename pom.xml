@@ -31,7 +31,7 @@
         <dependency>
             <groupId>com.stacksync</groupId>
             <artifactId>stacksync-commons</artifactId>
-            <version>1.4.2</version>
+            <version>1.4.2-ispn</version>
         </dependency>
         <dependency>
             <groupId>objectmq</groupId>
