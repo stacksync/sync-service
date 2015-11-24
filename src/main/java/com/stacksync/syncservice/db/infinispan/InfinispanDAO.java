@@ -154,7 +154,7 @@ public class InfinispanDAO
 
    @Override
    public void add(ItemVersionRMI itemVersion) throws RemoteException {
-      System.out.println("Adding "+itemVersion.getId());
+      //System.out.println("Adding "+itemVersion.getId());
       ItemRMI itemRMI = itemMap.get(itemVersion.getItemId());
       itemRMI.addVersion(itemVersion);
       itemVersionMap.put(itemVersion.getId(), itemVersion);
@@ -223,6 +223,7 @@ public class InfinispanDAO
    public void add(UserRMI user) throws RemoteException {
       userMap.put(user.getId(),user);
       mailMap.put(user.getId(),user);
+      System.out.println("Users: "+userMap.size());
    }
 
    @Override
@@ -273,8 +274,9 @@ public class InfinispanDAO
       for (UUID userId: workspace.getUsers()) {
          UserRMI user = userMap.get(userId);
          user.addWorkspace(workspace.getId());
-         System.out.println("adding user "+user.getId()+" to "+workspace.getId());
+         //System.out.println("adding user "+user.getId()+" to "+workspace.getId());
       }
+      System.out.println("Workspaces: "+workspaceMap.size());
    }
 
    @Override

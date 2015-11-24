@@ -91,7 +91,7 @@ public class SyncServiceDaemon implements Daemon {
 			System.exit(4);
 		}
 		
-		logger.info("Connecting to OpenStack Swift...");
+		/*logger.info("Connecting to OpenStack Swift...");
 		
 		try{
 			StorageManager storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
@@ -100,7 +100,7 @@ public class SyncServiceDaemon implements Daemon {
 		}catch (Exception e) {
 			logger.fatal("Could not connect to Swift.", e);
 			System.exit(7);
-		}
+		}*/
 		
 
 		logger.info("Initializing the messaging middleware...");

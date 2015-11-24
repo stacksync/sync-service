@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface SyncHandler {
+    
+    public void createUser(UUID id) throws Exception;
 
 	public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device, List<ItemMetadataRMI> items)
 			throws Exception;

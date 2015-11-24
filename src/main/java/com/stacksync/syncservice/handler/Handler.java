@@ -53,6 +53,13 @@ public class Handler {
       itemVersionDao = factory.getItemVersionDAO(connection);
       storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
    }
+   
+   public void createUser(UUID id) throws Exception {
+       UserRMI user = new UserRMI(id, id.toString(), id.toString(), null, "a@a.a", 0, 0);
+       userDao.add(user);
+       WorkspaceRMI workspace = new WorkspaceRMI(id, 0, id, false, false);
+       workspaceDAO.add(workspace);
+   }
 
    public WorkspaceRMI getWorkspace(UUID id) throws RemoteException {
       return workspaceDAO.getById(id);

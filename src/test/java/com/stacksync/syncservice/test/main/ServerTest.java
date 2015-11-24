@@ -21,7 +21,7 @@ public class ServerTest {
 				
 				@Override
 				public String[] getArguments() {
-					return new String[]{"/home/lab144/NetBeansProjects/sync-service/config.properties"};
+					return new String[]{"./config.properties"};
 				}
 			};
 			
