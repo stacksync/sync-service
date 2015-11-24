@@ -12,7 +12,6 @@ import com.stacksync.syncservice.exceptions.CommitExistantVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import com.stacksync.syncservice.exceptions.InternalServerError;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.storage.StorageFactory;
 import com.stacksync.syncservice.storage.StorageManager;
 import com.stacksync.syncservice.storage.StorageManager.StorageType;
@@ -28,11 +27,11 @@ public class Handler {
    private static final Logger logger = Logger.getLogger(Handler.class
          .getName());
    protected Connection connection;
-   protected InfinispanWorkspaceDAO workspaceDAO;
-   protected InfinispanUserDAO userDao;
-   protected InfinispanDeviceDAO deviceDao;
-   protected InfinispanItemDAO itemDao;
-   protected InfinispanItemVersionDAO itemVersionDao;
+   protected WorkspaceDAO workspaceDAO;
+   protected UserDAO userDao;
+   protected DeviceDAO deviceDao;
+   protected ItemDAO itemDao;
+   protected ItemVersionDAO itemVersionDao;
    protected StorageManager storageManager;
    protected static Random random = new Random(System.currentTimeMillis());
 
@@ -70,20 +69,20 @@ public class Handler {
 
       HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
 
-      try {
-         workspace = workspaceDAO.getById(workspace.getId());
-         user = userDao.findById(user.getId());
-         // TODO: check if the workspace belongs to the user or its been given
-         // access
-
-         device = deviceDao.get(device.getId());
-
-      } catch (RemoteException ex) {
-         logger.error("Remote Exception getting workspace or device: " + ex);
-         throw new DAOException(ex);
-      }
-
-      // TODO: check if the device belongs to the user
+//      try {
+//         workspace = workspaceDAO.getById(workspace.getId());
+//         user = userDao.findById(user.getId());
+//         // TODO: check if the workspace belongs to the user or its been given
+//         // access
+//
+//         device = deviceDao.get(device.getId());
+//
+//      } catch (RemoteException ex) {
+//         logger.error("Remote Exception getting workspace or device: " + ex);
+//         throw new DAOException(ex);
+//      }
+//
+//      // TODO: check if the device belongs to the user
 
       List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
 

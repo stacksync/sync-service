@@ -4,8 +4,8 @@ import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
@@ -26,8 +26,8 @@ import java.util.UUID;
 public class CreateFileTest {
 
    private static APIHandler handler;
-   private static InfinispanWorkspaceDAO workspaceDAO;
-   private static InfinispanUserDAO userDao;
+   private static WorkspaceDAO workspaceDAO;
+   private static UserDAO userDao;
    private static UserRMI user1;
    private static UserRMI user2;
 

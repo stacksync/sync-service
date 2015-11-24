@@ -4,9 +4,9 @@ import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.DeviceDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
@@ -25,9 +25,9 @@ public class BasicHandlerTest {
 
 
 	private static IParser reader;
-	private static InfinispanWorkspaceDAO workspaceDAO;
-	private static InfinispanUserDAO userDao;
-	private static InfinispanDeviceDAO deviceDao;
+	private static WorkspaceDAO workspaceDAO;
+	private static UserDAO userDao;
+	private static DeviceDAO deviceDao;
 	private static UUID user1 = UUID.randomUUID();
 	
 	@BeforeClass

@@ -4,8 +4,8 @@ import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
@@ -19,48 +19,47 @@ import java.util.UUID;
 
 public class UpdateDeviceTest {
 
-	private static Handler handler;
-	private static InfinispanWorkspaceDAO workspaceDAO;
-	private static InfinispanUserDAO userDao;
-	private static UserRMI user1;
-	private static UserRMI user2;
+   private static Handler handler;
+   private static WorkspaceDAO workspaceDAO;
+   private static UserDAO userDao;
+   private static UserRMI user1;
+   private static UserRMI user2;
 
-	@BeforeClass
-	public static void initializeData() throws Exception {
+   @BeforeClass
+   public static void initializeData() throws Exception {
+
+      Config.loadProperties();
+
+      String datasource = Config.getDatasource();
+      ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
+
+      handler = new SQLSyncHandler(pool);
+      DAOFactory factory = new DAOFactory(datasource);
+
+      Connection connection = pool.getConnection();
+
+      workspaceDAO = factory.getWorkspaceDao(connection);
+      userDao = factory.getUserDao(connection);
+
+      user1 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+
+      userDao.add(user1);
+      WorkspaceRMI workspace1 = new WorkspaceRMI(null, 1, user1.getId(), false, false);
+      workspaceDAO.add(workspace1);
+
+      user2 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
+
+      userDao.add(user2);
+      WorkspaceRMI workspace2 = new WorkspaceRMI(null, 1, user2.getId(), false, false);
+      workspaceDAO.add(workspace2);
 
 
-			Config.loadProperties();
+   }
 
-			String datasource = Config.getDatasource();
-			ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
-
-			handler = new SQLSyncHandler(pool);
-			DAOFactory factory = new DAOFactory(datasource);
-
-			         Connection connection = pool.getConnection();
-
-			workspaceDAO = factory.getWorkspaceDao(connection);
-			userDao = factory.getUserDao(connection);
-
-			user1 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
-
-			userDao.add(user1);
-			WorkspaceRMI workspace1 = new WorkspaceRMI(null, 1, user1.getId(), false, false);
-			workspaceDAO.add(workspace1);
-
-			user2 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
-
-			userDao.add(user2);
-			WorkspaceRMI workspace2 = new WorkspaceRMI(null, 1, user2.getId(), false, false);
-			workspaceDAO.add(workspace2);
-
-
-	}
-
-	@AfterClass
-	public static void cleanData() throws DAOException {
-		// userDao.delete("aa");
-	}
+   @AfterClass
+   public static void cleanData() throws DAOException {
+      // userDao.delete("aa");
+   }
 
 	/*@Test
 	public void registerNewDevice() throws Exception {

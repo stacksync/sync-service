@@ -12,9 +12,9 @@ import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.DeviceDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
@@ -30,9 +30,9 @@ public class FillDBWithUsers {
 
     protected final Logger logger = Logger.getLogger(FillDBWithUsers.class.getName());
     private ConnectionPool pool;
-    private InfinispanUserDAO userDao;
-    private InfinispanWorkspaceDAO workspaceDao;
-    private InfinispanDeviceDAO deviceDao;
+    private UserDAO userDao;
+    private WorkspaceDAO workspaceDao;
+    private DeviceDAO deviceDao;
 
     private FillDBWithUsers() throws Exception {
         String configPath = "config.properties";

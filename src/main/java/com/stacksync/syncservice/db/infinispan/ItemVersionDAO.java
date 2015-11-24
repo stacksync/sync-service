@@ -17,7 +17,7 @@ import java.util.List;
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
-public interface InfinispanItemVersionDAO extends Remote {
+public interface ItemVersionDAO extends Remote {
 
     public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version)
             throws RemoteException;

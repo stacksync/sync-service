@@ -1,11 +1,14 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
+
 import java.util.UUID;
 
-// @Distributed
+@Distributed
 public class ChunkRMI {
 
-   // @Key
+   @Key
    public UUID uuid;
    private Integer order = null;
    private String clientChunkName = null;

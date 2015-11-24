@@ -8,7 +8,7 @@ import org.junit.Test;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.rpc.messages.APIGetMetadata;
 import com.stacksync.syncservice.rpc.parser.IParser;
@@ -18,7 +18,7 @@ import com.stacksync.syncservice.util.Config;
 public class GetMetadataTest {
 
 	private static IParser reader;
-	private static InfinispanUserDAO userDao;
+	private static UserDAO userDao;
 
 	@BeforeClass
 	public static void initializeData() {
@@ -177,4 +177,5 @@ public class GetMetadataTest {
 		String response = reader.createResponse(r);
 		System.out.println(response);
 	}
+
 }

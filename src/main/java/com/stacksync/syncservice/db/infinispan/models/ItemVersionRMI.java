@@ -1,6 +1,8 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import com.stacksync.commons.models.ItemMetadata;
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,10 +10,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-//@Distributed
+@Distributed
 public class ItemVersionRMI implements Serializable {
 
-//    @Key
+    @Key
     public Long id;
     private Long itemId;
     private DeviceRMI device;

@@ -1,36 +1,27 @@
 package com.stacksync.syncservice.test.handler;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.handler.APIHandler;
-import com.stacksync.syncservice.handler.SQLAPIHandler;
-import com.stacksync.syncservice.handler.Handler.Status;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
-import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.util.Config;
-import com.stacksync.syncservice.util.Constants;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class ShareFolderTest {
 
 	private static SQLSyncHandler handler;
-	private static InfinispanWorkspaceDAO workspaceDAO;
-	private static InfinispanUserDAO userDao;
+	private static WorkspaceDAO workspaceDAO;
+	private static UserDAO userDao;
 	private static UserRMI user1;
 	private static UserRMI user2;
 

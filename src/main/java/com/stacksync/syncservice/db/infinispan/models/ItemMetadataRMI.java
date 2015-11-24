@@ -1,19 +1,21 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import com.stacksync.commons.models.ItemMetadata;
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
 
-// @Distributed
+@Distributed
 public class ItemMetadataRMI implements Serializable {
 
    private static final long serialVersionUID = -2494445120408291949L;
 
    private static Random random = new Random(System.currentTimeMillis());
 
-  // @Key
+   @Key
    public Long id;
    private Long tempId;
    private Long version;

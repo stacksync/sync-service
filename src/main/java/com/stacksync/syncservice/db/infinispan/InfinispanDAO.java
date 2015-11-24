@@ -18,13 +18,9 @@ import java.util.UUID;
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
-public class InfinispanDAO
-      implements
-      InfinispanWorkspaceDAO,
-      InfinispanItemDAO,
-      InfinispanItemVersionDAO,
-      InfinispanUserDAO,
-      InfinispanDeviceDAO {
+public class InfinispanDAO implements GlobalDAO{
+
+   public UUID id;
 
    private Map<UUID,DeviceRMI> deviceMap;
    private Map<UUID,UserRMI> userMap;
@@ -40,6 +36,7 @@ public class InfinispanDAO
          Map<UUID,WorkspaceRMI> workspaceMap,
          Map<Long,ItemRMI> itemMap,
          Map<Long,ItemVersionRMI> itemVersionMap){
+      this.id = UUID.randomUUID();
       this.deviceMap = deviceMap;
       this.userMap = userMap;
       this.mailMap = mailMap;

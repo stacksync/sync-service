@@ -1,6 +1,11 @@
 package com.stacksync.syncservice.db;
 
+import com.stacksync.syncservice.db.infinispan.DeviceDAO;
 import com.stacksync.syncservice.db.infinispan.*;
+import com.stacksync.syncservice.db.infinispan.ItemDAO;
+import com.stacksync.syncservice.db.infinispan.ItemVersionDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.*;
 import org.infinispan.atomic.AtomicObjectFactory;
 
@@ -11,20 +16,29 @@ import java.util.UUID;
 public class DAOFactory {
 
     private String type;
-    private static Map<Connection,InfinispanDAO> instance  = new HashMap<>();
+    private static Map<Connection,GlobalDAO> instance  = new HashMap<>();
 
     public DAOFactory(String type) {
         this.type = type;
     }
 
-    private static synchronized InfinispanDAO createDAO(Connection connection) {
+    private static synchronized GlobalDAO createDAO(Connection connection) {
 
         if (!instance.containsKey(connection)) {
 
            if (connection instanceof InfinispanConnection){
 
-              AtomicObjectFactory factory = ((InfinispanConnection) connection).getFactory();
+//              instance.put(
+//                    connection,
+//                    new InfinispanDAO(
+//                          new HashMap<UUID,DeviceRMI>(),
+//                          new HashMap<UUID,UserRMI>(),
+//                          new HashMap<UUID,UserRMI>(),
+//                          new HashMap<UUID,WorkspaceRMI>(),
+//                          new HashMap<Long,ItemRMI>(),
+//                          new HashMap<Long,ItemVersionRMI>()));
 
+              AtomicObjectFactory factory = AtomicObjectFactory.getSingleton();
               instance.put(
                     connection,
                     new InfinispanDAO(
@@ -39,7 +53,7 @@ public class DAOFactory {
 
               instance.put(
                     connection,
-                    new InfinispanDAO(
+                    new DummyDAO(
                           new HashMap<UUID,DeviceRMI>(),
                           new HashMap<UUID,UserRMI>(),
                           new HashMap<UUID,UserRMI>(),
@@ -55,23 +69,23 @@ public class DAOFactory {
 
     }
 
-    public InfinispanWorkspaceDAO getWorkspaceDao(Connection connection) {
+    public WorkspaceDAO getWorkspaceDao(Connection connection) {
         return createDAO(connection);
     }
 
-    public InfinispanUserDAO getUserDao(Connection connection) {
+    public UserDAO getUserDao(Connection connection) {
         return createDAO(connection);
     }
 
-    public InfinispanItemDAO getItemDAO(Connection connection) {
+    public ItemDAO getItemDAO(Connection connection) {
         return createDAO(connection);
     }
 
-    public InfinispanItemVersionDAO getItemVersionDAO(Connection connection) {
+    public ItemVersionDAO getItemVersionDAO(Connection connection) {
         return createDAO(connection);
     }
 
-    public InfinispanDeviceDAO getDeviceDAO(Connection connection) {
+    public DeviceDAO getDeviceDAO(Connection connection) {
         return createDAO(connection);
     }
 

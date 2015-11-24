@@ -9,9 +9,9 @@ import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.infinispan.InfinispanConnection;
-import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.DeviceDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
@@ -42,9 +42,9 @@ public abstract class AServerDummy extends Thread {
     protected int commitsPerMinute, minutes;
     protected InfinispanConnection connection;
     protected Handler handler;
-    private InfinispanUserDAO userDAO;
-    private InfinispanDeviceDAO deviceDAO;
-    private InfinispanWorkspaceDAO workspaceDAO;
+    private UserDAO userDAO;
+    private DeviceDAO deviceDAO;
+    private WorkspaceDAO workspaceDAO;
 
     public AServerDummy(ConnectionPool pool, int commitsPerMinute, int minutes) throws SQLException, NoStorageManagerAvailable, Exception {
         this.connection = (InfinispanConnection)pool.getConnection();

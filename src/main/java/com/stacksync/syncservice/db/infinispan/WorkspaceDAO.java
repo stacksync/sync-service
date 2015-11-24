@@ -17,7 +17,7 @@ import java.util.UUID;
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
-public interface InfinispanWorkspaceDAO extends Remote {
+public interface WorkspaceDAO extends Remote {
 
     public WorkspaceRMI getById(UUID id) throws RemoteException;
 

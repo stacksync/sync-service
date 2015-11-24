@@ -7,11 +7,11 @@ import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanItemDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanItemVersionDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.DeviceDAO;
+import com.stacksync.syncservice.db.infinispan.ItemDAO;
+import com.stacksync.syncservice.db.infinispan.ItemVersionDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
@@ -24,11 +24,11 @@ import java.rmi.RemoteException;
 public class DatabaseHelper {
 	private ConnectionPool pool;
 	private Connection connection;
-	private InfinispanWorkspaceDAO workspaceDAO;
-	private InfinispanUserDAO userDao;
-	private InfinispanDeviceDAO deviceDao;
-	private InfinispanItemDAO objectDao;
-	private InfinispanItemVersionDAO oversionDao;
+	private WorkspaceDAO workspaceDAO;
+	private UserDAO userDao;
+	private DeviceDAO deviceDao;
+	private ItemDAO objectDao;
+	private ItemVersionDAO oversionDao;
 
 	public DatabaseHelper() throws Exception {
 		Config.loadProperties();

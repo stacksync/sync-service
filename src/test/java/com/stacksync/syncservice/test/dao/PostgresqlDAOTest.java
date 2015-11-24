@@ -3,10 +3,10 @@ package com.stacksync.syncservice.test.dao;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.InfinispanItemDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanItemVersionDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.ItemDAO;
+import com.stacksync.syncservice.db.infinispan.ItemVersionDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
@@ -33,10 +33,10 @@ import static org.junit.Assert.assertTrue;
 public class PostgresqlDAOTest {
 
    private static Connection connection;
-   private static InfinispanWorkspaceDAO workspaceDAO;
-   private static InfinispanUserDAO userDao;
-   private static InfinispanItemDAO objectDao;
-   private static InfinispanItemVersionDAO oversionDao;
+   private static WorkspaceDAO workspaceDAO;
+   private static UserDAO userDao;
+   private static ItemDAO objectDao;
+   private static ItemVersionDAO oversionDao;
    private static SecureRandom random = new SecureRandom();
 
    @BeforeClass

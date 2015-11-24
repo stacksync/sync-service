@@ -5,18 +5,18 @@
  */
 package com.stacksync.syncservice.db.infinispan;
 
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.UUID;
 
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-
 /**
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
-public interface InfinispanUserDAO extends Remote {
+public interface UserDAO extends Remote {
 
     public UserRMI findById(UUID id) throws RemoteException;
 

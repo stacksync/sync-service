@@ -1,15 +1,18 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-// @Distributed
+@Distributed
 public class ItemRMI implements Serializable {
 
    private static final long serialVersionUID = 1482457936400001556L;
 
-   // @Key
+   @Key
    public Long id;
    private Long latestVersion;
    private ItemRMI parent;
@@ -28,7 +31,8 @@ public class ItemRMI implements Serializable {
          String filename, String mimetype, Boolean isFolder,
          Long clientParentFileVersion) {
 
-      assert id != null;
+      if (id == null)
+         id = new Long(0); // FIXME
       this.id = id;
       this.workspaceRMI = workspace;
       this.latestVersion = latestVersion;
@@ -124,6 +128,7 @@ public class ItemRMI implements Serializable {
    }
 
    public void addVersion(ItemVersionRMI objectVersion) {
+      assert objectVersion!=null;
       this.versions.add(objectVersion);
       if (objectVersion.getVersion()>latestVersion)
          latestVersion=objectVersion.getVersion();

@@ -8,7 +8,7 @@ import com.stacksync.commons.omq.ISyncService;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.test.benchmark.Constants;
 import com.stacksync.syncservice.test.benchmark.normal.CommonFunctions;
@@ -30,7 +30,7 @@ public class TestCommit {
 		CommonFunctions.generateObjects(1, Constants.DEVICE_ID);
 
 		DAOFactory factory = new DAOFactory(datasource);
-		InfinispanWorkspaceDAO workspaceDao = factory.getWorkspaceDao(pool.getConnection());
+		WorkspaceDAO workspaceDao = factory.getWorkspaceDao(pool.getConnection());
 
 		WorkspaceRMI workspace = workspaceDao.getById(Constants.WORKSPACE_ID);
 

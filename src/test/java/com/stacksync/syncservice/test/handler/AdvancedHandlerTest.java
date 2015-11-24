@@ -24,11 +24,11 @@ public class AdvancedHandlerTest {
 	private static IParser reader;
 	private static ConnectionPool pool;
 	private static Connection connection;
-	private static InfinispanWorkspaceDAO workspaceDAO;
-	private static InfinispanUserDAO userDao;
-	private static InfinispanDeviceDAO deviceDao;
-	private static InfinispanItemDAO objectDao;
-	private static InfinispanItemVersionDAO oversionDao;
+	private static WorkspaceDAO workspaceDAO;
+	private static UserDAO userDao;
+	private static DeviceDAO deviceDao;
+	private static ItemDAO objectDao;
+	private static ItemVersionDAO oversionDao;
 	private static UUID user1 = UUID.randomUUID();
 	
 	

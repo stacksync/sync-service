@@ -1,15 +1,18 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.Key;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
-//@Distributed
+@Distributed
 public class UserWorkspaceRMI implements Serializable {
 
    private static final long serialVersionUID = 7732224675365732811L;
 
-//   @Key
+   @Key
    public UUID id;
    private UserRMI user;
    private WorkspaceRMI workspace;

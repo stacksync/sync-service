@@ -8,9 +8,9 @@ package com.stacksync.syncservice.dummy.infinispan;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.infinispan.InfinispanConnection;
-import com.stacksync.syncservice.db.infinispan.InfinispanDeviceDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanUserDAO;
-import com.stacksync.syncservice.db.infinispan.InfinispanWorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.DeviceDAO;
+import com.stacksync.syncservice.db.infinispan.UserDAO;
+import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
@@ -23,9 +23,9 @@ import java.util.UUID;
  */
 public class AOFUtil {
 
-    private InfinispanUserDAO userDAO;
-    private InfinispanDeviceDAO deviceDAO;
-    private InfinispanWorkspaceDAO workspaceDAO;
+    private UserDAO userDAO;
+    private DeviceDAO deviceDAO;
+    private WorkspaceDAO workspaceDAO;
     private InfinispanConnection connection;
 
     public AOFUtil(ConnectionPool pool) throws Exception {

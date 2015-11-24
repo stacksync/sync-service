@@ -17,7 +17,7 @@ import java.util.UUID;
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
-public interface InfinispanItemDAO extends Remote {
+public interface ItemDAO extends Remote {
 
     public ItemRMI findById(Long id) throws RemoteException;
 
