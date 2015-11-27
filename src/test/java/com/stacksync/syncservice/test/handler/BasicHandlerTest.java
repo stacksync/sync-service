@@ -37,7 +37,6 @@ public class BasicHandlerTest {
 
 			Config.loadProperties();
 			reader = new JSONParser();
-			
 
 			String datasource = Config.getDatasource();
 			ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
@@ -45,6 +44,7 @@ public class BasicHandlerTest {
 			DAOFactory factory = new DAOFactory(datasource);
 			
 			Connection connection = pool.getConnection();
+			connection.cleanup();
 
 			workspaceDAO = factory.getWorkspaceDao(connection);
 			userDao = factory.getUserDao(connection);

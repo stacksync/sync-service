@@ -37,7 +37,7 @@ public class ShareFolderTest {
 		DAOFactory factory = new DAOFactory(datasource);
 
 		Connection connection = pool.getConnection();
-
+		connection.cleanup();
 		
 		workspaceDAO = factory.getWorkspaceDao(connection);
 		userDao = factory.getUserDao(connection);

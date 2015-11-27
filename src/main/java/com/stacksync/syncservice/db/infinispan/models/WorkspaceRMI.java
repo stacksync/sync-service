@@ -1,17 +1,16 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import com.stacksync.syncservice.handler.Handler;
 import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
 
 import java.io.Serializable;
 import java.util.*;
 
-@Distributed
+@Distributed(key = "id")
 public class WorkspaceRMI implements Serializable {
 
    private static final long serialVersionUID = 243350300638953723L;
 
-   @Key
    public UUID id;
 
    private String name;
@@ -24,6 +23,7 @@ public class WorkspaceRMI implements Serializable {
    private boolean isEncrypted;
    private HashMap<Long, ItemRMI> items;
    private List<UUID> users;
+
    private long itemIdCounter, itemVersionIdCounter;
    private Random random = new Random();
 
@@ -215,6 +215,28 @@ public class WorkspaceRMI implements Serializable {
       return ret;
    }
 
+   public ItemMetadataRMI getItemsMetadata(Boolean includeDeleted) {
+
+      ItemMetadataRMI rootMetadata = new ItemMetadataRMI();
+      rootMetadata.setIsFolder(true);
+      rootMetadata.setFilename("root");
+      rootMetadata.setIsRoot(true);
+      rootMetadata.setVersion(new Long(0));
+
+      for (ItemRMI item : items.values()) {
+         ItemMetadataRMI itemMetadataRMI = ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(item, item.getLatestVersion());
+         if (itemMetadataRMI.getStatus().compareTo(Handler.Status.DELETED.toString()) == 0) {
+            if (includeDeleted) {
+               rootMetadata.addChild(itemMetadataRMI);
+            }
+         } else {
+            rootMetadata.addChild(itemMetadataRMI);
+         }
+      }
+
+      return rootMetadata;
+   }
+
    public ItemMetadataRMI findById(Long id, Boolean includeList, Long version, Boolean includeDeleted, Boolean includeChunks){
       ItemMetadataRMI itemMetadata = null;
       ItemRMI item = items.get(id);
@@ -243,22 +265,12 @@ public class WorkspaceRMI implements Serializable {
          Boolean includeDeleted, Boolean includeChunks) {
 
       ItemMetadataRMI itemMetadata = null;
-      List<ItemVersionRMI> versions = item.getVersions();
-      if (version==null) {
-         itemMetadata = ItemMetadataRMI
-               .createItemMetadataFromItemAndItemVersion(item, versions.get(versions.size() - 1), includeChunks);
-      } else {
-         for (ItemVersionRMI itemVersion : versions) {
-            if (itemVersion.getVersion().equals(version)) {
-               itemMetadata = ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(item, itemVersion, includeChunks);
-               break;
-            }
-         }
-      }
 
       if (includeList && item.isFolder()) {
          // Get children :D
          itemMetadata = addChildrenFromItemMetadata(itemMetadata, includeDeleted);
+      }else{
+         itemMetadata = item.getItemMetadataFromItem(version, includeList, includeDeleted, includeChunks);
       }
 
       return itemMetadata;

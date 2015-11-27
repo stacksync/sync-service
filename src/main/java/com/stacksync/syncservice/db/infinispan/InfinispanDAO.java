@@ -6,43 +6,40 @@
 package com.stacksync.syncservice.db.infinispan;
 
 import com.stacksync.syncservice.db.infinispan.models.*;
-import com.stacksync.syncservice.handler.Handler;
+import org.infinispan.atomic.Distribute;
 
 import java.rmi.RemoteException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
+//@Distributed(key = "id")
 public class InfinispanDAO implements GlobalDAO{
+
+   @Distribute(key = "deviceIndex")
+   public static Map<UUID,DeviceRMI> deviceMap = new HashMap<>();
+
+   @Distribute(key = "userIndex")
+   public static Map<UUID,UserRMI> userMap = new HashMap<>();
+
+   @Distribute(key = "mailIndex")
+   public static Map<UUID,UserRMI> mailMap = new HashMap<>();
+
+   @Distribute(key = "workspaceIndex")
+   public static Map<UUID,WorkspaceRMI> workspaceMap = new HashMap<>();
+
+   @Distribute(key = "itemIndex")
+   public static Map<Long,ItemRMI> itemMap = new HashMap<>();
+
+   @Distribute(key = "itemVersionIndex")
+   public static Map<Long,ItemVersionRMI> itemVersionMap = new HashMap<>();
 
    public UUID id;
 
-   private Map<UUID,DeviceRMI> deviceMap;
-   private Map<UUID,UserRMI> userMap;
-   private Map<UUID,UserRMI> mailMap;
-   private Map<UUID,WorkspaceRMI> workspaceMap;
-   private Map<Long,ItemRMI> itemMap;
-   private Map<Long,ItemVersionRMI> itemVersionMap;
-
-   public InfinispanDAO(
-         Map<UUID,DeviceRMI> deviceMap,
-         Map<UUID,UserRMI> userMap,
-         Map<UUID,UserRMI> mailMap,
-         Map<UUID,WorkspaceRMI> workspaceMap,
-         Map<Long,ItemRMI> itemMap,
-         Map<Long,ItemVersionRMI> itemVersionMap){
+   public InfinispanDAO(){
       this.id = UUID.randomUUID();
-      this.deviceMap = deviceMap;
-      this.userMap = userMap;
-      this.mailMap = mailMap;
-      this.workspaceMap = workspaceMap;
-      this.itemMap = itemMap;
-      this.itemVersionMap = itemVersionMap;
    }
 
    // Device
@@ -54,7 +51,7 @@ public class InfinispanDAO implements GlobalDAO{
 
    @Override
    public void add(DeviceRMI device) {
-      deviceMap.put(device.getId(),device);
+      deviceMap.put(device.getId(), device);
    }
 
    @Override
@@ -116,25 +113,8 @@ public class InfinispanDAO implements GlobalDAO{
 
    @Override
    public ItemMetadataRMI findByUserId(UUID serverUserId, Boolean includeDeleted) throws RemoteException {
-      ItemMetadataRMI rootMetadata = new ItemMetadataRMI();
-      rootMetadata.setIsFolder(true);
-      rootMetadata.setFilename("root");
-      rootMetadata.setIsRoot(true);
-      rootMetadata.setVersion(new Long(0));
-
       WorkspaceRMI userWorkspace = getDefaultWorkspaceByUserId(serverUserId);
-      System.out.println("workspace " + userWorkspace + " with " + userWorkspace.getItemsMetadata());
-      for (ItemMetadataRMI itemMetadata : userWorkspace.getItemsMetadata()) {
-         if (itemMetadata.getStatus().compareTo(Handler.Status.DELETED.toString()) == 0) {
-            if (includeDeleted) {
-               rootMetadata.addChild(itemMetadata);
-            }
-         } else {
-            rootMetadata.addChild(itemMetadata);
-         }
-      }
-
-      return rootMetadata;
+      return userWorkspace.getItemsMetadata(includeDeleted);
    }
 
    @Override
@@ -171,11 +151,7 @@ public class InfinispanDAO implements GlobalDAO{
    }
 
    @Override
-   public void insertChunks(long itemId, List<ChunkRMI> chunks, long itemVersionId) throws RemoteException {
-      ItemRMI itemRMI = itemMap.get(itemId);
-      ItemVersionRMI itemVersionRMI = itemRMI.getVersion(itemVersionId);
-      if (itemVersionRMI==null)
-         throw new RemoteException("Unable to find "+itemVersionId+"  in "+itemId);
+   public void insertChunks(ItemVersionRMI itemVersionRMI, List<ChunkRMI> chunks) throws RemoteException {
       itemVersionRMI.addChunks(chunks);
    }
 

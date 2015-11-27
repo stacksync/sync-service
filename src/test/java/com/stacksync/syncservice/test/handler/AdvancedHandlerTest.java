@@ -49,7 +49,7 @@ public class AdvancedHandlerTest {
 			deviceDao = factory.getDeviceDAO(connection);
 			objectDao = factory.getItemDAO(connection);
 			oversionDao = factory.getItemVersionDAO(connection);
-
+			connection.cleanup();
 
 			UserRMI user = new UserRMI(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			userDao.add(user);

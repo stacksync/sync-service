@@ -1,16 +1,14 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
 
 import java.util.UUID;
 
-@Distributed
+@Distributed(key="userId")
 public class AccountInfoRMI {
 
    private static final long serialVersionUID = 5231686716350716264L;
 
-   @Key
    public UUID userId;
 
    private String name;
@@ -20,6 +18,9 @@ public class AccountInfoRMI {
    private String swiftTenant;
    private String swiftUser;
    private String swiftAuthUrl;
+
+   @Deprecated
+   public AccountInfoRMI(){}
 
    public AccountInfoRMI(UUID userId, String name, String email, Integer quotaLimit, Integer quotaUsed, String swiftTenant,
          String swiftUser, String swiftAuthUrl) {
@@ -32,10 +33,6 @@ public class AccountInfoRMI {
       this.swiftTenant = swiftTenant;
       this.swiftUser = swiftUser;
       this.swiftAuthUrl = swiftAuthUrl;
-   }
-
-   public AccountInfoRMI(){
-
    }
 
    public UUID getUserId() {

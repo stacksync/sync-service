@@ -132,15 +132,6 @@ public class SQLAPIHandler extends Handler implements APIHandler {
    @Override
    public APICommitResponse createFile(UserRMI user, ItemMetadataRMI fileToSave) {
 
-      // Check the owner
-      try {
-         user = userDao.findById(user.getId());
-         assert  user!=null;
-      } catch (RemoteException ex) {
-         java.util.logging.Logger.getLogger(SQLAPIHandler.class.getName()).log(Level.SEVERE, null, ex);
-      }
-
-      // Get user workspaces
       try {
          List<WorkspaceRMI> workspaces = workspaceDAO.getByUserId(user.getId());
          List<UUID> workspaceUUIDs = new ArrayList<>();
@@ -388,12 +379,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
       }
 
       // check if there is already a file with the same name
-      boolean repeated = false;
-      for (ItemMetadataRMI child : parent.getChildren()) {
-         if (child.getFilename().equals(fileToUpdate.getFilename())) {
-            repeated = true;
-         }
-      }
+      boolean repeated = parent.isChildRepeated(fileToUpdate);
       if (repeated) {
          return new APICommitResponse(fileToUpdate, false, 400,
                "This name is already used in the same folder. Please use a different one. ");
@@ -891,7 +877,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
             i++;
          }
 
-         itemVersionDao.insertChunks(objectVersion.getItemId(), chunks, objectVersion.getId());
+         itemVersionDao.insertChunks(objectVersion, chunks);
       }
    }
 

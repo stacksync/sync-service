@@ -1,18 +1,16 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-@Distributed
-public class ItemRMI implements Serializable {
+@Distributed(key = "id")
+public class ItemRMI {
 
    private static final long serialVersionUID = 1482457936400001556L;
 
-   @Key
    public Long id;
    private Long latestVersion;
    private ItemRMI parent;
@@ -20,8 +18,15 @@ public class ItemRMI implements Serializable {
    private String mimetype;
    private Boolean isFolder;
    private Long clientParentFileVersion;
+
+//   @Distribute
    private List<ItemVersionRMI> versions;
+
    private WorkspaceRMI workspaceRMI;
+   private UUID workspaceId;
+
+   @Deprecated
+   public ItemRMI() {}
 
    public ItemRMI(Long id) {
       this(id, null, null, null, null, null, null, null, null);
@@ -31,17 +36,16 @@ public class ItemRMI implements Serializable {
          String filename, String mimetype, Boolean isFolder,
          Long clientParentFileVersion) {
 
-      if (id == null)
-         id = new Long(0); // FIXME
       this.id = id;
       this.workspaceRMI = workspace;
+      this.workspaceId = workspace.getId();
       this.latestVersion = latestVersion;
       this.parent = parent;
       this.filename = filename;
       this.mimetype = mimetype;
       this.isFolder = isFolder;
       this.clientParentFileVersion = clientParentFileVersion;
-      this.versions = new ArrayList<ItemVersionRMI>();
+      this.versions = new ArrayList<>();
    }
 
    public Long getId() {
@@ -175,10 +179,32 @@ public class ItemRMI implements Serializable {
    }
 
    public ItemVersionRMI getVersion(long version) {
-      for(ItemVersionRMI itemVersion : versions) {
+      for (ItemVersionRMI itemVersion : versions) {
          if (itemVersion.getVersion().equals(version))
             return itemVersion;
       }
       return null;
+   }
+
+   public ItemMetadataRMI getItemMetadataFromItem(Long version, Boolean includeList, Boolean includeDeleted,
+         Boolean includeChunks) {
+      ItemMetadataRMI itemMetadata = null;
+      if (version==null) {
+         itemMetadata = ItemMetadataRMI
+               .createItemMetadataFromItemAndItemVersion(this, versions.get(versions.size() - 1), includeChunks);
+      } else {
+         for (ItemVersionRMI itemVersion : versions) {
+            if (itemVersion.getVersion().equals(version)) {
+               itemMetadata = ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(this, itemVersion, includeChunks);
+               break;
+            }
+         }
+      }
+      return itemMetadata;
+
+   }
+
+   public UUID getWorkspaceId() {
+      return workspaceId;
    }
 }

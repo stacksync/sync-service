@@ -27,7 +27,7 @@ public interface ItemVersionDAO extends Remote {
     public void insertChunk(Long itemVersionId, Long chunkId, Integer order)
             throws RemoteException;
 
-    public void insertChunks(long itemId, List<ChunkRMI> chunks, long itemVersionId)
+    public void insertChunks(ItemVersionRMI versionRMI, List<ChunkRMI> chunks)
             throws RemoteException;
 
     public List<ChunkRMI> findChunks(Long itemVersionId) throws RemoteException;

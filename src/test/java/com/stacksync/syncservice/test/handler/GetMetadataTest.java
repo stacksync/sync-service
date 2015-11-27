@@ -31,8 +31,8 @@ public class GetMetadataTest {
 			ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
 
 			DAOFactory factory = new DAOFactory(datasource);
-
 			Connection connection = pool.getConnection();
+			connection.cleanup();
 
 			userDao = factory.getUserDao(connection);
 

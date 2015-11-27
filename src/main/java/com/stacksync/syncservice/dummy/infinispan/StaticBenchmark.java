@@ -5,7 +5,6 @@
  */
 package com.stacksync.syncservice.dummy.infinispan;
 
-import com.stacksync.commons.models.ItemMetadata;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.infinispan.InfinispanConnection;
 import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
@@ -15,12 +14,13 @@ import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
+import org.apache.log4j.Logger;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-import org.apache.log4j.Logger;
 
 /**
  *
@@ -159,4 +159,5 @@ public class StaticBenchmark extends Thread {
     public void setMinutes(int minutes) {
         this.minutes = minutes;
     }
+
 }

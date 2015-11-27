@@ -22,10 +22,10 @@ import java.rmi.RemoteException;
 import java.time.Instant;
 import java.util.*;
 
-public class Handler {
+public class Handler{
 
-   private static final Logger logger = Logger.getLogger(Handler.class
-         .getName());
+   private static final Logger logger = Logger.getLogger(Handler.class.getName());
+
    protected Connection connection;
    protected WorkspaceDAO workspaceDAO;
    protected UserDAO userDao;
@@ -33,6 +33,7 @@ public class Handler {
    protected ItemDAO itemDao;
    protected ItemVersionDAO itemVersionDao;
    protected StorageManager storageManager;
+
    protected static Random random = new Random(System.currentTimeMillis());
 
    public enum Status {
@@ -67,28 +68,16 @@ public class Handler {
    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
          DeviceRMI device, List<ItemMetadataRMI> items) throws Exception {
 
-      HashMap<Long, Long> tempIds = new HashMap<Long, Long>();
+      HashMap<Long, Long> tempIds = new HashMap<>();
 
-//      try {
-//         workspace = workspaceDAO.getById(workspace.getId());
-//         user = userDao.findById(user.getId());
-//         // TODO: check if the workspace belongs to the user or its been given
-//         // access
-//
-//         device = deviceDao.get(device.getId());
-//
-//      } catch (RemoteException ex) {
-//         logger.error("Remote Exception getting workspace or device: " + ex);
-//         throw new DAOException(ex);
-//      }
-//
-//      // TODO: check if the device belongs to the user
+      // TODO: check if the workspace belongs to the user or its been given access
+      // TODO: check if the device belongs to the user
 
-      List<CommitInfo> responseObjects = new ArrayList<CommitInfo>();
+      List<CommitInfo> responseObjects = new ArrayList<>();
 
       for (ItemMetadataRMI itemMetadata : items) {
 
-         ItemMetadataRMI objectResponse = null;
+         ItemMetadataRMI objectResponse;
          boolean committed;
 
          if (itemMetadata.getParentId() != null) {
@@ -211,7 +200,7 @@ public class Handler {
          // Create container in Swift
          try {
          storageManager.createNewWorkspace(workspace);
-         } catch (Exception e) {
+         }a catch (Exception e) {
          logger.error(e);
          throw new ShareProposalNotCreatedException(e);
          }
@@ -471,9 +460,8 @@ public class Handler {
    /*
     * Private functions
     */
-   private void commitObject(ItemMetadataRMI itemMetadata, WorkspaceRMI workspace,
-         DeviceRMI device) throws CommitWrongVersionNoParent,
-         CommitWrongVersion, CommitExistantVersion, Exception {
+   private void commitObject(ItemMetadataRMI itemMetadata, WorkspaceRMI workspace, DeviceRMI device)
+         throws  Exception {
 
       ItemRMI serverItem = itemDao.findById(itemMetadata.getId());
 
@@ -549,6 +537,7 @@ public class Handler {
                metadata.getSize());
 
          item.addVersion(objectVersion);
+         System.out.println(item.getVersions());
          itemVersionDao.add(objectVersion);
 
          // If no folder, create new chunks
@@ -632,7 +621,7 @@ public class Handler {
                chunks.add(new ChunkRMI(chunkName, i));
                i++;
             }
-            itemVersionDao.insertChunks(objectVersion.getItemId(), chunks, objectVersion.getId());
+            itemVersionDao.insertChunks(objectVersion, chunks);
          }
       }
    }

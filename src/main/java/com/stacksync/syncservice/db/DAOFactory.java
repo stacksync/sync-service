@@ -6,12 +6,9 @@ import com.stacksync.syncservice.db.infinispan.ItemDAO;
 import com.stacksync.syncservice.db.infinispan.ItemVersionDAO;
 import com.stacksync.syncservice.db.infinispan.UserDAO;
 import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
-import com.stacksync.syncservice.db.infinispan.models.*;
-import org.infinispan.atomic.AtomicObjectFactory;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 public class DAOFactory {
 
@@ -28,38 +25,15 @@ public class DAOFactory {
 
            if (connection instanceof InfinispanConnection){
 
-//              instance.put(
-//                    connection,
-//                    new InfinispanDAO(
-//                          new HashMap<UUID,DeviceRMI>(),
-//                          new HashMap<UUID,UserRMI>(),
-//                          new HashMap<UUID,UserRMI>(),
-//                          new HashMap<UUID,WorkspaceRMI>(),
-//                          new HashMap<Long,ItemRMI>(),
-//                          new HashMap<Long,ItemVersionRMI>()));
-
-              AtomicObjectFactory factory = AtomicObjectFactory.getSingleton();
               instance.put(
                     connection,
-                    new InfinispanDAO(
-                          factory.getInstanceOf(HashMap.class,"deviceMap"),
-                          factory.getInstanceOf(HashMap.class,"userMap"),
-                          factory.getInstanceOf(HashMap.class,"mailMap"),
-                          factory.getInstanceOf(HashMap.class,"workspaceMap"),
-                          factory.getInstanceOf(HashMap.class,"itemMap"),
-                          factory.getInstanceOf(HashMap.class,"itemVersionMap")));
+                    new InfinispanDAO());
 
            }else if (connection instanceof DummyConnection) {
 
               instance.put(
                     connection,
-                    new DummyDAO(
-                          new HashMap<UUID,DeviceRMI>(),
-                          new HashMap<UUID,UserRMI>(),
-                          new HashMap<UUID,UserRMI>(),
-                          new HashMap<UUID,WorkspaceRMI>(),
-                          new HashMap<Long,ItemRMI>(),
-                          new HashMap<Long,ItemVersionRMI>()));
+                    new DummyDAO());
 
            }
 

@@ -1,21 +1,21 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
 
-import java.io.Serializable;
 import java.util.UUID;
 
-@Distributed
-public class CommitInfoRMI implements Serializable {
+@Distributed(key = "id")
+public class CommitInfoRMI {
 
    private static final long serialVersionUID = -1205107021066864318L;
 
-   @Key
    public UUID id;
    private Long committedVersion;
    private boolean commitSucceed;
    private ItemMetadataRMI metadata;
+
+   @Deprecated
+   public CommitInfoRMI(){}
 
    public CommitInfoRMI(Long committedVersion, boolean commitSucceed,ItemMetadataRMI metadata) {
       this.id = UUID.randomUUID();

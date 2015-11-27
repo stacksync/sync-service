@@ -1,21 +1,17 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
 
-import java.io.Serializable;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Distributed
-public class UserRMI implements Serializable, Remote {
+@Distributed(key = "id")
+public class UserRMI {
 
     private static final long serialVersionUID = -8827608629982195900L;
 
-    @Key
     public UUID id;
     private String name;
     private String swiftUser;
@@ -23,9 +19,14 @@ public class UserRMI implements Serializable, Remote {
     private String email;
     private Integer quotaLimit;
     private Integer quotaUsed;
+
+//    @Distribute
     private List<DeviceRMI> devices;
+
+//    @Distribute
     private List<UUID> workspaces;
 
+    @Deprecated
     public UserRMI() {
         this(null);
     }
@@ -42,8 +43,8 @@ public class UserRMI implements Serializable, Remote {
         this.email = email;
         this.quotaLimit = quotaLimit;
         this.quotaUsed = quotaUsed;
-        this.devices = new ArrayList<DeviceRMI>();
-        this.workspaces = new ArrayList<UUID>();
+        this.devices = new ArrayList<>();
+        this.workspaces = new ArrayList<>();
     }
 
     public void setUser(UserRMI usr) {

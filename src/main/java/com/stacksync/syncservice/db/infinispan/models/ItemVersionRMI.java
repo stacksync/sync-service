@@ -2,18 +2,15 @@ package com.stacksync.syncservice.db.infinispan.models;
 
 import com.stacksync.commons.models.ItemMetadata;
 import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Distributed
-public class ItemVersionRMI implements Serializable {
+@Distributed(key = "id")
+public class ItemVersionRMI {
 
-    @Key
     public Long id;
     private Long itemId;
     private DeviceRMI device;
@@ -23,7 +20,12 @@ public class ItemVersionRMI implements Serializable {
     private Long checksum;
     private String status;
     private Long size;
+
+//    @Distribute
     private List<ChunkRMI> chunks;
+
+    @Deprecated
+    public ItemVersionRMI(){}
 
     public ItemVersionRMI(Long id, Long itemId, DeviceRMI device, Long version, Date committedAt,
             Date modifiedAt, Long checksum, String status, Long size) {
@@ -40,6 +42,7 @@ public class ItemVersionRMI implements Serializable {
     }
 
     public ItemVersionRMI(ItemMetadata metadata) {
+        if (metadata==null) return; // FIXME
         this.id = metadata.getVersion();
         this.itemId = metadata.getParentId();
         this.device = new DeviceRMI(metadata.getDeviceId());
@@ -51,6 +54,7 @@ public class ItemVersionRMI implements Serializable {
     }
 
     public ItemVersionRMI(ItemMetadataRMI metadata) {
+        if (metadata==null) return; // FIXME
         this.id = metadata.getVersion();
         this.itemId = metadata.getParentId();
         this.device = new DeviceRMI(metadata.getDeviceId());
@@ -149,9 +153,9 @@ public class ItemVersionRMI implements Serializable {
     @Override
     public String toString() {
         String format = "ItemVersion[id=%s, itemId=%s, "
-                + "version=%s, chunks=%s, deviceId=%s, modifiedAt=%s, "
-                + "committedAt=%s, checksum=%s, status=%s, "
-                + "size=%s]";
+              + "version=%s, chunks=%s, deviceId=%s, modifiedAt=%s, "
+              + "committedAt=%s, checksum=%s, status=%s, "
+              + "size=%s]";
 
         Integer chunksSize = null;
         if (chunks != null) {
@@ -164,7 +168,7 @@ public class ItemVersionRMI implements Serializable {
         }
 
         String result = String.format(format, id, itemId, version, chunksSize, deviceId, modifiedAt,
-                committedAt, checksum, status, size);
+              committedAt, checksum, status, size);
 
         return result;
     }

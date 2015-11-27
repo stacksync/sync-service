@@ -2,20 +2,17 @@ package com.stacksync.syncservice.db.infinispan.models;
 
 import com.stacksync.commons.models.ItemMetadata;
 import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
 
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
 
-@Distributed
-public class ItemMetadataRMI implements Serializable {
+@Distributed(key = "id")
+public class ItemMetadataRMI {
 
    private static final long serialVersionUID = -2494445120408291949L;
 
    private static Random random = new Random(System.currentTimeMillis());
 
-   @Key
    public Long id;
    private Long tempId;
    private Long version;
@@ -35,8 +32,11 @@ public class ItemMetadataRMI implements Serializable {
 
    private Integer level; // for API calls
    private Boolean isRoot; // for API calls
+
+//   @Distribute
    private List<ItemMetadataRMI> children;
 
+   @Deprecated
    public ItemMetadataRMI() {
       this(random.nextLong(), new Long(1), null, null,
             null, null, Date.from(Instant.now()), null,
@@ -342,8 +342,17 @@ public class ItemMetadataRMI implements Serializable {
             itemVersion.getDevice()==null ? null : itemVersion.getDevice().getId(), item.getParentId(), item.getClientParentFileVersion(),
             itemVersion.getStatus(), itemVersion.getModifiedAt(), itemVersion.getChecksum(),
             itemVersion.getSize(), item.isFolder(), item.getFilename(), item.getMimetype(), chunks);
-      ret.setWorkspaceId(item.getWorkspace().getId());
+      ret.setWorkspaceId(item.getWorkspaceId());
       return ret;
    }
 
+   public boolean isChildRepeated(ItemMetadataRMI fileToUpdate) {
+      boolean ret = false;
+      for (ItemMetadataRMI child : getChildren()) {
+         if (child.getFilename().equals(fileToUpdate.getFilename())) {
+            ret = true;
+         }
+      }
+      return ret;
+   }
 }

@@ -1,19 +1,16 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.Key;
 
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.UUID;
 
-@Distributed
-public class DeviceRMI implements Serializable {
+@Distributed(key = "id")
+public class DeviceRMI {
 
     private static final long serialVersionUID = -2932481953197148130L;
     
-    @Key
     public UUID id;
     private String name;
     //private UserRMI user;
@@ -23,6 +20,7 @@ public class DeviceRMI implements Serializable {
     private String lastIp;
     private String appVersion;
 
+    @Deprecated
     public DeviceRMI() {
         this.id = null;
     }

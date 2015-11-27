@@ -24,12 +24,14 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 
 	@Override
 	public List<ItemMetadataRMI> doGetChanges(UserRMI user, WorkspaceRMI workspace) {
+
 		List<ItemMetadataRMI> responseObjects = new ArrayList<>();
-            try {
-                responseObjects = itemDao.getItemsByWorkspaceId(workspace.getId());
-            } catch (RemoteException ex) {
-                logger.error(ex);
-            }
+
+		try {
+			responseObjects = itemDao.getItemsByWorkspaceId(workspace.getId());
+		} catch (RemoteException ex) {
+			logger.error(ex);
+		}
 
 		return responseObjects;
 	}

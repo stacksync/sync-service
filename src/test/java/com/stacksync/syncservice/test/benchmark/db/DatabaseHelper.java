@@ -1,25 +1,17 @@
 package com.stacksync.syncservice.test.benchmark.db;
 
-import java.util.List;
-import java.util.UUID;
-
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.DeviceDAO;
-import com.stacksync.syncservice.db.infinispan.ItemDAO;
-import com.stacksync.syncservice.db.infinispan.ItemVersionDAO;
-import com.stacksync.syncservice.db.infinispan.UserDAO;
-import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
-import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import com.stacksync.syncservice.db.infinispan.*;
+import com.stacksync.syncservice.db.infinispan.models.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.util.Config;
+
 import java.rmi.RemoteException;
+import java.util.List;
+import java.util.UUID;
 
 public class DatabaseHelper {
 	private ConnectionPool pool;
@@ -70,7 +62,7 @@ public class DatabaseHelper {
 				long startChunkTotal = System.currentTimeMillis();
 
 				if (!version.getChunks().isEmpty()) {
-					oversionDao.insertChunks(version.getItemId(), version.getChunks(), version.getId());
+					oversionDao.insertChunks(version, version.getChunks());
 				}
 
 				totalTimeChunk += System.currentTimeMillis() - startChunkTotal;
