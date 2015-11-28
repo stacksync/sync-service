@@ -3,11 +3,6 @@
  */
 package com.stacksync.syncservice.dummy.infinispan;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.util.UUID;
-
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
@@ -20,6 +15,11 @@ import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.util.Config;
 import org.apache.log4j.Logger;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.UUID;
 
 /**
  * @author Sergi Toda <sergi.toda@estudiants.urv.cat>
@@ -59,11 +59,9 @@ public class FillDBWithUsers {
         user.setQuotaLimit(2048);
         user.setQuotaUsed(1403);
 
-        DeviceRMI device = new DeviceRMI();
-        device.setId(userId);
+        DeviceRMI device = new DeviceRMI(UUID.randomUUID(),"1+1",user);
         device.setAppVersion("1");
         device.setLastIp("192.168.1.1");
-        device.setName("1+1");
         device.setOs("Android");
         
         user.addDevice(device);

@@ -68,7 +68,7 @@ public abstract class AServerDummy extends Thread {
     public void doCommit(UUID uuid, Random ran, int min, int max, String id) throws Exception {
         // Create user info
         UserRMI user = new UserRMI(uuid);
-        DeviceRMI device = new DeviceRMI(uuid);
+        DeviceRMI device = new DeviceRMI(uuid,"android",user);
         WorkspaceRMI workspace = new WorkspaceRMI(uuid);
 
         // Create a ItemMetadata List
@@ -173,13 +173,12 @@ public abstract class AServerDummy extends Thread {
         workspaceDAO.add(workspace);
         deviceDAO.add(device);*/
         
-        DeviceRMI device = new DeviceRMI(uuid);
-        
         WorkspaceRMI workspace = new WorkspaceRMI(uuid);
         workspace.addUser(uuid);
         workspace.setOwner(uuid);
         
         UserRMI user = new UserRMI(uuid);
+        DeviceRMI device = new DeviceRMI(uuid,"",user);
         user.setEmail(uuid.toString());
         user.setName("a");
         user.setQuotaLimit(10);

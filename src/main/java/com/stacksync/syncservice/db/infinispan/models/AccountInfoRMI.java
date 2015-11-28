@@ -7,8 +7,6 @@ import java.util.UUID;
 @Distributed(key="userId")
 public class AccountInfoRMI {
 
-   private static final long serialVersionUID = 5231686716350716264L;
-
    public UUID userId;
 
    private String name;

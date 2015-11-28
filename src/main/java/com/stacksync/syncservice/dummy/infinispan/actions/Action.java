@@ -76,7 +76,7 @@ public abstract class Action {
         String idCommit = java.util.UUID.randomUUID().toString();
 
         UserRMI user = new UserRMI(userId);
-        DeviceRMI device = new DeviceRMI(userId);
+        DeviceRMI device = new DeviceRMI(userId,"android",user);
         WorkspaceRMI workspace = new WorkspaceRMI(userId);
 
         Random ran = new Random(System.currentTimeMillis());

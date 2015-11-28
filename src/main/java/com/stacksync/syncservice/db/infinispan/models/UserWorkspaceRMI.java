@@ -8,8 +8,6 @@ import java.util.UUID;
 @Distributed(key = "id")
 public class UserWorkspaceRMI {
 
-   private static final long serialVersionUID = 7732224675365732811L;
-
    public UUID id;
    private UserRMI user;
    private WorkspaceRMI workspace;
@@ -58,7 +56,4 @@ public class UserWorkspaceRMI {
       this.joinedAt = joinedAt;
    }
 
-   public static long getSerialversionuid() {
-      return serialVersionUID;
-   }
 }

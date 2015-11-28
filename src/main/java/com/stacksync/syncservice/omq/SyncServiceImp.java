@@ -2,11 +2,9 @@ package com.stacksync.syncservice.omq;
 
 import com.stacksync.commons.exceptions.*;
 import com.stacksync.commons.models.*;
-import com.stacksync.commons.notifications.CommitNotification;
 import com.stacksync.commons.notifications.UpdateWorkspaceNotification;
 import com.stacksync.commons.omq.ISyncService;
 import com.stacksync.commons.omq.RemoteClient;
-import com.stacksync.commons.omq.RemoteWorkspace;
 import com.stacksync.commons.requests.*;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.infinispan.models.*;
@@ -88,7 +86,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
             
             UserRMI user = new UserRMI();
             user.setId(request.getUserId());
-            DeviceRMI device = new DeviceRMI(request.getDeviceId());
+            DeviceRMI device = new DeviceRMI(request.getDeviceId(),"",user);
             WorkspaceRMI workspace = new WorkspaceRMI(request.getWorkspaceId());
 
             List<ItemMetadataRMI> itemMetadataRMIList = new ArrayList<>();
@@ -128,10 +126,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
         UserRMI user = new UserRMI();
         user.setId(request.getUserId());
 
-        DeviceRMI device = new DeviceRMI();
-        device.setId(request.getDeviceId());
-        //device.setUser(user);
-        device.setName(request.getDeviceName());
+        DeviceRMI device = new DeviceRMI(request.getDeviceId(), request.getDeviceName(), user);
         device.setOs(request.getOs());
         device.setLastIp(request.getIp());
         device.setAppVersion(request.getAppVersion());

@@ -19,20 +19,20 @@ import java.util.List;
  */
 public interface ItemVersionDAO extends Remote {
 
-    public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version)
+    ItemMetadataRMI findByItemIdAndVersion(Long id, Long version)
             throws RemoteException;
 
-    public void add(ItemVersionRMI itemVersion) throws RemoteException;
+    void add(ItemVersionRMI itemVersion) throws RemoteException;
 
-    public void insertChunk(Long itemVersionId, Long chunkId, Integer order)
+    void insertChunk(Long itemVersionId, Long chunkId, Integer order)
             throws RemoteException;
 
-    public void insertChunks(ItemVersionRMI versionRMI, List<ChunkRMI> chunks)
+    void insertChunks(ItemVersionRMI versionRMI, List<ChunkRMI> chunks)
             throws RemoteException;
 
-    public List<ChunkRMI> findChunks(Long itemVersionId) throws RemoteException;
+    List<ChunkRMI> findChunks(Long itemVersionId) throws RemoteException;
 
-    public void update(ItemVersionRMI itemVersion) throws RemoteException;
+    void update(ItemVersionRMI itemVersion) throws RemoteException;
 
-    public void delete(ItemVersionRMI itemVersion) throws RemoteException;
+    void delete(ItemVersionRMI itemVersion) throws RemoteException;
 }

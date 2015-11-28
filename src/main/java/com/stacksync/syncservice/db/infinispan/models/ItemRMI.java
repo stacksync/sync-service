@@ -4,12 +4,9 @@ import org.infinispan.atomic.Distributed;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @Distributed(key = "id")
 public class ItemRMI {
-
-   private static final long serialVersionUID = 1482457936400001556L;
 
    public Long id;
    private Long latestVersion;
@@ -19,11 +16,9 @@ public class ItemRMI {
    private Boolean isFolder;
    private Long clientParentFileVersion;
 
-//   @Distribute
    private List<ItemVersionRMI> versions;
 
    private WorkspaceRMI workspaceRMI;
-   private UUID workspaceId;
 
    @Deprecated
    public ItemRMI() {}
@@ -38,7 +33,6 @@ public class ItemRMI {
 
       this.id = id;
       this.workspaceRMI = workspace;
-      this.workspaceId = workspace.getId();
       this.latestVersion = latestVersion;
       this.parent = parent;
       this.filename = filename;
@@ -131,11 +125,13 @@ public class ItemRMI {
       this.versions = versions;
    }
 
-   public void addVersion(ItemVersionRMI objectVersion) {
-      assert objectVersion!=null;
-      this.versions.add(objectVersion);
-      if (objectVersion.getVersion()>latestVersion)
-         latestVersion=objectVersion.getVersion();
+   public void addVersion(ItemVersionRMI version) {
+      assert version!=null;
+      if (versions.contains(version)) {
+         versions.add(version);
+         if (version.getVersion() > latestVersion)
+            latestVersion = version.getVersion();
+      }
    }
 
    public void removeVersion(ItemVersionRMI objectVersion) {
@@ -204,7 +200,4 @@ public class ItemRMI {
 
    }
 
-   public UUID getWorkspaceId() {
-      return workspaceId;
-   }
 }

@@ -105,8 +105,8 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 	}
 
 	@Override
-	public void insertChunks(List<Chunk> chunks, long itemVersionId) throws DAOException {
-		if (chunks.isEmpty()) {
+	public void insertChunks(Chunk[] chunks, long itemVersionId) throws DAOException {
+		if (chunks.length==0) {
 			throw new IllegalArgumentException("No chunks received");
 		}
 
@@ -115,16 +115,16 @@ public class PostgresqlItemVersionDao extends PostgresqlDAO implements ItemVersi
 		StringBuilder build = new StringBuilder("INSERT INTO item_version_chunk "
 				+ " (item_version_id, client_chunk_name, chunk_order) VALUES ");
 
-		for (int i = 0; i < chunks.size(); i++) {
+		for (int i = 0; i < chunks.length; i++) {
 			build.append("(?, ?, ?)");
-			if (i < chunks.size() - 1) {
+			if (i < chunks.length - 1) {
 				build.append(", ");
 			} else {
 				build.append(";");
 			}
 
 			values.add(itemVersionId); // item_version_id
-			values.add(chunks.get(i).getClientChunkName()); // client_chunk_name
+			values.add(chunks[i].getClientChunkName()); // client_chunk_name
 			values.add(i + 1); // chunk_order
 		}
 

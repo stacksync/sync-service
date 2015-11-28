@@ -4,14 +4,14 @@ import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.test.benchmark.db.DatabaseHelper;
+
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-
-import com.stacksync.syncservice.exceptions.dao.DAOException;
-import com.stacksync.syncservice.test.benchmark.db.DatabaseHelper;
-import java.rmi.RemoteException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -86,11 +86,11 @@ public class DBBenchmark extends Thread {
 			UserRMI user = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			dbHelper.addUser(user);
 			
-			WorkspaceRMI workspace = new WorkspaceRMI(null, 1, user.getId(), false, false);
+			WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID(), 1, user.getId(), false, false);
 			dbHelper.addWorkspace(user, workspace);
 
 			String deviceName = name + "_device";
-			DeviceRMI device = new DeviceRMI(null, deviceName);
+			DeviceRMI device = new DeviceRMI(UUID.randomUUID(), deviceName, user);
 			dbHelper.addDevice(device);
 
 			fillDB(workspace, device);

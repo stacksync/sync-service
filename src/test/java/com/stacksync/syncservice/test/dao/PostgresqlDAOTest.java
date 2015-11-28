@@ -239,7 +239,7 @@ public class PostgresqlDAOTest {
             false,
             1L);
 
-      objectDao.put(object);
+      objectDao.add(object);
       assertTrue("Object should not have been created", false);
 
    }

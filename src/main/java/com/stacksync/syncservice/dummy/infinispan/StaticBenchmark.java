@@ -114,7 +114,7 @@ public class StaticBenchmark extends Thread {
     public void doCommit(UUID uuid, String id) throws Exception {
         // Create user info
         UserRMI user = new UserRMI(uuid);
-        DeviceRMI device = new DeviceRMI(uuid);
+        DeviceRMI device = new DeviceRMI(uuid,"osX",user);
         WorkspaceRMI workspace = new WorkspaceRMI(uuid);
 
         // Create a ItemMetadata List

@@ -1,15 +1,17 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import com.stacksync.syncservice.handler.Handler;
+import com.stacksync.syncservice.db.Status;
+import com.stacksync.syncservice.exceptions.CommitExistantVersion;
+import com.stacksync.syncservice.exceptions.CommitWrongVersion;
+import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import org.infinispan.atomic.Distributed;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.*;
 
 @Distributed(key = "id")
 public class WorkspaceRMI implements Serializable {
-
-   private static final long serialVersionUID = 243350300638953723L;
 
    public UUID id;
 
@@ -225,7 +227,7 @@ public class WorkspaceRMI implements Serializable {
 
       for (ItemRMI item : items.values()) {
          ItemMetadataRMI itemMetadataRMI = ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(item, item.getLatestVersion());
-         if (itemMetadataRMI.getStatus().compareTo(Handler.Status.DELETED.toString()) == 0) {
+         if (itemMetadataRMI.getStatus().compareTo(Status.DELETED.toString()) == 0) {
             if (includeDeleted) {
                rootMetadata.addChild(itemMetadataRMI);
             }
@@ -294,18 +296,6 @@ public class WorkspaceRMI implements Serializable {
 
    public ItemRMI findById(Long id) {
       return items.get(id);
-   }
-
-   public void add(ItemRMI item) {
-      items.put(item.getId(),item);
-   }
-
-   public void put(ItemRMI item) {
-      boolean exist = items.containsKey(item.getId());
-      if (!exist) {
-         item.setId(this.itemIdCounter++);
-         add(item);
-      }
    }
 
    public void delete(Long id) {
@@ -416,4 +406,144 @@ public class WorkspaceRMI implements Serializable {
          }
       }
    }
+
+   public boolean allow(UserRMI user) {
+      return users.contains(user);
+   }
+
+   public void add(ItemMetadataRMI metadata, DeviceRMI device)
+         throws CommitWrongVersionNoParent, CommitWrongVersion, CommitExistantVersion {
+
+      ItemRMI serverItem = findById(metadata.getId());
+
+      if (serverItem == null) {
+
+         // add a new item at version 1
+         if (metadata.getVersion() == 1) {
+
+            Long parentId = metadata.getParentId();
+            ItemRMI parent = null;
+            if (parentId != null) {
+               parent = findById(parentId);
+            }
+
+            if (metadata.getStatus() == null)
+               metadata.setStatus(Status.NEW.toString());
+
+            // Insert item
+            ItemRMI item = new ItemRMI(
+                  metadata.getId(),
+                  this,
+                  metadata.getVersion(),
+                  parent,
+                  null,
+                  metadata.getFilename(),
+                  metadata.getMimetype(),
+                  metadata.isFolder(),
+                  metadata.getParentVersion());
+            items.putIfAbsent(item.getId(), item);
+
+            // Insert version
+            ItemVersionRMI objectVersion = new ItemVersionRMI(
+                  random.nextLong(),
+                  item.getId(),
+                  device,
+                  metadata.getVersion(),
+                  metadata.getModifiedAt(),
+                  metadata.getModifiedAt(),
+                  metadata.getChecksum(),
+                  metadata.getStatus(),
+                  metadata.getSize());
+            item.addVersion(objectVersion);
+
+            // If not a folder, create appropriate new chunks
+            if (!metadata.isFolder()) {
+               objectVersion.createChunks(metadata.getChunks());
+            }
+
+         } else {
+
+            throw new CommitWrongVersionNoParent();
+
+         }
+
+      } else { // item already exists
+
+         // Check if this version already exists in the server
+         long serverVersion = serverItem.getLatestVersionNumber();
+         long clientVersion = metadata.getVersion();
+         boolean existVersionInServer = (serverVersion >= clientVersion);
+
+         // if this exist, we check that they are the same
+         if (existVersionInServer) {
+
+            ItemMetadataRMI serverMetadata = getServerObjectVersion(serverItem, metadata.getVersion());
+            if (!metadata.equals(serverMetadata)) {
+               throw new CommitWrongVersion("Invalid version.", serverItem);
+            }
+            boolean lastVersion = (serverItem.getLatestVersion().equals(metadata.getVersion()));
+            if (!lastVersion) {
+               throw new CommitExistantVersion("This version already exists.", serverItem, metadata.getVersion());
+            }
+
+         } else {
+
+            // Ensure the version is correct and save it
+            if (serverVersion + 1 == clientVersion) {
+
+               ItemVersionRMI itemVersion = new ItemVersionRMI(
+                     metadata.getId(),
+                     serverItem.getId(),
+                     device,
+                     metadata.getVersion(),
+                     Date.from(Instant.now()),
+                     metadata.getModifiedAt(),
+                     metadata.getChecksum(),
+                     metadata.getStatus(),
+                     metadata.getSize());
+
+               add(itemVersion);
+
+               // If no folder, create new chunks
+               if (!metadata.isFolder()) {
+                  itemVersion.createChunks(metadata.getChunks());
+               }
+
+               String status = metadata.getStatus();
+               if (status.equals(Status.RENAMED.toString())
+                     || status.equals(Status.MOVED.toString())
+                     || status.equals(Status.DELETED.toString())) {
+
+                  serverItem.setFilename(metadata.getFilename());
+
+                  Long parentFileId = metadata.getParentId();
+                  if (parentFileId == null) {
+                     serverItem.setClientParentFileVersion(null);
+                     serverItem.setParent(null);
+                  } else {
+                     serverItem.setClientParentFileVersion(metadata
+                           .getParentVersion());
+                     ItemRMI parent = findById(parentFileId);
+                     serverItem.setParent(parent);
+                  }
+               }
+
+               // Set item latest version
+               serverItem.setLatestVersionNumber(metadata.getVersion());
+
+            } else {
+               throw new CommitWrongVersion("Invalid version.", serverItem);
+            }
+
+         }
+
+      }
+
+   }
+
+   private ItemMetadataRMI getServerObjectVersion(ItemRMI serverObject, long requestedVersion) {
+      ItemMetadataRMI metadata = findByItemIdAndVersion(serverObject.getId(), requestedVersion);
+      return metadata;
+   }
+
 }

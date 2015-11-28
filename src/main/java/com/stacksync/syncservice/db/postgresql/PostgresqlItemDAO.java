@@ -1,13 +1,9 @@
 package com.stacksync.syncservice.db.postgresql;
 
 import com.stacksync.commons.models.Item;
-import com.stacksync.syncservice.db.Connection;
-import com.stacksync.syncservice.db.DAOError;
-import com.stacksync.syncservice.db.DAOUtil;
-import com.stacksync.syncservice.db.ItemDAO;
+import com.stacksync.syncservice.db.*;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
-import com.stacksync.syncservice.handler.Handler.Status;
 import org.apache.log4j.Logger;
 
 import java.sql.ResultSet;

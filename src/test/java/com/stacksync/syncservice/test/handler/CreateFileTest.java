@@ -1,16 +1,12 @@
 package com.stacksync.syncservice.test.handler;
 
-import com.stacksync.syncservice.db.Connection;
-import com.stacksync.syncservice.db.ConnectionPool;
-import com.stacksync.syncservice.db.ConnectionPoolFactory;
-import com.stacksync.syncservice.db.DAOFactory;
+import com.stacksync.syncservice.db.*;
 import com.stacksync.syncservice.db.infinispan.UserDAO;
 import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.handler.APIHandler;
-import com.stacksync.syncservice.handler.Handler.Status;
 import com.stacksync.syncservice.handler.SQLAPIHandler;
 import com.stacksync.syncservice.rpc.messages.APICommitResponse;
 import com.stacksync.syncservice.util.Config;

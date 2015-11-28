@@ -5,17 +5,23 @@
  */
 package com.stacksync.syncservice.db.infinispan;
 
+import com.stacksync.commons.models.CommitInfo;
+import com.stacksync.syncservice.db.Status;
 import com.stacksync.syncservice.db.infinispan.models.*;
+import com.stacksync.syncservice.exceptions.CommitExistantVersion;
+import com.stacksync.syncservice.exceptions.CommitWrongVersion;
+import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import org.infinispan.atomic.Distribute;
+import org.infinispan.atomic.Distributed;
 
-import java.rmi.RemoteException;
+import java.time.Instant;
 import java.util.*;
 
 /**
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
-//@Distributed(key = "id")
+@Distributed(key = "id")
 public class InfinispanDAO implements GlobalDAO{
 
    @Distribute(key = "deviceIndex")
@@ -33,10 +39,9 @@ public class InfinispanDAO implements GlobalDAO{
    @Distribute(key = "itemIndex")
    public static Map<Long,ItemRMI> itemMap = new HashMap<>();
 
-   @Distribute(key = "itemVersionIndex")
-   public static Map<Long,ItemVersionRMI> itemVersionMap = new HashMap<>();
-
    public UUID id;
+
+   ;
 
    public InfinispanDAO(){
       this.id = UUID.randomUUID();
@@ -67,145 +72,138 @@ public class InfinispanDAO implements GlobalDAO{
    // Item
 
    @Override
-   public ItemRMI findById(Long id) throws RemoteException {
+   public ItemRMI findById(Long id) {
       return itemMap.get(id);
    }
 
    @Override
-   public void add(ItemRMI item) throws RemoteException {
+   public void add(ItemRMI item) {
       itemMap.put(item.getId(), item);
    }
 
    @Override
-   public void update(ItemRMI item) throws RemoteException {
+   public void update(ItemRMI item) {
       // nothing to do
    }
 
    @Override
-   public void put(ItemRMI item) throws RemoteException {
-      add(item); // FIXME
-   }
-
-   @Override
-   public void delete(Long id) throws RemoteException {
+   public void delete(Long id) {
       itemMap.remove(id);
    }
 
    // metadata
 
    @Override
-   public List<ItemMetadataRMI> getItemsByWorkspaceId(UUID workspaceId) throws RemoteException {
+   public List<ItemMetadataRMI> getItemsByWorkspaceId(UUID workspaceId) {
       return workspaceMap.get(workspaceId).getItemsMetadata();
    }
 
    @Override
-   public List<ItemMetadataRMI> getItemsById(Long id) throws RemoteException {
-      throw new RemoteException("NYI");
+   public List<ItemMetadataRMI> getItemsById(Long id) {
+      throw new IllegalArgumentException("NYI");
    }
 
    @Override
    public ItemMetadataRMI findById(Long id, Boolean includeList, Long version, Boolean includeDeleted,
-         Boolean includeChunks) throws RemoteException {
+         Boolean includeChunks)  {
       ItemRMI itemRMI = itemMap.get(id);
       assert itemRMI!=null;
       return itemRMI.getWorkspace().findById(id, includeList, version, includeDeleted, includeChunks);
    }
 
    @Override
-   public ItemMetadataRMI findByUserId(UUID serverUserId, Boolean includeDeleted) throws RemoteException {
+   public ItemMetadataRMI findByUserId(UUID serverUserId, Boolean includeDeleted) {
       WorkspaceRMI userWorkspace = getDefaultWorkspaceByUserId(serverUserId);
       return userWorkspace.getItemsMetadata(includeDeleted);
    }
 
    @Override
-   public ItemMetadataRMI findItemVersionsById(Long id) throws RemoteException {
-      throw new RemoteException("NYI");
+   public ItemMetadataRMI findItemVersionsById(Long id) {
+      throw new IllegalArgumentException("NYI");
    }
 
    @Override
-   public List<String> migrateItem(Long itemId, UUID workspaceId) throws RemoteException {
-      throw new RemoteException("NYI");
+   public List<String> migrateItem(Long itemId, UUID workspaceId) {
+      throw new IllegalArgumentException("NYI");
    }
 
    // Itemversion
 
    @Override
-   public void add(ItemVersionRMI itemVersion) throws RemoteException {
-      //System.out.println("Adding "+itemVersion.getId());
+   public void add(ItemVersionRMI itemVersion) {
       ItemRMI itemRMI = itemMap.get(itemVersion.getItemId());
+      assert itemRMI!=null : "Unable to find "+itemVersion.getItemId();
       itemRMI.addVersion(itemVersion);
-      itemVersionMap.put(itemVersion.getId(), itemVersion);
    }
 
    @Override
-   public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version) throws RemoteException {
+   public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version) {
       ItemRMI item = itemMap.get(id);
       ItemVersionRMI itemVersion = item.getVersion(version);
       assert item!=null && itemVersion != null;
-      return ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(item,itemVersion);
+      return ItemMetadataRMI.createItemMetadataFromItemAndItemVersion(item, itemVersion);
    }
 
    @Override
-   public void insertChunk(Long itemVersionId, Long chunkId, Integer order) throws RemoteException {
-      throw new RemoteException("NYI");
+   public void insertChunk(Long itemVersionId, Long chunkId, Integer order) {
+      throw new IllegalArgumentException("NYI");
    }
 
    @Override
-   public void insertChunks(ItemVersionRMI itemVersionRMI, List<ChunkRMI> chunks) throws RemoteException {
+   public void insertChunks(ItemVersionRMI itemVersionRMI, List<ChunkRMI> chunks) {
       itemVersionRMI.addChunks(chunks);
    }
 
    @Override
-   public List<ChunkRMI> findChunks(Long itemVersionId) throws RemoteException {
-      return itemVersionMap.get(itemVersionId).getChunks();
+   public List<ChunkRMI> findChunks(Long itemVersionId) {
+      throw new IllegalArgumentException("NYI");
    }
 
    @Override
-   public void update(ItemVersionRMI itemVersion) throws RemoteException {
-      // TODO: Customise this generated block
+   public void update(ItemVersionRMI itemVersion) {
+      throw new IllegalArgumentException("NYI");
    }
 
    @Override
-   public void delete(ItemVersionRMI itemVersion) throws RemoteException {
-      // TODO: Customise this generated block
+   public void delete(ItemVersionRMI itemVersion) {
+      throw new IllegalArgumentException("NYI");
    }
 
    // User
 
    @Override
-   public UserRMI findById(UUID id) throws RemoteException {
+   public UserRMI findById(UUID id) {
       return userMap.get(id);
    }
 
    @Override
-   public UserRMI getByEmail(String email) throws RemoteException {
+   public UserRMI getByEmail(String email)  {
       return mailMap.get(email);
    }
 
    @Override
-   public List<UserRMI> findAll() throws RemoteException {
+   public List<UserRMI> findAll() {
       return new ArrayList<>(userMap.values());
    }
 
    @Override
-   public List<UserRMI> findByItemId(Long clientFileId) throws RemoteException {
-      throw new RemoteException("NYI");
+   public List<UserRMI> findByItemId(Long clientFileId) {
+      throw new IllegalArgumentException("NYI");
    }
 
    @Override
-   public void add(UserRMI user) throws RemoteException {
+   public void add(UserRMI user) {
       userMap.put(user.getId(),user);
-      mailMap.put(user.getId(),user);
-      System.out.println("Users: "+userMap.size());
+      mailMap.put(user.getId(), user);
    }
 
    @Override
-   public void update(UserRMI user) throws RemoteException {
+   public void update(UserRMI user) {
       // nothing to do
    }
 
    @Override
-   public void deleteUser(UUID id) throws RemoteException {
+   public void deleteUser(UUID id) {
       userMap.remove(id);
       mailMap.remove(id);
    }
@@ -213,12 +211,12 @@ public class InfinispanDAO implements GlobalDAO{
    // Workspace
 
    @Override
-   public WorkspaceRMI getById(UUID id) throws RemoteException {
+   public WorkspaceRMI getById(UUID id) {
       return workspaceMap.get(id);
    }
 
    @Override
-   public List<WorkspaceRMI> getByUserId(UUID userId) throws RemoteException {
+   public List<WorkspaceRMI> getByUserId(UUID userId) {
       List<WorkspaceRMI> ret = new ArrayList<>();
       UserRMI user = userMap.get(userId);
       for (UUID uuid : user.getWorkspaces()){
@@ -228,52 +226,50 @@ public class InfinispanDAO implements GlobalDAO{
    }
 
    @Override
-   public WorkspaceRMI getDefaultWorkspaceByUserId(UUID userId) throws RemoteException {
+   public WorkspaceRMI getDefaultWorkspaceByUserId(UUID userId) {
       UserRMI user = userMap.get(userId);
       List<UUID> list = user.getWorkspaces();
       if (list.isEmpty())
-         throw new RemoteException("No workspace for "+userId);
+         throw new IllegalArgumentException("No workspace for "+userId);
       return workspaceMap.get(list.get(0));
    }
 
    @Override
-   public WorkspaceRMI getByItemId(Long itemId) throws RemoteException {
+   public WorkspaceRMI getByItemId(Long itemId) {
       return itemMap.get(itemId).getWorkspace();
    }
 
    @Override
-   public void add(WorkspaceRMI workspace) throws RemoteException {
-      workspaceMap.put(workspace.getId(),workspace);
+   public void add(WorkspaceRMI workspace) {
+      workspaceMap.put(workspace.getId(), workspace);
       for (UUID userId: workspace.getUsers()) {
          UserRMI user = userMap.get(userId);
          user.addWorkspace(workspace.getId());
-         //System.out.println("adding user "+user.getId()+" to "+workspace.getId());
       }
-      System.out.println("Workspaces: "+workspaceMap.size());
    }
 
    @Override
-   public void update(UserRMI user, WorkspaceRMI workspace) throws RemoteException {
+   public void update(UserRMI user, WorkspaceRMI workspace) {
       // nothing to do
    }
 
    @Override
-   public void addUser(UserRMI user, WorkspaceRMI workspace) throws RemoteException {
+   public void addUser(UserRMI user, WorkspaceRMI workspace) {
       workspace.addUser(user.getId());
    }
 
    @Override
-   public void deleteUser(UserRMI user, WorkspaceRMI workspace) throws RemoteException {
+   public void deleteUser(UserRMI user, WorkspaceRMI workspace) {
       workspace.removeUser(user.getId());
    }
 
    @Override public
-   void deleteWorkspace(UUID id) throws RemoteException {
+   void deleteWorkspace(UUID id) {
       workspaceMap.remove(id);
    }
 
    @Override
-   public List<UserRMI> getMembersById(UUID workspaceId) throws RemoteException {
+   public List<UserRMI> getMembersById(UUID workspaceId) {
       List<UserRMI> ret = new ArrayList<>();
       for(UUID user : workspaceMap.get(workspaceId).getUsers()){
          ret.add(userMap.get(user));
@@ -281,5 +277,124 @@ public class InfinispanDAO implements GlobalDAO{
       return ret;
    }
 
+   @Override
+   public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device,
+         List<ItemMetadataRMI> items) throws CommitWrongVersion, CommitExistantVersion, CommitWrongVersionNoParent {
+
+      HashMap<Long, Long> tempIds = new HashMap<>();
+
+      if (!device.belongTo(user) || workspace.allow(user))
+         throw new IllegalArgumentException("Wrong user");
+
+      List<CommitInfo> responseObjects = new ArrayList<>();
+
+      for (ItemMetadataRMI itemMetadata : items) {
+
+         ItemMetadataRMI objectResponse;
+         boolean committed;
+
+         if (itemMetadata.getParentId() != null) {
+            Long parentId = tempIds.get(itemMetadata.getParentId());
+            if (parentId != null) {
+               itemMetadata.setParentId(parentId);
+            }
+         }
+
+         // if the itemMetadata does not have ID but has a TempID, maybe it was
+         // set
+         if (itemMetadata.getId() == null && itemMetadata.getTempId() != null) {
+            Long newId = tempIds.get(itemMetadata.getTempId());
+            if (newId != null) {
+               itemMetadata.setId(newId);
+            }
+         }
+
+         commitObject(itemMetadata, workspace, device);
+
+         if (itemMetadata.getTempId() != null) {
+            tempIds.put(itemMetadata.getTempId(), itemMetadata.getId());
+         }
+
+         objectResponse = itemMetadata;
+         committed = true;
+
+         responseObjects.add(new CommitInfo(itemMetadata.getVersion(), committed,
+               objectResponse.toMetadataItem()));
+      }
+
+      return responseObjects;
+
+   }
+
+   private void saveNewVersion(ItemMetadataRMI metadata, ItemRMI serverItem,
+         WorkspaceRMI workspace, DeviceRMI device) {
+
+      // Create new objectVersion
+      ItemVersionRMI itemVersion = new ItemVersionRMI(
+            metadata.getId(),
+            serverItem.getId(),
+            device,
+            metadata.getVersion(),
+            Date.from(Instant.now()),
+            metadata.getModifiedAt(),
+            metadata.getChecksum(),
+            metadata.getStatus(),
+            metadata.getSize());
+
+      add(itemVersion);
+
+      // If no folder, create new chunks
+      if (!metadata.isFolder()) {
+         List<String> chunks = metadata.getChunks();
+         createChunks(chunks, itemVersion);
+      }
+
+      // TODO To Test!!
+      String status = metadata.getStatus();
+      if (status.equals(Status.RENAMED.toString())
+            || status.equals(Status.MOVED.toString())
+            || status.equals(Status.DELETED.toString())) {
+
+         serverItem.setFilename(metadata.getFilename());
+
+         Long parentFileId = metadata.getParentId();
+         if (parentFileId == null) {
+            serverItem.setClientParentFileVersion(null);
+            serverItem.setParent(null);
+         } else {
+            serverItem.setClientParentFileVersion(metadata
+                  .getParentVersion());
+            ItemRMI parent = findById(parentFileId);
+            serverItem.setParent(parent);
+         }
+      }
+
+      // Update object latest version
+      serverItem.setLatestVersionNumber(metadata.getVersion());
+      add(serverItem);
+
+   }
+
+   /*
+    * Private functions
+    */
+   private void commitObject(ItemMetadataRMI itemMetadata, WorkspaceRMI workspace, DeviceRMI device)
+         throws CommitWrongVersion, CommitWrongVersionNoParent, CommitExistantVersion {
+      workspace.add(itemMetadata,device);
+   }
+
+   private void createChunks(List<String> chunksString, ItemVersionRMI objectVersion) {
+      if (chunksString != null) {
+         if (chunksString.size() > 0) {
+            List<ChunkRMI> chunks = new ArrayList<>();
+            int i = 0;
+            for (String chunkName : chunksString) {
+               chunks.add(new ChunkRMI(chunkName, i));
+               i++;
+            }
+            insertChunks(objectVersion, chunks);
+         }
+      }
+   }
 
 }

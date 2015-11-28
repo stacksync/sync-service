@@ -28,7 +28,7 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 		List<ItemMetadataRMI> responseObjects = new ArrayList<>();
 
 		try {
-			responseObjects = itemDao.getItemsByWorkspaceId(workspace.getId());
+			responseObjects = globalDAO.getItemsByWorkspaceId(workspace.getId());
 		} catch (RemoteException ex) {
 			logger.error(ex);
 		}
@@ -42,7 +42,7 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 		List<WorkspaceRMI> workspaces = new ArrayList<WorkspaceRMI>();
 
 		try {
-			workspaces = workspaceDAO.getByUserId(user.getId());
+			workspaces = globalDAO.getByUserId(user.getId());
 
 		} catch (RemoteException ex) {
                 logger.error(ex);
@@ -57,9 +57,9 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 
 		try {
 			if (device.getId() == null) {
-				deviceDao.add(device);
+				globalDAO.add(device);
 			} else {
-				deviceDao.update(device);
+				globalDAO.update(device);
 			}
 		} catch (IllegalArgumentException e) {
 			logger.error(e);
@@ -78,14 +78,14 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 
 		// Check the owner
 		try {
-			user = userDao.findById(user.getId());
+			user = globalDAO.findById(user.getId());
 		} catch (RemoteException ex) {
                 logger.error(ex);
             }
 
 		// Update the workspace
 		try {
-			workspaceDAO.update(user, workspace);
+			globalDAO.update(user, workspace);
 		} catch (RemoteException ex) {
                 logger.error(ex);
             }
@@ -95,7 +95,7 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
 	public UserRMI doGetUser(String email) throws UserNotFoundException {
 
             try {
-                UserRMI user = userDao.getByEmail(email);
+                UserRMI user = globalDAO.getByEmail(email);
                 return user;
             } catch (RemoteException ex) {
                 logger.error(ex);

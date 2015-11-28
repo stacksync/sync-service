@@ -12,62 +12,64 @@ import java.util.Map;
 
 public class DAOFactory {
 
-    private String type;
-    private static Map<Connection,GlobalDAO> instance  = new HashMap<>();
+   private String type;
+   private static Map<Connection,GlobalDAO> instance  = new HashMap<>();
 
-    public DAOFactory(String type) {
-        this.type = type;
-    }
+   public DAOFactory(String type) {
+      this.type = type;
+   }
 
-    private static synchronized GlobalDAO createDAO(Connection connection) {
+   private static synchronized GlobalDAO createDAO(Connection connection) {
 
-        if (!instance.containsKey(connection)) {
+      if (!instance.containsKey(connection)) {
 
-           if (connection instanceof InfinispanConnection){
+         if (connection instanceof InfinispanConnection){
 
-              instance.put(
-                    connection,
-                    new InfinispanDAO());
+            instance.put(
+                  connection,
+                  new InfinispanDAO());
 
-           }else if (connection instanceof DummyConnection) {
+         }else if (connection instanceof DummyConnection) {
 
-              instance.put(
-                    connection,
-                    new DummyDAO());
+            instance.put(
+                  connection,
+                  new DummyDAO());
 
-           }
+         }
 
-        }
+      }
 
-       return instance.get(connection);
+      return instance.get(connection);
 
-    }
+   }
 
-    public WorkspaceDAO getWorkspaceDao(Connection connection) {
-        return createDAO(connection);
-    }
+   public WorkspaceDAO getWorkspaceDao(Connection connection) {
+      return createDAO(connection);
+   }
 
-    public UserDAO getUserDao(Connection connection) {
-        return createDAO(connection);
-    }
+   public UserDAO getUserDao(Connection connection) {
+      return createDAO(connection);
+   }
 
-    public ItemDAO getItemDAO(Connection connection) {
-        return createDAO(connection);
-    }
+   public ItemDAO getItemDAO(Connection connection) {
+      return createDAO(connection);
+   }
 
-    public ItemVersionDAO getItemVersionDAO(Connection connection) {
-        return createDAO(connection);
-    }
+   public ItemVersionDAO getItemVersionDAO(Connection connection) {
+      return createDAO(connection);
+   }
 
-    public DeviceDAO getDeviceDAO(Connection connection) {
-        return createDAO(connection);
-    }
+   public DeviceDAO getDeviceDAO(Connection connection) {
+      return createDAO(connection);
+   }
 
-    public String getType() {
-        return type;
-    }
+   public GlobalDAO getGlobalDAO(Connection connection) {return createDAO(connection);}
 
-    public void setType(String type) {
-        this.type = type;
-    }
+   public String getType() {
+      return type;
+   }
+
+   public void setType(String type) {
+      this.type = type;
+   }
 }

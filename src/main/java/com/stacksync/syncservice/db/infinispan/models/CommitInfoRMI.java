@@ -7,8 +7,6 @@ import java.util.UUID;
 @Distributed(key = "id")
 public class CommitInfoRMI {
 
-   private static final long serialVersionUID = -1205107021066864318L;
-
    public UUID id;
    private Long committedVersion;
    private boolean commitSucceed;

@@ -57,7 +57,7 @@ public class BasicHandlerTest {
 			WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID(), 1, user.getId(), false, false);
 			workspaceDAO.add(workspace);
 
-			DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "junitdevice");
+			DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "junitdevice", user);
 			deviceDao.add(device);
 
 		} catch (Exception e) {

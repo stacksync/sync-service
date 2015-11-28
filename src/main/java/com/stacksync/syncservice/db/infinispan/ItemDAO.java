@@ -19,32 +19,30 @@ import java.util.UUID;
  */
 public interface ItemDAO extends Remote {
 
-    public ItemRMI findById(Long id) throws RemoteException;
+    ItemRMI findById(Long id) throws RemoteException;
 
-    public void add(ItemRMI item) throws RemoteException;
+    void add(ItemRMI item) throws RemoteException;
 
-    public void update(ItemRMI item) throws RemoteException;
+    void update(ItemRMI item) throws RemoteException;
 
-    public void put(ItemRMI item) throws RemoteException;
-
-    public void delete(Long id) throws RemoteException;
+    void delete(Long id) throws RemoteException;
 
     // ItemMetadata information
-    public List<ItemMetadataRMI> getItemsByWorkspaceId(UUID workspaceId)
+    List<ItemMetadataRMI> getItemsByWorkspaceId(UUID workspaceId)
             throws RemoteException;
 
-    public List<ItemMetadataRMI> getItemsById(Long id) throws RemoteException;
+    List<ItemMetadataRMI> getItemsById(Long id) throws RemoteException;
 
-    public ItemMetadataRMI findById(Long id, Boolean includeList, Long version,
+    ItemMetadataRMI findById(Long id, Boolean includeList, Long version,
             Boolean includeDeleted, Boolean includeChunks)
             throws RemoteException;
 
-    public ItemMetadataRMI findByUserId(UUID serverUserId,
+    ItemMetadataRMI findByUserId(UUID serverUserId,
             Boolean includeDeleted) throws RemoteException;
 
-    public ItemMetadataRMI findItemVersionsById(Long id) throws RemoteException;
+    ItemMetadataRMI findItemVersionsById(Long id) throws RemoteException;
 
-    public List<String> migrateItem(Long itemId, UUID workspaceId)
+    List<String> migrateItem(Long itemId, UUID workspaceId)
             throws RemoteException;
 
 }

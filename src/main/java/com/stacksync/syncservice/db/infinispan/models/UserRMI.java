@@ -10,8 +10,6 @@ import java.util.UUID;
 @Distributed(key = "id")
 public class UserRMI {
 
-    private static final long serialVersionUID = -8827608629982195900L;
-
     public UUID id;
     private String name;
     private String swiftUser;
@@ -19,17 +17,11 @@ public class UserRMI {
     private String email;
     private Integer quotaLimit;
     private Integer quotaUsed;
-
-//    @Distribute
     private List<DeviceRMI> devices;
-
-//    @Distribute
     private List<UUID> workspaces;
 
     @Deprecated
-    public UserRMI() {
-        this(null);
-    }
+    public UserRMI() {}
 
     public UserRMI(UUID id) {
         this(id, null, null, null, null, null, null);

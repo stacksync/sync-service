@@ -1,11 +1,11 @@
 package com.stacksync.syncservice.rpc;
 
 import com.stacksync.syncservice.db.ConnectionPool;
+import com.stacksync.syncservice.db.Status;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
-import com.stacksync.syncservice.handler.Handler.Status;
 import com.stacksync.syncservice.handler.SQLAPIHandler;
 import com.stacksync.syncservice.rpc.messages.*;
 import com.stacksync.syncservice.rpc.parser.IParser;

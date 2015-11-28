@@ -1,15 +1,12 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import com.stacksync.commons.models.ItemMetadata;
-import org.infinispan.atomic.Distributed;
 
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.*;
 
-@Distributed(key = "id")
-public class ItemMetadataRMI {
-
-   private static final long serialVersionUID = -2494445120408291949L;
+public class ItemMetadataRMI implements Serializable{
 
    private static Random random = new Random(System.currentTimeMillis());
 
@@ -33,7 +30,6 @@ public class ItemMetadataRMI {
    private Integer level; // for API calls
    private Boolean isRoot; // for API calls
 
-//   @Distribute
    private List<ItemMetadataRMI> children;
 
    @Deprecated
@@ -323,6 +319,16 @@ public class ItemMetadataRMI {
       return ret;
    }
 
+   public boolean isChildRepeated(ItemMetadataRMI fileToUpdate) {
+      boolean ret = false;
+      for (ItemMetadataRMI child : getChildren()) {
+         if (child.getFilename().equals(fileToUpdate.getFilename())) {
+            ret = true;
+         }
+      }
+      return ret;
+   }
+
    // Helpers
 
    public static ItemMetadataRMI createItemMetadataFromItemAndItemVersion(ItemRMI item, ItemVersionRMI itemVersion) {
@@ -342,17 +348,8 @@ public class ItemMetadataRMI {
             itemVersion.getDevice()==null ? null : itemVersion.getDevice().getId(), item.getParentId(), item.getClientParentFileVersion(),
             itemVersion.getStatus(), itemVersion.getModifiedAt(), itemVersion.getChecksum(),
             itemVersion.getSize(), item.isFolder(), item.getFilename(), item.getMimetype(), chunks);
-      ret.setWorkspaceId(item.getWorkspaceId());
+//      ret.setWorkspaceId(item.getWorkspaceId()); // FIXME
       return ret;
    }
 
-   public boolean isChildRepeated(ItemMetadataRMI fileToUpdate) {
-      boolean ret = false;
-      for (ItemMetadataRMI child : getChildren()) {
-         if (child.getFilename().equals(fileToUpdate.getFilename())) {
-            ret = true;
-         }
-      }
-      return ret;
-   }
 }

@@ -9,11 +9,9 @@ import java.util.UUID;
 @Distributed(key = "id")
 public class DeviceRMI {
 
-    private static final long serialVersionUID = -2932481953197148130L;
-    
     public UUID id;
     private String name;
-    //private UserRMI user;
+    private UserRMI user;
     private String os;
     private Date createdAt;
     private Date lastAccessAt;
@@ -25,17 +23,13 @@ public class DeviceRMI {
         this.id = null;
     }
 
-    public DeviceRMI(UUID id) {
-        this.id = id;
-    }
-
-    public DeviceRMI(UUID id, String name/*, UserRMI user*/) {
+    public DeviceRMI(UUID id, String name, UserRMI user) {
         this.id = id;
         this.name = name;
-        //this.user = user;
+        this.user = user;
     }
 
-    public DeviceRMI(String name, /*UserRMI user, */ String os, Date createdAt,
+    public DeviceRMI(String name, UserRMI user, String os, Date createdAt,
             Date lastAccessAt, String lastIp, String appVersion) {
         this.name = name;
         //this.user = user;
@@ -102,13 +96,10 @@ public class DeviceRMI {
         this.name = name;
     }
 
-    /*public UserRMI getUser() {
-     return user;
-     }
+    public UserRMI getUser() {
+        return user;
+    }
 
-     public void setUser(UserRMI user) {
-     this.user = user;
-     }*/
     public boolean isValid() {
         // TODO Auto-generated method stub
         return true;
@@ -140,5 +131,9 @@ public class DeviceRMI {
         result.append("}");
 
         return result.toString();
+    }
+
+    public boolean belongTo(UserRMI user) {
+        return this.user.equals(user);
     }
 }

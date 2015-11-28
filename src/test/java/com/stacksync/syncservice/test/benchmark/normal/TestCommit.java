@@ -13,14 +13,54 @@ import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.test.benchmark.Constants;
 import com.stacksync.syncservice.util.Config;
+import org.infinispan.atomic.AtomicObjectFactoryRemoteTest;
+import org.infinispan.atomic.utils.Server;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public class TestCommit {
+public class TestCommit extends AtomicObjectFactoryRemoteTest{
 
-	public static List<ItemMetadataRMI> getObjectMetadata(JsonArray allFiles) {
+   public int getReplicationFactor() {
+      return 1;
+   }
+
+   public int getNumberOfManagers() {
+      return 2;
+   }
+
+   @Test
+   public void commit() throws Exception{
+
+      Config.loadProperties();
+      String datasource = Config.getDatasource();
+      ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
+      pool.getConnection().cleanup();
+      Handler handler = new SQLSyncHandler(pool);
+
+      long startTotal = System.currentTimeMillis();
+      for (int i = 0; i < 1000; i++) {
+         String metadata = CommonFunctions.generateObjects(1, UUID.randomUUID());
+         JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
+         List<ItemMetadataRMI> objects = getObjectMetadata(rawObjects);
+         UserRMI user = new UserRMI(UUID.randomUUID());
+         DeviceRMI device = new DeviceRMI(UUID.randomUUID(),"android",user);
+         WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID());
+         handler.doCommit(user, workspace, device, objects);
+      }
+      long totalTime = System.currentTimeMillis() - startTotal;
+
+      System.out.println("Total level time --> " + totalTime + " ms");
+
+      pool.getConnection().close();
+   }
+
+   public static List<ItemMetadataRMI> getObjectMetadata(JsonArray allFiles) {
 		List<ItemMetadataRMI> metadataList = new ArrayList<>();
 
 		for (int i = 0; i < allFiles.size(); i++) {
@@ -61,7 +101,8 @@ public class TestCommit {
 				chunks.add(jChunks.get(j).getAsString());
 			}
 			
-			ItemMetadataRMI object = new ItemMetadataRMI(fileId, version, Constants.DEVICE_ID, parentFileId, parentFileVersion, status, lastModified,
+			ItemMetadataRMI object = new ItemMetadataRMI(
+               fileId, version, Constants.DEVICE_ID, parentFileId, parentFileVersion, status, lastModified,
 					checksum, fileSize, folder, name, mimetype, chunks);
 
 			metadataList.add(object);
@@ -71,29 +112,35 @@ public class TestCommit {
 	}
 
 	public static void main(String[] args) throws Exception {
-		Config.loadProperties();
+      ExecutorService service = Executors.newFixedThreadPool(2);
+      Server server1 = new Server("127.0.0.1:11222","127.0.0.1:11222",1,false);
+      service.submit(server1);
+      server1.waitLaunching();
 
-		String datasource = Config.getDatasource();
-		ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
-		Handler handler = new SQLSyncHandler(pool);
+      Config.loadProperties();
+      String datasource = Config.getDatasource();
+      ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
+      pool.getConnection().cleanup();
+      Handler handler = new SQLSyncHandler(pool);
 
-		String metadata = CommonFunctions.generateObjects(1, Constants.DEVICE_ID);
-		long startTotal = System.currentTimeMillis();
+      long startTotal = System.currentTimeMillis();
+      for (int i = 0; i < 1000; i++) {
+         String metadata = CommonFunctions.generateObjects(1, Constants.DEVICE_ID);
+         JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
+         List<ItemMetadataRMI> objects = getObjectMetadata(rawObjects);
+         UserRMI user = new UserRMI(UUID.randomUUID());
+         user.setId(Constants.USER);
+         DeviceRMI device = new DeviceRMI(Constants.DEVICE_ID,"",user);
+         WorkspaceRMI workspace = new WorkspaceRMI(Constants.WORKSPACE_ID);
+         handler.doCommit(user, workspace, device, objects);
+      }
+      long totalTime = System.currentTimeMillis() - startTotal;
 
-		JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
-		List<ItemMetadataRMI> objects = getObjectMetadata(rawObjects);
+      System.out.println("Total level time --> " + totalTime + " ms");
 
-		UserRMI user = new UserRMI();
-		user.setId(Constants.USER);
-		DeviceRMI device = new DeviceRMI( Constants.DEVICE_ID);
-		WorkspaceRMI workspace = new WorkspaceRMI(Constants.WORKSPACE_ID);
-
-		handler.doCommit(user, workspace, device, objects);
-
-		long totalTime = System.currentTimeMillis() - startTotal;
-		// System.out.println("Objects -> " + ((GetChangesResponseMessage)
-		// response).getMetadata().size());
-		System.out.println("Total level time --> " + totalTime + " ms");
+      pool.getConnection().close();
+      service.shutdown();
+      System.exit(0);
 	}
 
 }

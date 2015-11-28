@@ -19,24 +19,24 @@ import java.util.UUID;
  */
 public interface WorkspaceDAO extends Remote {
 
-    public WorkspaceRMI getById(UUID id) throws RemoteException;
+    WorkspaceRMI getById(UUID id) throws RemoteException;
 
-    public List<WorkspaceRMI> getByUserId(UUID userId) throws RemoteException;
+    List<WorkspaceRMI> getByUserId(UUID userId) throws RemoteException;
 
-    public WorkspaceRMI getDefaultWorkspaceByUserId(UUID userId) throws RemoteException;
+    WorkspaceRMI getDefaultWorkspaceByUserId(UUID userId) throws RemoteException;
 
-    public WorkspaceRMI getByItemId(Long itemId) throws RemoteException;
+    WorkspaceRMI getByItemId(Long itemId) throws RemoteException;
 
-    public void add(WorkspaceRMI workspace) throws RemoteException;
+    void add(WorkspaceRMI workspace) throws RemoteException;
 
-    public void update(UserRMI user, WorkspaceRMI workspace) throws RemoteException;
+    void update(UserRMI user, WorkspaceRMI workspace) throws RemoteException;
 
-    public void addUser(UserRMI user, WorkspaceRMI workspace) throws RemoteException;
+    void addUser(UserRMI user, WorkspaceRMI workspace) throws RemoteException;
 
-    public void deleteUser(UserRMI user, WorkspaceRMI workspace) throws RemoteException;
+    void deleteUser(UserRMI user, WorkspaceRMI workspace) throws RemoteException;
 
-    public void deleteWorkspace(UUID id) throws RemoteException;
+    void deleteWorkspace(UUID id) throws RemoteException;
 
-    public List<UserRMI> getMembersById(UUID workspaceId) throws RemoteException;
+    List<UserRMI> getMembersById(UUID workspaceId) throws RemoteException;
 
 }

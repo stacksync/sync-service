@@ -51,7 +51,7 @@ public class DatabaseHelper {
 			// System.out.println("DatabaseHelper -- Put Object -> " + object);
 			long startObjectTotal = System.currentTimeMillis();
 
-			objectDao.put(object);
+			objectDao.add(object);
 			for (ItemVersionRMI version : object.getVersions()) {
 
 				long startVersionTotal = System.currentTimeMillis();

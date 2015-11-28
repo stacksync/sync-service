@@ -6,110 +6,47 @@ import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.DAOFactory;
-import com.stacksync.syncservice.db.infinispan.*;
+import com.stacksync.syncservice.db.infinispan.GlobalDAO;
 import com.stacksync.syncservice.db.infinispan.models.*;
-import com.stacksync.syncservice.exceptions.CommitExistantVersion;
-import com.stacksync.syncservice.exceptions.CommitWrongVersion;
-import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import com.stacksync.syncservice.exceptions.InternalServerError;
-import com.stacksync.syncservice.storage.StorageFactory;
-import com.stacksync.syncservice.storage.StorageManager;
-import com.stacksync.syncservice.storage.StorageManager.StorageType;
 import com.stacksync.syncservice.util.Config;
 import org.apache.log4j.Logger;
 
 import java.rmi.RemoteException;
-import java.time.Instant;
-import java.util.*;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 public class Handler{
 
    private static final Logger logger = Logger.getLogger(Handler.class.getName());
 
    protected Connection connection;
-   protected WorkspaceDAO workspaceDAO;
-   protected UserDAO userDao;
-   protected DeviceDAO deviceDao;
-   protected ItemDAO itemDao;
-   protected ItemVersionDAO itemVersionDao;
-   protected StorageManager storageManager;
+   protected GlobalDAO globalDAO;
 
    protected static Random random = new Random(System.currentTimeMillis());
 
-   public enum Status {
-      NEW, DELETED, CHANGED, RENAMED, MOVED
-   };
-
    public Handler(ConnectionPool pool) throws Exception {
       connection = pool.getConnection();
-
       String dataSource = Config.getDatasource();
       DAOFactory factory = new DAOFactory(dataSource);
-
-      workspaceDAO = factory.getWorkspaceDao(connection);
-      deviceDao = factory.getDeviceDAO(connection);
-      userDao = factory.getUserDao(connection);
-      itemDao = factory.getItemDAO(connection);
-      itemVersionDao = factory.getItemVersionDAO(connection);
-      storageManager = StorageFactory.getStorageManager(StorageType.SWIFT);
+      globalDAO = factory.getGlobalDAO(connection);
    }
    
    public void createUser(UUID id) throws Exception {
        UserRMI user = new UserRMI(id, id.toString(), id.toString(), null, "a@a.a", 0, 0);
-       userDao.add(user);
+       globalDAO.add(user);
        WorkspaceRMI workspace = new WorkspaceRMI(id, 0, id, false, false);
-       workspaceDAO.add(workspace);
+       globalDAO.add(workspace);
    }
 
    public WorkspaceRMI getWorkspace(UUID id) throws RemoteException {
-      return workspaceDAO.getById(id);
+      return globalDAO.getById(id);
    }
 
    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
          DeviceRMI device, List<ItemMetadataRMI> items) throws Exception {
-
-      HashMap<Long, Long> tempIds = new HashMap<>();
-
-      // TODO: check if the workspace belongs to the user or its been given access
-      // TODO: check if the device belongs to the user
-
-      List<CommitInfo> responseObjects = new ArrayList<>();
-
-      for (ItemMetadataRMI itemMetadata : items) {
-
-         ItemMetadataRMI objectResponse;
-         boolean committed;
-
-         if (itemMetadata.getParentId() != null) {
-            Long parentId = tempIds.get(itemMetadata.getParentId());
-            if (parentId != null) {
-               itemMetadata.setParentId(parentId);
-            }
-         }
-
-         // if the itemMetadata does not have ID but has a TempID, maybe it was
-         // set
-         if (itemMetadata.getId() == null && itemMetadata.getTempId() != null) {
-            Long newId = tempIds.get(itemMetadata.getTempId());
-            if (newId != null) {
-               itemMetadata.setId(newId);
-            }
-         }
-
-         this.commitObject(itemMetadata, workspace, device);
-
-         if (itemMetadata.getTempId() != null) {
-            tempIds.put(itemMetadata.getTempId(), itemMetadata.getId());
-         }
-
-         objectResponse = itemMetadata;
-         committed = true;
-
-         responseObjects.add(new CommitInfo(itemMetadata.getVersion(), committed,
-               objectResponse.toMetadataItem()));
-      }
-
-      return responseObjects;
+      return globalDAO.doCommit(user, workspace, device, items);
    }
 
    public WorkspaceRMI doShareFolder(UserRMI user, List<String> emails, ItemRMI item,
@@ -440,7 +377,7 @@ public class Handler{
 
       List<UserRMI> members;
       try {
-         members = workspaceDAO.getMembersById(workspace.getId());
+         members = globalDAO.getMembersById(workspace.getId());
       } catch (Exception e) {
          logger.error(e);
          throw new InternalServerError(e);
@@ -457,233 +394,4 @@ public class Handler{
       return this.connection;
    }
 
-   /*
-    * Private functions
-    */
-   private void commitObject(ItemMetadataRMI itemMetadata, WorkspaceRMI workspace, DeviceRMI device)
-         throws  Exception {
-
-      ItemRMI serverItem = itemDao.findById(itemMetadata.getId());
-
-      // Check if this object already exists in the server.
-      if (serverItem == null) {
-         if (itemMetadata.getVersion() == 1) {
-            this.saveNewObject(itemMetadata, workspace, device);
-         } else {
-            throw new CommitWrongVersionNoParent();
-         }
-         return;
-      }
-
-      // Check if the client version already exists in the server
-      long serverVersion = serverItem.getLatestVersionNumber();
-      long clientVersion = itemMetadata.getVersion();
-      boolean existVersionInServer = (serverVersion >= clientVersion);
-
-      if (existVersionInServer) {
-         this.saveExistingVersion(serverItem, itemMetadata);
-      } else {
-         // Check if version is correct
-         if (serverVersion + 1 == clientVersion) {
-            this.saveNewVersion(itemMetadata, serverItem, workspace, device);
-         } else {
-            throw new CommitWrongVersion("Invalid version.", serverItem);
-         }
-      }
-   }
-
-   private void saveNewObject(ItemMetadataRMI metadata, WorkspaceRMI workspace,
-         DeviceRMI device) throws Exception {
-
-      // Create workspace and parent instances
-      Long parentId = metadata.getParentId();
-      ItemRMI parent = null;
-      if (parentId != null) {
-         parent = itemDao.findById(parentId);
-      }
-
-      beginTransaction();
-
-      if (metadata.getStatus()==null)
-         metadata.setStatus(Status.NEW.toString());
-
-      try {
-         // Insert object to DB
-         ItemRMI item = new ItemRMI(
-               metadata.getId(),
-               workspace,
-               metadata.getVersion(),
-               parent,
-               null,
-               metadata.getFilename(),
-               metadata.getMimetype(),
-               metadata.isFolder(),
-               metadata.getParentVersion());
-
-         workspace.add(item);
-         itemDao.put(item);
-
-         // Insert objectVersion
-
-         ItemVersionRMI objectVersion = new ItemVersionRMI(
-               random.nextLong(),
-               item.getId(),
-               device,
-               metadata.getVersion(),
-               metadata.getModifiedAt(), // FIXME
-               metadata.getModifiedAt(),
-               metadata.getChecksum(),
-               metadata.getStatus(),
-               metadata.getSize());
-
-         item.addVersion(objectVersion);
-         System.out.println(item.getVersions());
-         itemVersionDao.add(objectVersion);
-
-         // If no folder, create new chunks
-         if (!metadata.isFolder()) {
-            List<String> chunks = metadata.getChunks();
-            this.createChunks(chunks, objectVersion);
-         }
-
-
-         commitTransaction();
-      } catch (Exception e) {
-         e.printStackTrace();
-         logger.error(e);
-         rollbackTransaction();
-      }
-   }
-
-   private void saveNewVersion(ItemMetadataRMI metadata, ItemRMI serverItem,
-         WorkspaceRMI workspace, DeviceRMI device) throws Exception {
-
-      beginTransaction();
-
-      try {
-         // Create new objectVersion
-         ItemVersionRMI itemVersion = new ItemVersionRMI(
-               metadata.getId(),
-               serverItem.getId(),
-               device,
-               metadata.getVersion(),
-               Date.from(Instant.now()),
-               metadata.getModifiedAt(),
-               metadata.getChecksum(),
-               metadata.getStatus(),
-               metadata.getSize());
-         itemVersionDao.add(itemVersion);
-
-         // If no folder, create new chunks
-         if (!metadata.isFolder()) {
-            List<String> chunks = metadata.getChunks();
-            this.createChunks(chunks, itemVersion);
-         }
-
-         // TODO To Test!!
-         String status = metadata.getStatus();
-         if (status.equals(Status.RENAMED.toString())
-               || status.equals(Status.MOVED.toString())
-               || status.equals(Status.DELETED.toString())) {
-
-            serverItem.setFilename(metadata.getFilename());
-
-            Long parentFileId = metadata.getParentId();
-            if (parentFileId == null) {
-               serverItem.setClientParentFileVersion(null);
-               serverItem.setParent(null);
-            } else {
-               serverItem.setClientParentFileVersion(metadata
-                     .getParentVersion());
-               ItemRMI parent = itemDao.findById(parentFileId);
-               serverItem.setParent(parent);
-            }
-         }
-
-         // Update object latest version
-         serverItem.setLatestVersionNumber(metadata.getVersion());
-         itemDao.put(serverItem);
-
-         commitTransaction();
-      } catch (Exception e) {
-         logger.error(e);
-         rollbackTransaction();
-      }
-   }
-
-   private void createChunks(List<String> chunksString,
-         ItemVersionRMI objectVersion) throws Exception {
-      if (chunksString != null) {
-         if (chunksString.size() > 0) {
-            List<ChunkRMI> chunks = new ArrayList<ChunkRMI>();
-            int i = 0;
-            for (String chunkName : chunksString) {
-               chunks.add(new ChunkRMI(chunkName, i));
-               i++;
-            }
-            itemVersionDao.insertChunks(objectVersion, chunks);
-         }
-      }
-   }
-
-   private void saveExistingVersion(ItemRMI serverObject,
-         ItemMetadataRMI clientMetadata) throws CommitWrongVersion,
-         CommitExistantVersion, Exception {
-
-      ItemMetadataRMI serverMetadata = this.getServerObjectVersion(serverObject,
-            clientMetadata.getVersion());
-
-      if (!clientMetadata.equals(serverMetadata)) {
-         throw new CommitWrongVersion("Invalid version.", serverObject);
-      }
-
-      boolean lastVersion = (serverObject.getLatestVersion()
-            .equals(clientMetadata.getVersion()));
-
-      if (!lastVersion) {
-         throw new CommitExistantVersion("This version already exists.",
-               serverObject, clientMetadata.getVersion());
-      }
-   }
-
-   private ItemMetadataRMI getCurrentServerVersion(ItemRMI serverObject)
-         throws Exception {
-      return getServerObjectVersion(serverObject,
-            serverObject.getLatestVersionNumber());
-   }
-
-   private ItemMetadataRMI getServerObjectVersion(ItemRMI serverObject,
-         long requestedVersion) throws Exception {
-
-      ItemMetadataRMI metadata = itemVersionDao.findByItemIdAndVersion(
-            serverObject.getId(), requestedVersion);
-
-      return metadata;
-   }
-
-   private void beginTransaction() throws Exception {
-      try {
-         connection.setAutoCommit(false);
-      } catch (Exception e) {
-         throw new Exception(e);
-      }
-   }
-
-   private void commitTransaction() throws Exception {
-      try {
-         connection.commit();
-         this.connection.setAutoCommit(true);
-      } catch (Exception e) {
-         throw new Exception(e);
-      }
-   }
-
-   private void rollbackTransaction() throws Exception {
-      try {
-         this.connection.rollback();
-         this.connection.setAutoCommit(true);
-      } catch (Exception e) {
-         throw new Exception(e);
-      }
-   }
 }
