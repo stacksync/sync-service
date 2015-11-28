@@ -16,6 +16,7 @@ import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
@@ -65,7 +66,7 @@ public abstract class AServerDummy extends Thread {
         return connection;
     }
 
-    public void doCommit(UUID uuid, Random ran, int min, int max, String id) throws Exception {
+    public void doCommit(UUID uuid, Random ran, int min, int max, String id) throws DAOException {
         // Create user info
         UserRMI user = new UserRMI(uuid);
         DeviceRMI device = new DeviceRMI(uuid,"android",user);
@@ -173,10 +174,8 @@ public abstract class AServerDummy extends Thread {
         workspaceDAO.add(workspace);
         deviceDAO.add(device);*/
         
-        WorkspaceRMI workspace = new WorkspaceRMI(uuid);
-        workspace.addUser(uuid);
-        workspace.setOwner(uuid);
-        
+        WorkspaceRMI workspace = new WorkspaceRMI(uuid, 0, new UserRMI(uuid),false,false);
+
         UserRMI user = new UserRMI(uuid);
         DeviceRMI device = new DeviceRMI(uuid,"",user);
         user.setEmail(uuid.toString());

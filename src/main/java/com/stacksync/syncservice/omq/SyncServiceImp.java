@@ -8,6 +8,7 @@ import com.stacksync.commons.omq.RemoteClient;
 import com.stacksync.commons.requests.*;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.infinispan.models.*;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.handler.SyncHandler;
 import com.stacksync.syncservice.util.Config;
@@ -106,7 +107,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
              logger.debug("Consumer: Response sent to workspace \"" + workspace + "\"");
             logger.info("End:" + request.getRequestId());*/
 
-        } catch (Exception e) {
+        } catch (DAOException e) {
             logger.error(e);
         }
     }
@@ -182,8 +183,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
             WorkspaceNotUpdatedException {
         logger.debug(request);
 
-        UserRMI user = new UserRMI();
-        user.setId(request.getUserId());
+        UserRMI user = new UserRMI(request.getUserId());
         ItemRMI item = new ItemRMI(request.getParentItemId());
 
         WorkspaceRMI workspace = new WorkspaceRMI(request.getWorkspaceId());
@@ -230,10 +230,10 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
     private List<Workspace> convertWorkspaces(List<WorkspaceRMI> workspaces) {
         Workspace wspace;
         User user;
-        List<Workspace> wspaces = null;
+        List<Workspace> wspaces = new ArrayList<>();
 
         for (WorkspaceRMI workspace : workspaces) {
-            user = new User(workspace.getOwner());
+            user = new User(workspace.getOwner().getId());
             wspace = new Workspace(workspace.getId(), workspace.getLatestRevision(), user, workspace.isShared(), workspace.isEncrypted());
             wspaces.add(wspace);
         }

@@ -5,6 +5,7 @@ import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 
 import java.util.List;
 
@@ -20,7 +21,7 @@ public interface GlobalDAO
       DeviceDAO{
 
       List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
-            DeviceRMI device, List<ItemMetadataRMI> items) throws Exception;
+            DeviceRMI device, List<ItemMetadataRMI> items) throws DAOException;
 
 }
 

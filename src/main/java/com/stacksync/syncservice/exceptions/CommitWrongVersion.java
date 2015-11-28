@@ -1,15 +1,11 @@
 package com.stacksync.syncservice.exceptions;
 
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public class CommitWrongVersion extends Exception {
+public class CommitWrongVersion extends DAOException {
 
-	private static final long serialVersionUID = 632312815010044106L;
 	private ItemRMI item;
-
-	public CommitWrongVersion() {
-		super();
-	}
 
 	public CommitWrongVersion(String message) {
 		super(message);

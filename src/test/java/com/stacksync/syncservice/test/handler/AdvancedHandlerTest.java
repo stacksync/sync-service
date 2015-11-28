@@ -54,7 +54,7 @@ public class AdvancedHandlerTest {
 			UserRMI user = new UserRMI(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 			userDao.add(user);
 
-			WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID(),  1, user.getId(), false, false);
+			WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID(),  1, user, false, false);
 			workspaceDAO.add(workspace);
 
 			DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "junitdevice", user);

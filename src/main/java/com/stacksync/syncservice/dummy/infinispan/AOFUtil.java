@@ -36,14 +36,12 @@ public class AOFUtil {
         this.workspaceDAO = factory.getWorkspaceDao(connection);
     }
 
-    public void setup(UUID uuid) throws RemoteException {
+    public void setup(UserRMI user) throws RemoteException {
 
+        UUID uuid = user.getId();
         System.out.println("New workspace: " + uuid.toString());
-        WorkspaceRMI workspace = new WorkspaceRMI(uuid);
-        workspace.addUser(uuid);
-        workspace.setOwner(uuid);
+        WorkspaceRMI workspace = new WorkspaceRMI(uuid,0,user,false,false);
 
-        UserRMI user = new UserRMI(uuid);
         DeviceRMI device = new DeviceRMI(uuid,"android",user);
         user.setEmail(uuid.toString());
         user.setName("a");

@@ -5,18 +5,18 @@
  */
 package com.stacksync.syncservice.dummy.infinispan;
 
+import com.stacksync.syncservice.db.ConnectionPool;
+import com.stacksync.syncservice.dummy.infinispan.actions.Action;
+import com.stacksync.syncservice.dummy.infinispan.actions.ActionFactory;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.handler.Handler;
+import com.stacksync.syncservice.handler.SQLSyncHandler;
+import org.apache.log4j.Logger;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.UUID;
-
-import org.apache.log4j.Logger;
-
-import com.stacksync.syncservice.db.ConnectionPool;
-import com.stacksync.syncservice.dummy.infinispan.actions.Action;
-import com.stacksync.syncservice.dummy.infinispan.actions.ActionFactory;
-import com.stacksync.syncservice.handler.Handler;
-import com.stacksync.syncservice.handler.SQLSyncHandler;
 
 public class U1BenchmarkWorker extends Thread {
 
@@ -65,7 +65,11 @@ public class U1BenchmarkWorker extends Thread {
                     }
 
                     Action action = ActionFactory.getNewAction(op, handler, userId, fileId, fileSize, fileType, fileMime, fileVersion);
-                    action.doCommit();
+                    try {
+                        action.doCommit();
+                    } catch (DAOException e) {
+                        e.printStackTrace();
+                    }
 
                     long end = System.currentTimeMillis();
 

@@ -1,17 +1,12 @@
 package com.stacksync.syncservice.exceptions;
 
 import com.stacksync.syncservice.db.infinispan.models.ItemRMI;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-public class CommitExistantVersion extends Exception {
+public class CommitExistantVersion extends DAOException {
 
-	private static final long serialVersionUID = 3790965344729620693L;
-	
 	private ItemRMI item;
 	private long version;
-
-	public CommitExistantVersion() {
-		super();
-	}
 
 	public CommitExistantVersion(String message) {
 		super(message);

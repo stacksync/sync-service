@@ -6,11 +6,12 @@
 package com.stacksync.syncservice.test.dummy;
 
 import com.stacksync.syncservice.db.ConnectionPool;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
+
 import java.sql.SQLException;
 import java.util.Random;
 import java.util.UUID;
-
-import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 
 /**
  * @author Sergi Toda <sergi.toda@estudiants.urv.cat>
@@ -44,7 +45,7 @@ public class ServerDummy extends AServerDummy {
                 long start = System.currentTimeMillis();
                 try {
                     doCommit(userID, ran, 1, 8, id);
-                } catch (Exception e1) {
+                } catch (DAOException e1) {
                     logger.error(e1);
                 }
                 long end = System.currentTimeMillis();

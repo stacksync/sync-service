@@ -48,13 +48,13 @@ public class UpdateDataTest {
       user1 = new UserRMI(UUID.fromString("159a1286-33df-4453-bf80-cff4af0d97b0"), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 
       userDao.add(user1);
-      workspace1 = new WorkspaceRMI(UUID.randomUUID(), 1, user1.getId(), false, false);
+      workspace1 = new WorkspaceRMI(UUID.randomUUID(), 1, user1, false, false);
       workspaceDAO.add(workspace1);
 
       user2 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 
       userDao.add(user2);
-      WorkspaceRMI workspace2 = new WorkspaceRMI(UUID.randomUUID(), 1, user2.getId(), false, false);
+      WorkspaceRMI workspace2 = new WorkspaceRMI(UUID.randomUUID(), 1, user2, false, false);
       workspaceDAO.add(workspace2);
    }
 

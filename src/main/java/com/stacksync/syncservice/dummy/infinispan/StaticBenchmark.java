@@ -11,6 +11,7 @@ import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.exceptions.storage.NoStorageManagerAvailable;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
@@ -45,9 +46,9 @@ public class StaticBenchmark extends Thread {
 
         this.userIds = new ArrayList<UUID>();
         for (int i = 0; i < numUsers; i++) {
-            UUID userId = UUID.randomUUID();
-            this.userIds.add(userId);
-            this.utils.setup(userId);
+            UserRMI user = new UserRMI(UUID.randomUUID());
+            this.userIds.add(user.getId());
+            this.utils.setup(user);
         }
     }
 
@@ -85,7 +86,7 @@ public class StaticBenchmark extends Thread {
                 UUID userID = this.userIds.get(random.nextInt(userIds.size()));
                 doCommit(userID, id);
                 //itemsCount++;
-            } catch (Exception ex) {
+            } catch (DAOException ex) {
                 logger.error(ex);
             }
 
@@ -111,7 +112,7 @@ public class StaticBenchmark extends Thread {
         logger.info((((float) commitsPerSecond * 60) / ((float) (System.currentTimeMillis() - beg)) * 1000) + " op/sec");
     }
 
-    public void doCommit(UUID uuid, String id) throws Exception {
+    public void doCommit(UUID uuid, String id) throws DAOException {
         // Create user info
         UserRMI user = new UserRMI(uuid);
         DeviceRMI device = new DeviceRMI(uuid,"osX",user);

@@ -9,6 +9,7 @@ import com.stacksync.syncservice.db.DAOFactory;
 import com.stacksync.syncservice.db.infinispan.GlobalDAO;
 import com.stacksync.syncservice.db.infinispan.models.*;
 import com.stacksync.syncservice.exceptions.InternalServerError;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.util.Config;
 import org.apache.log4j.Logger;
 
@@ -36,7 +37,7 @@ public class Handler{
    public void createUser(UUID id) throws Exception {
        UserRMI user = new UserRMI(id, id.toString(), id.toString(), null, "a@a.a", 0, 0);
        globalDAO.add(user);
-       WorkspaceRMI workspace = new WorkspaceRMI(id, 0, id, false, false);
+       WorkspaceRMI workspace = new WorkspaceRMI(id, 0, user, false, false);
        globalDAO.add(workspace);
    }
 
@@ -45,7 +46,7 @@ public class Handler{
    }
 
    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
-         DeviceRMI device, List<ItemMetadataRMI> items) throws Exception {
+         DeviceRMI device, List<ItemMetadataRMI> items) throws DAOException {
       return globalDAO.doCommit(user, workspace, device, items);
    }
 

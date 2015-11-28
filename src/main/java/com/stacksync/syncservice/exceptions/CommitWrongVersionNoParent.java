@@ -1,12 +1,8 @@
 package com.stacksync.syncservice.exceptions;
 
-public class CommitWrongVersionNoParent extends Exception{
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 
-	private static final long serialVersionUID = -5529999497610319369L;
-
-	public CommitWrongVersionNoParent() {
-		super();
-	}
+public class CommitWrongVersionNoParent extends DAOException{
 
 	public CommitWrongVersionNoParent(String message) {
 		super(message);

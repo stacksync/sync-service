@@ -210,8 +210,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
       try {
          saveNewItemAPI(user, fileToSave, parent);
          responseAPI = new APICommitResponse(fileToSave, true, 0, "");
-
-      } catch (Exception e) {
+      } catch (DAOException e) {
          e.printStackTrace();
          logger.error(e);
          responseAPI = new APICommitResponse(fileToSave, false, 500,
@@ -817,7 +816,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
    }
 
    private void saveNewItemAPI(UserRMI user, ItemMetadataRMI itemToSave,
-         ItemMetadataRMI parent) throws DAOException, Exception {
+         ItemMetadataRMI parent) throws DAOException {
 
       itemToSave.setWorkspaceId(parent.getWorkspaceId());
       WorkspaceRMI workspace = new WorkspaceRMI(parent.getWorkspaceId());

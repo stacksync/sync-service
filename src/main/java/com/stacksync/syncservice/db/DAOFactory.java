@@ -9,6 +9,7 @@ import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class DAOFactory {
 
@@ -27,7 +28,7 @@ public class DAOFactory {
 
             instance.put(
                   connection,
-                  new InfinispanDAO());
+                  new InfinispanDAO(UUID.randomUUID()));
 
          }else if (connection instanceof DummyConnection) {
 

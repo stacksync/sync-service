@@ -411,7 +411,7 @@ public class XmlRpcSyncHandler {
 
       UserRMI user = new UserRMI(userId);
 
-      ItemRMI item = new ItemRMI(folderId,null,new Long(0),null,new Long(0),"","",true,new Long(0));
+      ItemRMI item = new ItemRMI(folderId,null,new Long(0),null, "","",true,new Long(0));
 
       APIUnshareFolderResponse response = this.apiHandler.unshareFolder(user, item, emails);
 
@@ -442,7 +442,7 @@ public class XmlRpcSyncHandler {
 
       UserRMI user = new UserRMI(userId);
 
-      ItemRMI item = new ItemRMI(folderId,null,new Long(0),null,new Long(0),"","",true,new Long(0));
+      ItemRMI item = new ItemRMI(folderId,null,new Long(0),null, "","",true,new Long(0));
 
       APIGetFolderMembersResponse response = this.apiHandler.getFolderMembers(user, item);
 

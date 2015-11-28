@@ -2,11 +2,13 @@ package com.stacksync.syncservice.exceptions.dao;
 
 import com.stacksync.syncservice.db.DAOError;
 
+import java.io.Serializable;
+
 /**
  * This class represents a generic DAO exception. It should wrap any exception on the database level
  * , such as SQLExceptions.
  */
-public class DAOException extends Exception {
+public class DAOException extends Throwable implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 	private DAOError error;

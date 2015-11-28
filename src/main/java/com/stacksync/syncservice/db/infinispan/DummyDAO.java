@@ -5,6 +5,8 @@
  */
 package com.stacksync.syncservice.db.infinispan;
 
+import java.util.UUID;
+
 /**
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
@@ -12,7 +14,7 @@ package com.stacksync.syncservice.db.infinispan;
 public class DummyDAO extends InfinispanDAO {
 
    public DummyDAO(){
-      super();
+      super(UUID.randomUUID());
    }
 
 }

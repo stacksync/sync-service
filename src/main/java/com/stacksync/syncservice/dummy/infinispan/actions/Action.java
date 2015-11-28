@@ -4,6 +4,7 @@ import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
 import org.apache.log4j.Logger;
 
@@ -72,7 +73,7 @@ public abstract class Action {
 
     }
 
-    public void doCommit() throws Exception {
+    public void doCommit() throws DAOException {
         String idCommit = java.util.UUID.randomUUID().toString();
 
         UserRMI user = new UserRMI(userId);

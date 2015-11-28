@@ -18,28 +18,25 @@ public class WorkspaceRMI implements Serializable {
    private String name;
    private ItemRMI parentItem;
    private Integer latestRevision;
-   private UUID owner;
+   private UserRMI owner;
    private String swiftContainer;
    private String swiftUrl;
    private boolean isShared;
    private boolean isEncrypted;
    private HashMap<Long, ItemRMI> items;
-   private List<UUID> users;
+   private List<UserRMI> users;
 
    private long itemIdCounter, itemVersionIdCounter;
    private Random random = new Random();
 
-   public WorkspaceRMI() {
-      this(UUID.randomUUID());
-      this.itemIdCounter = 0;
-      this.itemVersionIdCounter = 0;
-   }
+   @Deprecated
+   public WorkspaceRMI(){}
 
    public WorkspaceRMI(UUID id) {
       this(id, 0, null, false, false);
    }
 
-   public WorkspaceRMI(UUID id, Integer latestRevision, UUID owner, boolean isShared, boolean isEncrypted) {
+   public WorkspaceRMI(UUID id, Integer latestRevision, UserRMI owner, boolean isShared, boolean isEncrypted) {
       this.id = id;
       this.latestRevision = latestRevision;
       this.owner = owner;
@@ -47,17 +44,8 @@ public class WorkspaceRMI implements Serializable {
       this.isEncrypted = isEncrypted;
       this.items = new HashMap<>();
       this.users = new ArrayList<>();
-      this.users.add(owner);
-   }
-
-   public void setWorkspace(WorkspaceRMI workspace) {
-      this.id = workspace.getId();
-      this.latestRevision = workspace.getLatestRevision();
-      this.owner = workspace.getOwner();
-      this.isShared = workspace.isShared();
-      this.isEncrypted = workspace.isEncrypted();
-      this.items = workspace.getItems();
-      this.users = workspace.getUsers();
+      if (owner!=null)
+         users.add(owner);
    }
 
    public UUID getId() {
@@ -76,11 +64,11 @@ public class WorkspaceRMI implements Serializable {
       this.latestRevision = latestRevision;
    }
 
-   public UUID getOwner() {
+   public UserRMI getOwner() {
       return owner;
    }
 
-   public void setOwner(UUID owner) {
+   public void setOwner(UserRMI owner) {
       this.owner = owner;
    }
 
@@ -144,27 +132,20 @@ public class WorkspaceRMI implements Serializable {
       this.items.put(item.getId(), item);
    }
 
-   public List<UUID> getUsers() {
+   public List<UserRMI> getUsers() {
       return users;
    }
 
-   public void setUsers(List<UUID> users) {
+   public void setUsers(List<UserRMI> users) {
       this.users = users;
    }
 
-   public void addUser(UUID user) {
+   public void addUser(UserRMI user) {
       this.users.add(user);
    }
 
    public void removeUser(UUID user) {
-      int index = 0;
-      for (UUID id : users) {
-         if (id.equals(user)) {
-            users.remove(index);
-            break;
-         }
-         index++;
-      }
+      users.remove(user);
    }
 
    /**
@@ -272,7 +253,7 @@ public class WorkspaceRMI implements Serializable {
          // Get children :D
          itemMetadata = addChildrenFromItemMetadata(itemMetadata, includeDeleted);
       }else{
-         itemMetadata = item.getItemMetadataFromItem(version, includeList, includeDeleted, includeChunks);
+         itemMetadata = item.getItemMetadataFromItem(version, includeChunks);
       }
 
       return itemMetadata;
@@ -337,10 +318,6 @@ public class WorkspaceRMI implements Serializable {
          }
       }
       return itemMetadata;
-   }
-
-   public ItemMetadataRMI findByItemIdAndVersion(Long id, Long version) {
-      return findById(id, Boolean.FALSE, version, Boolean.FALSE, Boolean.FALSE);
    }
 
    public void add(ItemVersionRMI itemVersion) {
@@ -408,13 +385,15 @@ public class WorkspaceRMI implements Serializable {
    }
 
    public boolean allow(UserRMI user) {
-      return users.contains(user);
+      return users.contains(user.getId());
    }
 
    public void add(ItemMetadataRMI metadata, DeviceRMI device)
          throws CommitWrongVersionNoParent, CommitWrongVersion, CommitExistantVersion {
 
-      ItemRMI serverItem = findById(metadata.getId());
+//      System.out.println("About to add"+metadata+ "to "+this.id);
+
+      ItemRMI serverItem = items.get(id);
 
       if (serverItem == null) {
 
@@ -436,7 +415,6 @@ public class WorkspaceRMI implements Serializable {
                   this,
                   metadata.getVersion(),
                   parent,
-                  null,
                   metadata.getFilename(),
                   metadata.getMimetype(),
                   metadata.isFolder(),
@@ -461,9 +439,11 @@ public class WorkspaceRMI implements Serializable {
                objectVersion.createChunks(metadata.getChunks());
             }
 
+//            System.out.println("Item " + item.getId() + " inserted in version " + item.getLatestVersion());
+
          } else {
 
-            throw new CommitWrongVersionNoParent();
+            throw new CommitWrongVersionNoParent("");
 
          }
 
@@ -477,17 +457,19 @@ public class WorkspaceRMI implements Serializable {
          // if this exist, we check that they are the same
          if (existVersionInServer) {
 
-            ItemMetadataRMI serverMetadata = getServerObjectVersion(serverItem, metadata.getVersion());
-            if (!metadata.equals(serverMetadata)) {
-               throw new CommitWrongVersion("Invalid version.", serverItem);
-            }
+//            ItemMetadataRMI serverMetadata = getItemMetadataFromItem(serverItem, serverItem.getLatestVersionNumber(), false, true, false);
+//            if (!metadata.equals(serverMetadata)) {
+//               throw new CommitWrongVersion(metadata +" vs "+ serverMetadata);
+//            } FIXME
             boolean lastVersion = (serverItem.getLatestVersion().equals(metadata.getVersion()));
             if (!lastVersion) {
-               throw new CommitExistantVersion("This version already exists.", serverItem, metadata.getVersion());
+               System.out.println("Item "+serverItem.getId()+" already exists in version "+metadata.getVersion());
+               return;
             }
 
          } else {
 
+            System.out.println(serverVersion +" VS "+clientVersion);
             // Ensure the version is correct and save it
             if (serverVersion + 1 == clientVersion) {
 
@@ -539,11 +521,6 @@ public class WorkspaceRMI implements Serializable {
 
       }
 
-   }
-
-   private ItemMetadataRMI getServerObjectVersion(ItemRMI serverObject, long requestedVersion) {
-      ItemMetadataRMI metadata = findByItemIdAndVersion(serverObject.getId(), requestedVersion);
-      return metadata;
    }
 
 }

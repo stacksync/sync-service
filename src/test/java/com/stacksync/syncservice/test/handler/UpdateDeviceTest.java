@@ -45,13 +45,13 @@ public class UpdateDeviceTest {
       user1 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 
       userDao.add(user1);
-      WorkspaceRMI workspace1 = new WorkspaceRMI(null, 1, user1.getId(), false, false);
+      WorkspaceRMI workspace1 = new WorkspaceRMI(null, 1, user1, false, false);
       workspaceDAO.add(workspace1);
 
       user2 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 
       userDao.add(user2);
-      WorkspaceRMI workspace2 = new WorkspaceRMI(null, 1, user2.getId(), false, false);
+      WorkspaceRMI workspace2 = new WorkspaceRMI(null, 1, user2, false, false);
       workspaceDAO.add(workspace2);
 
 

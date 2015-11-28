@@ -66,10 +66,10 @@ public class FillDBWithUsers {
         
         user.addDevice(device);
 
-        WorkspaceRMI workspace = new WorkspaceRMI();
+        WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID());
         workspace.setId(userId);
         workspace.setLatestRevision(0);
-        workspace.setOwner(userId);
+        workspace.setOwner(user);
 
         userDao.add(user);
         workspaceDao.add(workspace);

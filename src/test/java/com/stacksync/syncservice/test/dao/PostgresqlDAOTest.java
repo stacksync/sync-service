@@ -187,8 +187,8 @@ public class PostgresqlDAOTest {
 
       UserRMI user = new UserRMI(UUID.randomUUID());
 
-      WorkspaceRMI workspace = new WorkspaceRMI();
-      workspace.setOwner(user.getId());
+      WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID());
+      workspace.setOwner(user);
 
       workspaceDAO.add(workspace);
       assertTrue("User should not have been created", false);
@@ -205,9 +205,9 @@ public class PostgresqlDAOTest {
       user.setQuotaUsed(1403);
       userDao.add(user);
 
-      WorkspaceRMI workspace = new WorkspaceRMI();
+      WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID());
       workspace.setLatestRevision(0);
-      workspace.setOwner(user.getId());
+      workspace.setOwner(user);
 
       workspaceDAO.add(workspace);
       assertTrue(true);
@@ -224,8 +224,8 @@ public class PostgresqlDAOTest {
       user.setQuotaUsed(1403);
       userDao.add(user);
 
-      WorkspaceRMI workspace = new WorkspaceRMI();
-      workspace.setOwner(user.getId());
+      WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID());
+      workspace.setOwner(user);
       workspace.setLatestRevision(0);
 
       ItemRMI object = new ItemRMI(
@@ -233,7 +233,6 @@ public class PostgresqlDAOTest {
             workspace,
             1L,
             null,
-            1331432L,
             nextString(),
             "image/jpeg",
             false,

@@ -6,15 +6,11 @@
 package com.stacksync.syncservice.db.infinispan;
 
 import com.stacksync.commons.models.CommitInfo;
-import com.stacksync.syncservice.db.Status;
 import com.stacksync.syncservice.db.infinispan.models.*;
-import com.stacksync.syncservice.exceptions.CommitExistantVersion;
-import com.stacksync.syncservice.exceptions.CommitWrongVersion;
-import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
 import org.infinispan.atomic.Distribute;
 import org.infinispan.atomic.Distributed;
 
-import java.time.Instant;
 import java.util.*;
 
 /**
@@ -41,10 +37,11 @@ public class InfinispanDAO implements GlobalDAO{
 
    public UUID id;
 
-   ;
+   @Deprecated
+   public InfinispanDAO(){}
 
-   public InfinispanDAO(){
-      this.id = UUID.randomUUID();
+   public InfinispanDAO(UUID id){
+      this.id = id;
    }
 
    // Device
@@ -241,11 +238,7 @@ public class InfinispanDAO implements GlobalDAO{
 
    @Override
    public void add(WorkspaceRMI workspace) {
-      workspaceMap.put(workspace.getId(), workspace);
-      for (UUID userId: workspace.getUsers()) {
-         UserRMI user = userMap.get(userId);
-         user.addWorkspace(workspace.getId());
-      }
+      workspaceMap.putIfAbsent(workspace.getId(), workspace);
    }
 
    @Override
@@ -255,7 +248,7 @@ public class InfinispanDAO implements GlobalDAO{
 
    @Override
    public void addUser(UserRMI user, WorkspaceRMI workspace) {
-      workspace.addUser(user.getId());
+      workspace.addUser(user);
    }
 
    @Override
@@ -270,20 +263,18 @@ public class InfinispanDAO implements GlobalDAO{
 
    @Override
    public List<UserRMI> getMembersById(UUID workspaceId) {
-      List<UserRMI> ret = new ArrayList<>();
-      for(UUID user : workspaceMap.get(workspaceId).getUsers()){
-         ret.add(userMap.get(user));
-      }
-      return ret;
+      return workspaceMap.get(workspaceId).getUsers();
    }
 
    @Override
    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device,
-         List<ItemMetadataRMI> items) throws CommitWrongVersion, CommitExistantVersion, CommitWrongVersionNoParent {
+         List<ItemMetadataRMI> items) throws DAOException {
+
+//      System.out.println("Calling doCommit on "+id);
 
       HashMap<Long, Long> tempIds = new HashMap<>();
 
-      if (!device.belongTo(user) || workspace.allow(user))
+      if (workspace.allow(user))
          throw new IllegalArgumentException("Wrong user");
 
       List<CommitInfo> responseObjects = new ArrayList<>();
@@ -309,7 +300,7 @@ public class InfinispanDAO implements GlobalDAO{
             }
          }
 
-         commitObject(itemMetadata, workspace, device);
+         workspace.add(itemMetadata,device);
 
          if (itemMetadata.getTempId() != null) {
             tempIds.put(itemMetadata.getTempId(), itemMetadata.getId());
@@ -324,77 +315,6 @@ public class InfinispanDAO implements GlobalDAO{
 
       return responseObjects;
 
-   }
-
-   private void saveNewVersion(ItemMetadataRMI metadata, ItemRMI serverItem,
-         WorkspaceRMI workspace, DeviceRMI device) {
-
-      // Create new objectVersion
-      ItemVersionRMI itemVersion = new ItemVersionRMI(
-            metadata.getId(),
-            serverItem.getId(),
-            device,
-            metadata.getVersion(),
-            Date.from(Instant.now()),
-            metadata.getModifiedAt(),
-            metadata.getChecksum(),
-            metadata.getStatus(),
-            metadata.getSize());
-
-      add(itemVersion);
-
-      // If no folder, create new chunks
-      if (!metadata.isFolder()) {
-         List<String> chunks = metadata.getChunks();
-         createChunks(chunks, itemVersion);
-      }
-
-      // TODO To Test!!
-      String status = metadata.getStatus();
-      if (status.equals(Status.RENAMED.toString())
-            || status.equals(Status.MOVED.toString())
-            || status.equals(Status.DELETED.toString())) {
-
-         serverItem.setFilename(metadata.getFilename());
-
-         Long parentFileId = metadata.getParentId();
-         if (parentFileId == null) {
-            serverItem.setClientParentFileVersion(null);
-            serverItem.setParent(null);
-         } else {
-            serverItem.setClientParentFileVersion(metadata
-                  .getParentVersion());
-            ItemRMI parent = findById(parentFileId);
-            serverItem.setParent(parent);
-         }
-      }
-
-      // Update object latest version
-      serverItem.setLatestVersionNumber(metadata.getVersion());
-      add(serverItem);
-
-   }
-
-   /*
-    * Private functions
-    */
-   private void commitObject(ItemMetadataRMI itemMetadata, WorkspaceRMI workspace, DeviceRMI device)
-         throws CommitWrongVersion, CommitWrongVersionNoParent, CommitExistantVersion {
-      workspace.add(itemMetadata,device);
-   }
-
-   private void createChunks(List<String> chunksString, ItemVersionRMI objectVersion) {
-      if (chunksString != null) {
-         if (chunksString.size() > 0) {
-            List<ChunkRMI> chunks = new ArrayList<>();
-            int i = 0;
-            for (String chunkName : chunksString) {
-               chunks.add(new ChunkRMI(chunkName, i));
-               i++;
-            }
-            insertChunks(objectVersion, chunks);
-         }
-      }
    }
 
 }

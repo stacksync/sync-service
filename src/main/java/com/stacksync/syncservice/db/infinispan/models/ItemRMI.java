@@ -23,11 +23,7 @@ public class ItemRMI {
    @Deprecated
    public ItemRMI() {}
 
-   public ItemRMI(Long id) {
-      this(id, null, null, null, null, null, null, null, null);
-   }
-
-   public ItemRMI(Long id, WorkspaceRMI workspace, Long latestVersion, ItemRMI parent, Long clientFileId,
+   public ItemRMI(Long id, WorkspaceRMI workspace, Long latestVersion, ItemRMI parent,
          String filename, String mimetype, Boolean isFolder,
          Long clientParentFileVersion) {
 
@@ -40,6 +36,10 @@ public class ItemRMI {
       this.isFolder = isFolder;
       this.clientParentFileVersion = clientParentFileVersion;
       this.versions = new ArrayList<>();
+   }
+
+   public ItemRMI(Long parentItemId) {
+      this.id = parentItemId;
    }
 
    public Long getId() {
@@ -127,7 +127,7 @@ public class ItemRMI {
 
    public void addVersion(ItemVersionRMI version) {
       assert version!=null;
-      if (versions.contains(version)) {
+      if (!versions.contains(version)) {
          versions.add(version);
          if (version.getVersion() > latestVersion)
             latestVersion = version.getVersion();
@@ -182,8 +182,7 @@ public class ItemRMI {
       return null;
    }
 
-   public ItemMetadataRMI getItemMetadataFromItem(Long version, Boolean includeList, Boolean includeDeleted,
-         Boolean includeChunks) {
+   public ItemMetadataRMI getItemMetadataFromItem(Long version, Boolean includeChunks) {
       ItemMetadataRMI itemMetadata = null;
       if (version==null) {
          itemMetadata = ItemMetadataRMI
@@ -196,6 +195,8 @@ public class ItemRMI {
             }
          }
       }
+      System.out.println(version +" vs "+versions);
+      assert itemMetadata!=null;
       return itemMetadata;
 
    }

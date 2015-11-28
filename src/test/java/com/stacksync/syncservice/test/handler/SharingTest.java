@@ -46,7 +46,7 @@ public class SharingTest {
 		user1 = new UserRMI(UUID.randomUUID(), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
 
 		userDao.add(user1);
-		workspace1 = new WorkspaceRMI(null, 1, user1.getId(), false, false);
+		workspace1 = new WorkspaceRMI(null, 1, user1, false, false);
 		workspaceDAO.add(workspace1);
 
 	}

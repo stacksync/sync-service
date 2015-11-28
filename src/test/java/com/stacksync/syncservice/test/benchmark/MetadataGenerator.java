@@ -67,7 +67,6 @@ public class MetadataGenerator {
             workspace,
             numVersions,
             parent,
-            null,
             randomString(),
             "Document",
             folder,
