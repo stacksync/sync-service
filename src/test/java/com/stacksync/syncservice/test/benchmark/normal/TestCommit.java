@@ -2,46 +2,74 @@ package com.stacksync.syncservice.test.benchmark.normal;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
-import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.test.benchmark.Constants;
 import com.stacksync.syncservice.util.Config;
-import org.infinispan.atomic.AtomicObjectFactoryRemoteTest;
-import org.infinispan.atomic.utils.Server;
-import org.junit.Test;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-public class TestCommit extends AtomicObjectFactoryRemoteTest{
+public class TestCommit {
 
-   private final static int NUMBER_TASKS = 1;
-   private final static int NUMBER_COMMITS = 1000;
+   private final static int DEFAULT_NUMBER_TASKS = 1;
+   private final static int DEFAULT_NUMBER_COMMITS = 1;
+   private static final String defaultServer ="localhost:11222";
 
-   public int getReplicationFactor() {
-      return 2;
+   @Option(name = "-server", usage = "ip:port or ip of the server")
+   private String server = defaultServer;
+
+   @Option(name = "-tasks", usage = "number of tasks")
+   private int nNumberTasks = DEFAULT_NUMBER_TASKS;
+
+   @Option(name = "-commits", usage = "number of commits per task")
+   private int numberCommits = DEFAULT_NUMBER_COMMITS;
+
+   public static void main(String[] args) {
+      new TestCommit().doMain(args);
    }
 
-   public int getNumberOfManagers() {
-      return 2;
+   private void doMain(String[] args) {
+      CmdLineParser parser = new CmdLineParser(this);
+      parser.setUsageWidth(80);
+      try {
+         parser.parseArgument(args);
+      } catch( CmdLineException e ) {
+         System.err.println(e.getMessage());
+         parser.printUsage(System.err);
+         System.err.println();
+         return;
+      }
+
+      try {
+         commit();
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+
+      System.exit(0);
+
    }
 
-   @Test
+   public TestCommit(){}
+
+   public TestCommit(int numberTasks, int numberCommits){
+      this.numberCommits = numberCommits;
+      this.nNumberTasks = numberTasks;
+   }
+
    public void commit() throws Exception{
-      ExecutorService service = Executors.newFixedThreadPool(NUMBER_TASKS);
+      ExecutorService service = Executors.newFixedThreadPool(nNumberTasks);
 
       Config.loadProperties();
       String datasource = Config.getDatasource();
@@ -50,8 +78,8 @@ public class TestCommit extends AtomicObjectFactoryRemoteTest{
       Handler handler = new SQLSyncHandler(pool);
 
       List<Future> futures = new ArrayList<>();
-      for (int i=0; i<NUMBER_TASKS; i++) {
-         CommitTask task = new CommitTask(handler);
+      for (int i=0; i< nNumberTasks; i++) {
+         CommitTask task = new CommitTask(handler, numberCommits);
          futures.add(service.submit(task));
       }
 
@@ -103,7 +131,7 @@ public class TestCommit extends AtomicObjectFactoryRemoteTest{
 			for (int j = 0; j < jChunks.size(); j++) {
 				chunks.add(jChunks.get(j).getAsString());
 			}
-			
+
 			ItemMetadataRMI object = new ItemMetadataRMI(
                fileId, version, Constants.DEVICE_ID, parentFileId, parentFileVersion, status, lastModified,
 					checksum, fileSize, folder, name, mimetype, chunks);
@@ -113,80 +141,5 @@ public class TestCommit extends AtomicObjectFactoryRemoteTest{
 
 		return metadataList;
 	}
-
-	public static void main(String[] args) throws Exception {
-      ExecutorService service = Executors.newFixedThreadPool(2);
-      Server server1 = new Server("127.0.0.1:11222","127.0.0.1:11222",1,false);
-      service.submit(server1);
-      server1.waitLaunching();
-
-      Config.loadProperties();
-      String datasource = Config.getDatasource();
-      ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
-      pool.getConnection().cleanup();
-      Handler handler = new SQLSyncHandler(pool);
-
-      long startTotal = System.currentTimeMillis();
-      for (int i = 0; i < 1000; i++) {
-         try {
-            String metadata = CommonFunctions.generateObjects(1, Constants.DEVICE_ID);
-            JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
-            List<ItemMetadataRMI> objects = getObjectMetadata(rawObjects);
-            UserRMI user = new UserRMI(UUID.randomUUID());
-            user.setId(Constants.USER);
-            DeviceRMI device = new DeviceRMI(Constants.DEVICE_ID, "", user);
-            WorkspaceRMI workspace = new WorkspaceRMI(Constants.WORKSPACE_ID);
-            handler.doCommit(user, workspace, device, objects);
-         } catch (DAOException e) {
-            e.printStackTrace();
-         }
-      }
-
-      long totalTime = System.currentTimeMillis() - startTotal;
-
-      System.out.println("Total level time --> " + totalTime + " ms");
-
-      pool.getConnection().close();
-      service.shutdown();
-      System.exit(0);
-	}
-
-   private class CommitTask implements Runnable{
-
-      private Handler handler;
-
-      public CommitTask(Handler handler) {
-         this.handler = handler;
-      }
-
-      @Override
-      public void run() {
-         try {
-            List<WorkspaceRMI> workspaces = new ArrayList<>();
-            long startTotal = System.currentTimeMillis();
-            for (int i = 0; i < NUMBER_COMMITS; i++) {
-               try {
-                  String metadata = CommonFunctions.generateObjects(1, UUID.randomUUID());
-                  JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
-                  List<ItemMetadataRMI> objects = getObjectMetadata(rawObjects);
-                  UserRMI user = new UserRMI(UUID.randomUUID());
-                  DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "android", user);
-                  WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID(), 1, user, false, false);
-                  handler.doCommit(user, workspace, device, objects);
-                  workspaces.add(workspace);
-               } catch (DAOException e) {
-                  e.printStackTrace();
-               }
-            }
-            long totalTime = System.currentTimeMillis() - startTotal;
-
-            System.out.println("Total level time --> " + totalTime + " ms");
-
-         } catch (Exception e) {
-            e.printStackTrace();
-         }
-      }
-
-   }
 
 }

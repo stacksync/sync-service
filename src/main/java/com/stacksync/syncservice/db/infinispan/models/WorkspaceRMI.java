@@ -391,8 +391,6 @@ public class WorkspaceRMI implements Serializable {
    public void add(ItemMetadataRMI metadata, DeviceRMI device)
          throws CommitWrongVersionNoParent, CommitWrongVersion, CommitExistantVersion {
 
-//      System.out.println("About to add"+metadata+ "to "+this.id);
-
       ItemRMI serverItem = items.get(id);
 
       if (serverItem == null) {
@@ -439,8 +437,6 @@ public class WorkspaceRMI implements Serializable {
                objectVersion.createChunks(metadata.getChunks());
             }
 
-//            System.out.println("Item " + item.getId() + " inserted in version " + item.getLatestVersion());
-
          } else {
 
             throw new CommitWrongVersionNoParent("");
@@ -457,10 +453,6 @@ public class WorkspaceRMI implements Serializable {
          // if this exist, we check that they are the same
          if (existVersionInServer) {
 
-//            ItemMetadataRMI serverMetadata = getItemMetadataFromItem(serverItem, serverItem.getLatestVersionNumber(), false, true, false);
-//            if (!metadata.equals(serverMetadata)) {
-//               throw new CommitWrongVersion(metadata +" vs "+ serverMetadata);
-//            } FIXME
             boolean lastVersion = (serverItem.getLatestVersion().equals(metadata.getVersion()));
             if (!lastVersion) {
                System.out.println("Item "+serverItem.getId()+" already exists in version "+metadata.getVersion());

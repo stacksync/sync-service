@@ -9,7 +9,6 @@ import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.syncservice.db.infinispan.models.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import org.infinispan.atomic.Distribute;
-import org.infinispan.atomic.Distributed;
 
 import java.util.*;
 
@@ -17,7 +16,7 @@ import java.util.*;
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
-@Distributed(key = "id")
+
 public class InfinispanDAO implements GlobalDAO{
 
    @Distribute(key = "deviceIndex")
@@ -256,8 +255,8 @@ public class InfinispanDAO implements GlobalDAO{
       workspace.removeUser(user.getId());
    }
 
-   @Override public
-   void deleteWorkspace(UUID id) {
+   @Override
+   public void deleteWorkspace(UUID id) {
       workspaceMap.remove(id);
    }
 
@@ -269,8 +268,6 @@ public class InfinispanDAO implements GlobalDAO{
    @Override
    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device,
          List<ItemMetadataRMI> items) throws DAOException {
-
-//      System.out.println("Calling doCommit on "+id);
 
       HashMap<Long, Long> tempIds = new HashMap<>();
 
