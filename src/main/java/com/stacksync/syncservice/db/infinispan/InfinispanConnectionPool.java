@@ -8,11 +8,13 @@ package com.stacksync.syncservice.db.infinispan;
 import com.stacksync.syncservice.db.Connection;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.exceptions.dao.DAOConfigurationException;
+import com.stacksync.syncservice.util.Config;
 import org.infinispan.atomic.AtomicObjectFactory;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.infinispan.client.hotrod.configuration.ConfigurationBuilder;
 
 import java.sql.SQLException;
+import java.util.Properties;
 
 /**
  *
@@ -24,9 +26,10 @@ public class InfinispanConnectionPool extends ConnectionPool {
     private InfinispanConnection connection;
 
     public InfinispanConnectionPool() throws DAOConfigurationException {
+        Properties properties = Config.getProperties();
         ConfigurationBuilder builder = new ConfigurationBuilder();
         builder.maxRetries(1);
-        builder.addServers("127.0.0.1");
+        builder.addServers((String) properties.get("infinispan_host"));
         cacheManager = new RemoteCacheManager(builder.build());
         connection = new InfinispanConnection(cacheManager.getCache());
         AtomicObjectFactory.forCache(cacheManager.getCache());

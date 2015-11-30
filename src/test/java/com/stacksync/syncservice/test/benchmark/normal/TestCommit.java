@@ -16,6 +16,7 @@ import org.kohsuke.args4j.Option;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -72,6 +73,8 @@ public class TestCommit {
       ExecutorService service = Executors.newFixedThreadPool(nNumberTasks);
 
       Config.loadProperties();
+      Properties properties = Config.getProperties();
+      properties.setProperty("infinispan_host",server);
       String datasource = Config.getDatasource();
       ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
       pool.getConnection().cleanup();
