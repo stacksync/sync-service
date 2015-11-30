@@ -24,7 +24,7 @@ public class WorkspaceRMI {
    private HashMap<Long, ItemRMI> items;
    private List<UserRMI> users;
 
-   private long itemIdCounter, itemVersionIdCounter;
+   private long itemVersionIdCounter;
    private Random random = new Random();
 
    @Deprecated
@@ -467,8 +467,7 @@ public class WorkspaceRMI {
 
             boolean lastVersion = (serverItem.getLatestVersion().equals(metadata.getVersion()));
             if (!lastVersion) {
-               System.out.println("Item "+serverItem.getId()+" already exists in version "+metadata.getVersion());
-               return;
+               throw new CommitExistantVersion(Long.toString(serverItem.getId()));
             }
 
          } else {
