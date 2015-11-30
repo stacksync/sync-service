@@ -1,36 +1,32 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import org.infinispan.atomic.Distributed;
-
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Distributed(key = "id")
-public class ItemVersionRMI {
+public class ItemVersionRMI implements Serializable{
 
    public Long id;
    private Long itemId;
-   private DeviceRMI device;
+   private UUID deviceId;
    private Long version;
    private Date committedAt;
    private Date modifiedAt;
    private Long checksum;
    private String status;
    private Long size;
-
-   //    @Distribute
    private List<ChunkRMI> chunks;
 
    @Deprecated
    public ItemVersionRMI(){}
 
-   public ItemVersionRMI(Long id, Long itemId, DeviceRMI device, Long version, Date committedAt,
+   public ItemVersionRMI(Long id, Long itemId, UUID deviceId, Long version, Date committedAt,
          Date modifiedAt, Long checksum, String status, Long size) {
       this.id = id;
       this.itemId = itemId;
-      this.device = device;
+      this.deviceId = deviceId;
       this.version = version;
       this.committedAt = committedAt;
       this.modifiedAt = modifiedAt;
@@ -44,7 +40,7 @@ public class ItemVersionRMI {
       if (metadata==null) return; // FIXME
       this.id = metadata.getVersion();
       this.itemId = metadata.getParentId();
-      this.device = new DeviceRMI(metadata.getDeviceId(),"",userRMI);
+      this.deviceId = metadata.getDeviceId();
       this.version = metadata.getVersion();
       this.modifiedAt = metadata.getModifiedAt();
       this.checksum = metadata.getChecksum();
@@ -68,12 +64,12 @@ public class ItemVersionRMI {
       this.itemId = itemId;
    }
 
-   public DeviceRMI getDevice() {
-      return device;
+   public UUID getDeviceId() {
+      return deviceId;
    }
 
-   public void setDevice(DeviceRMI device) {
-      this.device = device;
+   public void setDeviceId(UUID deviceId) {
+      this.deviceId= deviceId;
    }
 
    public Long getVersion() {
@@ -138,6 +134,24 @@ public class ItemVersionRMI {
    }
 
    @Override
+   public boolean equals(Object o) {
+      if (this == o)
+         return true;
+      if (o == null || getClass() != o.getClass())
+         return false;
+
+      ItemVersionRMI that = (ItemVersionRMI) o;
+
+      return id.equals(that.id);
+
+   }
+
+   @Override
+   public int hashCode() {
+      return id.hashCode();
+   }
+
+   @Override
    public String toString() {
       String format = "ItemVersion[id=%s, itemId=%s, "
             + "version=%s, chunks=%s, deviceId=%s, modifiedAt=%s, "
@@ -147,11 +161,6 @@ public class ItemVersionRMI {
       Integer chunksSize = null;
       if (chunks != null) {
          chunksSize = chunks.size();
-      }
-
-      UUID deviceId = null;
-      if (device != null) {
-         deviceId = device.getId();
       }
 
       String result = String.format(format, id, itemId, version, chunksSize, deviceId, modifiedAt,

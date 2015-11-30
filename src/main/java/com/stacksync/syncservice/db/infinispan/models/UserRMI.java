@@ -147,35 +147,6 @@ public class UserRMI {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        // if the two objects are equal in reference, they are equal
-        if (this == obj) {
-            return true;
-        } else if (obj instanceof UserRMI) {
-            UserRMI user = (UserRMI) obj;
-            return ((user.getId() == null) && (this.getId() == null))
-                    || user.getId().equals(this.getId())
-                    && ((user.getName() == null) && (this.getName() == null) || user.getName().equals(this.getName()))
-                    && ((user.getSwiftUser() == null) && (this.getSwiftUser() == null) || user.getSwiftUser().equals(
-                            this.getSwiftUser()))
-                    && ((user.getEmail() == null) && (this.getEmail() == null) || user.getEmail().equals(
-                            this.getEmail()))
-                    && ((user.getQuotaLimit() == null) && (this.getQuotaLimit() == null) || user.getQuotaLimit()
-                    .equals(this.getQuotaLimit()))
-                    && ((user.getQuotaUsed() == null) && (this.getQuotaUsed() == null) || user.getQuotaUsed().equals(
-                            this.getQuotaUsed()));
-        } else {
-            return false;
-        }
-    }
-
-    @Override
-    public int hashCode() {
-        int hash = 5;
-        return hash;
-    }
-
-    @Override
     public String toString() {
         return String.format("User[id=%s, name=%s, swiftUser=%s, swiftAccount=%s, email=%s, quotaLimit=%s, quotaUsed=%s]", id, name,
                 swiftUser, swiftAccount, email, quotaLimit, quotaUsed);
@@ -229,4 +200,21 @@ public class UserRMI {
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        UserRMI userRMI = (UserRMI) o;
+
+        return id.equals(userRMI.id);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }

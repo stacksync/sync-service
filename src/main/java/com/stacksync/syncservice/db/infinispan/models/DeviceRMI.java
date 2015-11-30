@@ -136,4 +136,21 @@ public class DeviceRMI {
     public boolean belongTo(UserRMI user) {
         return this.user.equals(user);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        DeviceRMI deviceRMI = (DeviceRMI) o;
+
+        return id.equals(deviceRMI.id);
+
+    }
+
+    @Override public int hashCode() {
+        return id.hashCode();
+    }
 }

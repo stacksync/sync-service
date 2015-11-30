@@ -80,15 +80,17 @@ public class TestCommit {
       pool.getConnection().cleanup();
       Handler handler = new SQLSyncHandler(pool);
 
-      List<Future> futures = new ArrayList<>();
+      List<Future<Float>> futures = new ArrayList<>();
       for (int i=0; i< nNumberTasks; i++) {
          CommitTask task = new CommitTask(handler, numberCommits);
          futures.add(service.submit(task));
       }
 
-      for(Future future: futures) {
-         future.get();
+      float totalThroughput = 0;
+      for(Future<Float> future: futures) {
+         totalThroughput += future.get();
       }
+      System.out.println("TotalThroughput="+totalThroughput);
 
       pool.getConnection().close();
 

@@ -47,4 +47,21 @@ public class CommitInfoRMI {
       this.metadata = metadata;
    }
 
+   @Override
+   public boolean equals(Object o) {
+      if (this == o)
+         return true;
+      if (o == null || getClass() != o.getClass())
+         return false;
+
+      CommitInfoRMI that = (CommitInfoRMI) o;
+
+      return id.equals(that.id);
+
+   }
+
+   @Override
+   public int hashCode() {
+      return id.hashCode();
+   }
 }

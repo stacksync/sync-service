@@ -522,7 +522,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
                item.setChecksum(restoredObject.getChecksum());
                item.setChunks(chunks);
                item.setModifiedAt(restoredObject.getModifiedAt());
-               item.setDeviceId(restoredObject.getDevice().getId());
+               item.setDeviceId(restoredObject.getDeviceId());
                //item.setFilename(restoredObject.getItem().getFilename());
                item.setSize(restoredObject.getSize());
 

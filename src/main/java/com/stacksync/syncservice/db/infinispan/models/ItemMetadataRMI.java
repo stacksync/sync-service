@@ -345,11 +345,13 @@ public class ItemMetadataRMI implements Serializable{
          chunks = null;
       }
       ItemMetadataRMI ret = new ItemMetadataRMI(item.getId(), itemVersion.getVersion(),
-            itemVersion.getDevice()==null ? null : itemVersion.getDevice().getId(), item.getParentId(), item.getClientParentFileVersion(),
+            itemVersion.getDeviceId()==null ? null : itemVersion.getDeviceId(), item.getParentId(), item.getClientParentFileVersion(),
             itemVersion.getStatus(), itemVersion.getModifiedAt(), itemVersion.getChecksum(),
             itemVersion.getSize(), item.isFolder(), item.getFilename(), item.getMimetype(), chunks);
 //      ret.setWorkspaceId(item.getWorkspaceId()); // FIXME
       return ret;
    }
+
+
 
 }

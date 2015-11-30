@@ -230,7 +230,7 @@ public class PostgresqlDAOTest {
 
       ItemRMI object = new ItemRMI(
             random.nextLong(),
-            workspace,
+            workspace.getId(),
             1L,
             null,
             nextString(),

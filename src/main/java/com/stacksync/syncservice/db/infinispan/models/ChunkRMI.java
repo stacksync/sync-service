@@ -1,11 +1,9 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import org.infinispan.atomic.Distributed;
-
+import java.io.Serializable;
 import java.util.UUID;
 
-@Distributed(key = "uuid")
-public class ChunkRMI {
+public class ChunkRMI implements Serializable{
 
    public UUID uuid;
    private Integer order = null;
@@ -49,5 +47,23 @@ public class ChunkRMI {
       String result = String.format(format, clientChunkName, order);
 
       return result;
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (this == o)
+         return true;
+      if (o == null || getClass() != o.getClass())
+         return false;
+
+      ChunkRMI chunkRMI = (ChunkRMI) o;
+
+      return uuid.equals(chunkRMI.uuid);
+
+   }
+
+   @Override
+   public int hashCode() {
+      return uuid.hashCode();
    }
 }

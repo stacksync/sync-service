@@ -104,7 +104,7 @@ public class InfinispanDAO implements GlobalDAO{
          Boolean includeChunks)  {
       ItemRMI itemRMI = itemMap.get(id);
       assert itemRMI!=null;
-      return itemRMI.getWorkspace().findById(id, includeList, version, includeDeleted, includeChunks);
+      return workspaceMap.get(itemRMI.getWorkspaceId()).findById(id, includeList, version, includeDeleted, includeChunks);
    }
 
    @Override
@@ -232,7 +232,7 @@ public class InfinispanDAO implements GlobalDAO{
 
    @Override
    public WorkspaceRMI getByItemId(Long itemId) {
-      return itemMap.get(itemId).getWorkspace();
+      return workspaceMap.get(itemMap.get(itemId).getWorkspaceId());
    }
 
    @Override
@@ -271,9 +271,6 @@ public class InfinispanDAO implements GlobalDAO{
 
       HashMap<Long, Long> tempIds = new HashMap<>();
 
-      if (workspace.allow(user))
-         throw new IllegalArgumentException("Wrong user");
-
       List<CommitInfo> responseObjects = new ArrayList<>();
 
       for (ItemMetadataRMI itemMetadata : items) {
@@ -297,7 +294,7 @@ public class InfinispanDAO implements GlobalDAO{
             }
          }
 
-         workspace.add(itemMetadata,device);
+         workspace.add(itemMetadata);
 
          if (itemMetadata.getTempId() != null) {
             tempIds.put(itemMetadata.getTempId(), itemMetadata.getId());

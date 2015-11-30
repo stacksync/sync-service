@@ -32,9 +32,7 @@ public class InfinispanConnection implements Connection {
    public void rollback() throws Exception { }
 
    @Override
-   public void close() throws Exception {
-      this.factory.close();
-   }
+   public void close() throws Exception {}
 
    public void cleanup() {
       basicCache.clear();

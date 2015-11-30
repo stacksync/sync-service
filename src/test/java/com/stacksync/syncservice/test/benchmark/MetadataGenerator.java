@@ -64,9 +64,9 @@ public class MetadataGenerator {
 
       ItemRMI item = new ItemRMI(
             randGenerator.nextLong(),
-            workspace,
+            workspace.getId(),
             numVersions,
-            parent,
+            parent.getId(),
             randomString(),
             "Document",
             folder,
@@ -77,7 +77,7 @@ public class MetadataGenerator {
          ItemVersionRMI version = new ItemVersionRMI(
                randGenerator.nextLong(),
                item.getId(),
-               device,
+               device.getId(),
                (i + 1L),
                Date.from(Instant.now()),
                Date.from(Instant.now()),

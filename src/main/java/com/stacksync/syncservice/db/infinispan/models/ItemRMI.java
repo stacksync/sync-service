@@ -4,33 +4,34 @@ import org.infinispan.atomic.Distributed;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Distributed(key = "id")
 public class ItemRMI {
 
    public Long id;
    private Long latestVersion;
-   private ItemRMI parent;
    private String filename;
    private String mimetype;
+   private Long parentId;
    private Boolean isFolder;
    private Long clientParentFileVersion;
 
    private List<ItemVersionRMI> versions;
 
-   private WorkspaceRMI workspaceRMI;
+   private UUID workspaceId;
 
    @Deprecated
    public ItemRMI() {}
 
-   public ItemRMI(Long id, WorkspaceRMI workspace, Long latestVersion, ItemRMI parent,
+   public ItemRMI(Long id, UUID workspaceId, Long latestVersion, Long parentId,
          String filename, String mimetype, Boolean isFolder,
          Long clientParentFileVersion) {
 
       this.id = id;
-      this.workspaceRMI = workspace;
+      this.workspaceId= workspaceId;
       this.latestVersion = latestVersion;
-      this.parent = parent;
+      this.parentId = parentId;
       this.filename = filename;
       this.mimetype = mimetype;
       this.isFolder = isFolder;
@@ -67,22 +68,14 @@ public class ItemRMI {
       return null;
    }
 
-   public ItemRMI getParent() {
-      return parent;
-   }
-
-   public WorkspaceRMI getWorkspace(){ return workspaceRMI;}
+   public UUID getWorkspaceId(){ return workspaceId;}
 
    public Long getParentId() {
-      if (parent == null) {
-         return null;
-      } else {
-         return parent.getId();
-      }
+      return parentId;
    }
 
    public void setParent(ItemRMI parent) {
-      this.parent = parent;
+      this.parentId = parent.getId();
    }
 
    public String getFilename() {
@@ -139,12 +132,7 @@ public class ItemRMI {
    }
 
    public boolean hasParent() {
-
-      boolean has = true;
-      if (this.parent == null) {
-         has = false;
-      }
-      return has;
+      return parentId != null;
    }
 
    public boolean isValid() {
@@ -156,11 +144,6 @@ public class ItemRMI {
       String format = "Item[id=%s, parentId=%s, latestVersion=%s, "
             + "Filename=%s, mimetype=%s, isFolder=%s, "
             + "clientParentFileVersion=%s, versions=%s]";
-
-      Long parentId = null;
-      if (parent != null) {
-         parentId = parent.getId();
-      }
 
       Integer versionsSize = null;
       if (versions != null) {
@@ -201,4 +184,8 @@ public class ItemRMI {
 
    }
 
+   @Override
+   public int hashCode() {
+      return id.hashCode();
+   }
 }

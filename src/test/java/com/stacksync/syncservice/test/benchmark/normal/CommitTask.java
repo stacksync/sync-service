@@ -12,11 +12,12 @@ import com.stacksync.syncservice.handler.Handler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 /**
  * @author Pierre Sutra
  */
-public class CommitTask implements Runnable {
+public class CommitTask implements Callable<Float> {
 
    private Handler handler;
    private int numberOfCommits;
@@ -27,7 +28,8 @@ public class CommitTask implements Runnable {
    }
 
    @Override
-   public void run() {
+   public Float call() {
+      float throughput = 0;
       try {
          List<WorkspaceRMI> workspaces = new ArrayList<>();
          long startTotal = System.currentTimeMillis();
@@ -47,12 +49,15 @@ public class CommitTask implements Runnable {
          }
 
          long totalTime = System.currentTimeMillis() - startTotal;
+         throughput = ( 1000 * ((float)numberOfCommits) / (float)totalTime);
          System.out.println("Total time --> " + totalTime
-               + " ms ["+( 1000 * ((float)numberOfCommits) / (double)totalTime) +" ops/sec]");
+               + " ms ["+throughput +" ops/sec]");
 
       } catch (Exception e) {
          e.printStackTrace();
       }
+
+      return throughput;
    }
 
 }

@@ -6,12 +6,10 @@ import com.stacksync.syncservice.exceptions.CommitWrongVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import org.infinispan.atomic.Distributed;
 
-import java.io.Serializable;
-import java.time.Instant;
 import java.util.*;
 
 @Distributed(key = "id")
-public class WorkspaceRMI implements Serializable {
+public class WorkspaceRMI {
 
    public UUID id;
 
@@ -156,6 +154,24 @@ public class WorkspaceRMI implements Serializable {
     */
    public boolean isValid() {
       return this.owner != null;
+   }
+
+   @Override
+   public boolean equals(Object o) {
+      if (this == o)
+         return true;
+      if (o == null || getClass() != o.getClass())
+         return false;
+
+      WorkspaceRMI that = (WorkspaceRMI) o;
+
+      return id.equals(that.id);
+
+   }
+
+   @Override
+   public int hashCode() {
+      return id.hashCode();
    }
 
    @Override
@@ -388,7 +404,7 @@ public class WorkspaceRMI implements Serializable {
       return users.contains(user.getId());
    }
 
-   public void add(ItemMetadataRMI metadata, DeviceRMI device)
+   public void add(ItemMetadataRMI metadata)
          throws CommitWrongVersionNoParent, CommitWrongVersion, CommitExistantVersion {
 
       ItemRMI serverItem = items.get(id);
@@ -399,10 +415,6 @@ public class WorkspaceRMI implements Serializable {
          if (metadata.getVersion() == 1) {
 
             Long parentId = metadata.getParentId();
-            ItemRMI parent = null;
-            if (parentId != null) {
-               parent = findById(parentId);
-            }
 
             if (metadata.getStatus() == null)
                metadata.setStatus(Status.NEW.toString());
@@ -410,20 +422,20 @@ public class WorkspaceRMI implements Serializable {
             // Insert item
             ItemRMI item = new ItemRMI(
                   metadata.getId(),
-                  this,
+                  id,
                   metadata.getVersion(),
-                  parent,
+                  parentId,
                   metadata.getFilename(),
                   metadata.getMimetype(),
                   metadata.isFolder(),
                   metadata.getParentVersion());
-            items.putIfAbsent(item.getId(), item);
+            items.putIfAbsent(metadata.getId(), item);
 
             // Insert version
             ItemVersionRMI objectVersion = new ItemVersionRMI(
-                  random.nextLong(),
-                  item.getId(),
-                  device,
+                  metadata.getVersion(),
+                  metadata.getId(),
+                  metadata.getDeviceId(),
                   metadata.getVersion(),
                   metadata.getModifiedAt(),
                   metadata.getModifiedAt(),
@@ -466,11 +478,11 @@ public class WorkspaceRMI implements Serializable {
             if (serverVersion + 1 == clientVersion) {
 
                ItemVersionRMI itemVersion = new ItemVersionRMI(
-                     metadata.getId(),
-                     serverItem.getId(),
-                     device,
                      metadata.getVersion(),
-                     Date.from(Instant.now()),
+                     metadata.getVersion(),
+                     metadata.getDeviceId(),
+                     metadata.getVersion(),
+                     metadata.getModifiedAt(),
                      metadata.getModifiedAt(),
                      metadata.getChecksum(),
                      metadata.getStatus(),
