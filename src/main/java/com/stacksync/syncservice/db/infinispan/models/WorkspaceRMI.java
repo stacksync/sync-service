@@ -403,12 +403,12 @@ public class WorkspaceRMI implements Serializable{
       return users.contains(user.getId());
    }
 
-   public void add(ItemMetadataRMI metadata)
+   public ItemRMI add(ItemMetadataRMI metadata)
          throws CommitWrongVersionNoParent, CommitWrongVersion, CommitExistantVersion {
 
-      ItemRMI serverItem = items.get(id);
+      ItemRMI item = items.get(id);
 
-      if (serverItem == null) {
+      if (item == null) {
 
          // add a new item at version 1
          if (metadata.getVersion() == 1) {
@@ -419,7 +419,7 @@ public class WorkspaceRMI implements Serializable{
                metadata.setStatus(Status.NEW.toString());
 
             // Insert item
-            ItemRMI item = new ItemRMI(
+            item = new ItemRMI(
                   metadata.getId(),
                   id,
                   metadata.getVersion(),
@@ -441,6 +441,7 @@ public class WorkspaceRMI implements Serializable{
                   metadata.getChecksum(),
                   metadata.getStatus(),
                   metadata.getSize());
+
             item.addVersion(objectVersion);
 
             // If not a folder, create appropriate new chunks
@@ -457,16 +458,16 @@ public class WorkspaceRMI implements Serializable{
       } else { // item already exists
 
          // Check if this version already exists in the server
-         long serverVersion = serverItem.getLatestVersionNumber();
+         long serverVersion = item.getLatestVersionNumber();
          long clientVersion = metadata.getVersion();
          boolean existVersionInServer = (serverVersion >= clientVersion);
 
          // if this exist, we check that they are the same
          if (existVersionInServer) {
 
-            boolean lastVersion = (serverItem.getLatestVersion().equals(metadata.getVersion()));
+            boolean lastVersion = (item.getLatestVersion().equals(metadata.getVersion()));
             if (!lastVersion) {
-               throw new CommitExistantVersion(Long.toString(serverItem.getId()));
+               throw new CommitExistantVersion(Long.toString(item.getId()));
             }
 
          } else {
@@ -498,30 +499,32 @@ public class WorkspaceRMI implements Serializable{
                      || status.equals(Status.MOVED.toString())
                      || status.equals(Status.DELETED.toString())) {
 
-                  serverItem.setFilename(metadata.getFilename());
+                  item.setFilename(metadata.getFilename());
 
                   Long parentFileId = metadata.getParentId();
                   if (parentFileId == null) {
-                     serverItem.setClientParentFileVersion(null);
-                     serverItem.setParent(null);
+                     item.setClientParentFileVersion(null);
+                     item.setParent(null);
                   } else {
-                     serverItem.setClientParentFileVersion(metadata
+                     item.setClientParentFileVersion(metadata
                            .getParentVersion());
                      ItemRMI parent = findById(parentFileId);
-                     serverItem.setParent(parent);
+                     item.setParent(parent);
                   }
                }
 
                // Set item latest version
-               serverItem.setLatestVersionNumber(metadata.getVersion());
+               item.setLatestVersionNumber(metadata.getVersion());
 
             } else {
-               throw new CommitWrongVersion("Invalid version.", serverItem);
+               throw new CommitWrongVersion("Invalid version.", item);
             }
 
          }
 
       }
+
+      return item;
 
    }
 

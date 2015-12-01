@@ -13,7 +13,6 @@ import com.stacksync.syncservice.exceptions.CommitWrongVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import com.stacksync.syncservice.handler.UnshareData;
 import org.apache.log4j.Logger;
-import org.infinispan.atomic.Distribute;
 import org.infinispan.atomic.Distributed;
 
 import java.util.*;
@@ -30,19 +29,19 @@ public class InfinispanDAO implements GlobalDAO{
 
    private static final Logger logger = Logger.getLogger(InfinispanDAO.class.getName());
 
-   @Distribute(key = "deviceIndex")
+//   @Distribute(key = "deviceIndex")
    public static Map<UUID,DeviceRMI> deviceMap = new ConcurrentHashMap<>();
 
-   @Distribute(key = "userIndex")
+//   @Distribute(key = "userIndex")
    public static Map<UUID,UserRMI> userMap = new ConcurrentHashMap<>();
 
-   @Distribute(key = "mailIndex")
-   public static Map<UUID,UserRMI> mailMap = new HashMap<>();
+//   @Distribute(key = "mailIndex")
+   public static Map<UUID,String> mailMap = new ConcurrentHashMap<>();
 
-   @Distribute(key = "workspaceIndex")
+//   @Distribute(key = "workspaceIndex")
    public static Map<UUID,WorkspaceRMI> workspaceMap = new ConcurrentHashMap<>();
 
-   @Distribute(key = "itemIndex")
+//   @Distribute(key = "itemIndex")
    public static Map<Long,ItemRMI> itemMap = new ConcurrentHashMap<>();
 
    public UUID id;
@@ -189,7 +188,11 @@ public class InfinispanDAO implements GlobalDAO{
 
    @Override
    public UserRMI getByEmail(String email)  {
-      return mailMap.get(email);
+      for(UUID uuid: userMap.keySet()) {
+         if (mailMap.get(uuid).equals(email))
+            return userMap.get(uuid);
+      }
+      return null;
    }
 
    @Override
@@ -205,7 +208,7 @@ public class InfinispanDAO implements GlobalDAO{
    @Override
    public void add(UserRMI user) {
       userMap.put(user.getId(),user);
-      mailMap.put(user.getId(), user);
+      mailMap.put(user.getId(), user.getEmail());
    }
 
    @Override
@@ -284,6 +287,15 @@ public class InfinispanDAO implements GlobalDAO{
    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device,
          List<ItemMetadataRMI> items) {
 
+      assert user.getId()!=null;
+      assert device.getId()!=null;
+      assert workspace.getId()!=null;
+
+      userMap.putIfAbsent(user.getId(),user);
+      mailMap.putIfAbsent(user.getId(),user.getEmail());
+      deviceMap.putIfAbsent(device.getId(),device);
+      workspaceMap.putIfAbsent(workspace.getId(),workspace);
+
       HashMap<Long, Long> tempIds = new HashMap<>();
 
       List<CommitInfo> responseObjects = new ArrayList<>();
@@ -311,7 +323,8 @@ public class InfinispanDAO implements GlobalDAO{
 
          committed = false;
          try {
-            workspace.add(itemMetadata);
+            ItemRMI item = workspace.add(itemMetadata);
+            itemMap.putIfAbsent(item.getId(),item);
             committed = true;
          } catch (CommitWrongVersionNoParent | CommitWrongVersion | CommitExistantVersion commitWrongVersionNoParent) {
             commitWrongVersionNoParent.printStackTrace();

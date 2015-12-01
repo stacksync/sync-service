@@ -22,7 +22,7 @@ public class UserRMI implements Serializable{
     public UserRMI() {}
 
     public UserRMI(UUID id) {
-        this(id, null, null, null, null, null, null);
+        this(id, "", "", "", "", 0, 0);
     }
 
     public UserRMI(UUID id, String name, String swiftUser, String swiftAccount, String email, Integer quotaLimit, Integer quotaUsed) {

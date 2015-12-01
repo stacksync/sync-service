@@ -17,9 +17,7 @@ public class DeviceRMI implements Serializable{
     private String appVersion;
 
     @Deprecated
-    public DeviceRMI() {
-        this.id = null;
-    }
+    public DeviceRMI() {}
 
     public DeviceRMI(UUID id, String name, UserRMI user) {
         this.id = id;
