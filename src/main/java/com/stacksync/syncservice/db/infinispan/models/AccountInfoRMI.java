@@ -1,11 +1,9 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import org.infinispan.atomic.Distributed;
-
+import java.io.Serializable;
 import java.util.UUID;
 
-@Distributed(key="userId")
-public class AccountInfoRMI {
+public class AccountInfoRMI implements Serializable{
 
    public UUID userId;
 

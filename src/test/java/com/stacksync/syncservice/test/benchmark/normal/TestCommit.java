@@ -74,14 +74,14 @@ public class TestCommit {
 
       Config.loadProperties();
       Properties properties = Config.getProperties();
-      properties.setProperty("infinispan_host",server);
+      properties.setProperty("infinispan_host", server);
       String datasource = Config.getDatasource();
       ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
       pool.getConnection().cleanup();
-      Handler handler = new SQLSyncHandler(pool);
 
       List<Future<Float>> futures = new ArrayList<>();
       for (int i=0; i< nNumberTasks; i++) {
+         Handler handler = new SQLSyncHandler(pool);
          CommitTask task = new CommitTask(handler, numberCommits);
          futures.add(service.submit(task));
       }

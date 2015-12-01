@@ -8,15 +8,15 @@ import org.junit.Test;
  */
 public class TestCommiitInfinispan extends AtomicObjectFactoryRemoteTest{
 
-   private final static int NUMBER_TASKS = 10;
-   private final static int NUMBER_COMMITS = 10000;
+   private final static int NUMBER_TASKS = 3;
+   private final static int NUMBER_COMMITS = 1000;
 
    public int getReplicationFactor() {
-      return 1;
+      return 2;
    }
 
    public int getNumberOfManagers() {
-      return 2;
+      return 3;
    }
 
    @Test

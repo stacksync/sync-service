@@ -5,34 +5,45 @@
  */
 package com.stacksync.syncservice.db.infinispan;
 
+import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.syncservice.db.infinispan.models.*;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.exceptions.CommitExistantVersion;
+import com.stacksync.syncservice.exceptions.CommitWrongVersion;
+import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
+import com.stacksync.syncservice.handler.UnshareData;
+import org.apache.log4j.Logger;
 import org.infinispan.atomic.Distribute;
+import org.infinispan.atomic.Distributed;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  * @author Laura Martínez Sanahuja <lauramartinezsanahuja@gmail.com>
  */
 
+
+@Distributed(key="id")
 public class InfinispanDAO implements GlobalDAO{
 
+   private static final Logger logger = Logger.getLogger(InfinispanDAO.class.getName());
+
    @Distribute(key = "deviceIndex")
-   public static Map<UUID,DeviceRMI> deviceMap = new HashMap<>();
+   public static Map<UUID,DeviceRMI> deviceMap = new ConcurrentHashMap<>();
 
    @Distribute(key = "userIndex")
-   public static Map<UUID,UserRMI> userMap = new HashMap<>();
+   public static Map<UUID,UserRMI> userMap = new ConcurrentHashMap<>();
 
    @Distribute(key = "mailIndex")
    public static Map<UUID,UserRMI> mailMap = new HashMap<>();
 
    @Distribute(key = "workspaceIndex")
-   public static Map<UUID,WorkspaceRMI> workspaceMap = new HashMap<>();
+   public static Map<UUID,WorkspaceRMI> workspaceMap = new ConcurrentHashMap<>();
 
    @Distribute(key = "itemIndex")
-   public static Map<Long,ItemRMI> itemMap = new HashMap<>();
+   public static Map<Long,ItemRMI> itemMap = new ConcurrentHashMap<>();
 
    public UUID id;
 
@@ -41,6 +52,10 @@ public class InfinispanDAO implements GlobalDAO{
 
    public InfinispanDAO(UUID id){
       this.id = id;
+   }
+
+   public String toString(){
+      return "InfinispanDAO#"+id;
    }
 
    // Device
@@ -267,7 +282,7 @@ public class InfinispanDAO implements GlobalDAO{
 
    @Override
    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device,
-         List<ItemMetadataRMI> items) throws DAOException {
+         List<ItemMetadataRMI> items) {
 
       HashMap<Long, Long> tempIds = new HashMap<>();
 
@@ -294,20 +309,145 @@ public class InfinispanDAO implements GlobalDAO{
             }
          }
 
-         workspace.add(itemMetadata);
+         committed = false;
+         try {
+            workspace.add(itemMetadata);
+            committed = true;
+         } catch (CommitWrongVersionNoParent | CommitWrongVersion | CommitExistantVersion commitWrongVersionNoParent) {
+            commitWrongVersionNoParent.printStackTrace();
+         }
 
          if (itemMetadata.getTempId() != null) {
             tempIds.put(itemMetadata.getTempId(), itemMetadata.getId());
          }
 
          objectResponse = itemMetadata;
-         committed = true;
 
          responseObjects.add(new CommitInfo(itemMetadata.getVersion(), committed,
                objectResponse.toMetadataItem()));
       }
 
       return responseObjects;
+
+   }
+
+   @Override
+   public UnshareData dosharedFolder(UserRMI user, List<String> emails, ItemRMI item, boolean isEncrypted)
+         throws ShareProposalNotCreatedException {
+
+      UnshareData response;
+
+      if (item == null || !item.isFolder()) {
+         throw new ShareProposalNotCreatedException("No folder found with the given ID.");
+      }
+
+      // Get the workspace
+      WorkspaceRMI sourceWorkspace = workspaceMap.get(id);
+      if (sourceWorkspace == null) {
+         throw new ShareProposalNotCreatedException("Workspace not found.");
+      }
+      if (!sourceWorkspace.isShared()) {
+         throw new ShareProposalNotCreatedException("This workspace is not shared.");
+      }
+
+      // Check the addressees
+      List<UserRMI> addressees = new ArrayList<>();
+      for (String email : emails) {
+         UserRMI addressee;
+         try {
+            addressee = getByEmail(email);
+            if (addressee.getId().equals(sourceWorkspace.getOwner())){
+               logger.warn(String.format("Email '%s' corresponds with owner of the folder. ", email));
+               throw new ShareProposalNotCreatedException("Email "+email+" corresponds with owner of the folder.");
+            }
+
+            if (!addressee.getId().equals(user.getId())) {
+               addressees.add(addressee);
+            }
+
+
+         } catch (IllegalArgumentException e) {
+            logger.error(e);
+            throw new ShareProposalNotCreatedException(e);
+         } catch (Exception e) {
+            logger.warn(String.format("Email '%s' does not correspond with any user. ", email), e);
+         }
+      }
+
+      if (addressees.isEmpty()) {
+         throw new ShareProposalNotCreatedException("No addressees found");
+      }
+
+      // remove users from workspace
+      List<UserRMI> usersToRemove = new ArrayList<>();
+      for (UserRMI userToRemove : addressees) {
+         for (UserRMI member : sourceWorkspace.getUsers()) {
+            if (member.getEmail().equals(userToRemove.getEmail())) {
+               usersToRemove.add(userToRemove);
+               break;
+            }
+         }
+      }
+
+      if (usersToRemove.size()==sourceWorkspace.getUsers().size()) {
+
+         response = null;
+
+//         // All members have been removed from the workspace
+//         WorkspaceRMI defaultWorkspace;
+//         try {
+//            //Always the last member of a shared folder should be the owner
+//            defaultWorkspace = globalDAO.getDefaultWorkspaceByUserId(sourceWorkspace.getOwner());
+//         } catch (Exception e) {
+//            logger.error(e);
+//            throw new ShareProposalNotCreatedException("Could not get default workspace");
+//         }
+//
+//         // Migrate files to new workspace
+//         List<String> chunks;
+//         try {
+//            chunks = globalDAO.migrateItem(item.getId(), defaultWorkspace.getId());
+//         } catch (Exception e) {
+//            logger.error(e);
+//            throw new new ShareProposalNotCreatedException(e);
+//         }
+//
+//         // Move chunks to new container
+//         for (String chunkName : chunks) {
+//            try {
+//               storageManager.copyChunk(sourceWorkspace, defaultWorkspace, chunkName);
+//            } catch (Exception e) {
+//               logger.error(e);
+//               throw new ShareProposalNotCreatedException(e);
+//            }
+//         }
+//
+//         // delete workspace
+//         try {
+//            workspaceDAO.deleteWorkspace(sourceWorkspace.getId());
+//         } catch (Exception e) {
+//            logger.error(e);
+//            throw new ShareProposalNotCreatedException(e);
+//         }
+//
+//         // delete container from swift
+//         try {
+//            storageManager.deleteWorkspace(sourceWorkspace);
+//         } catch (Exception e) {
+//            logger.error(e);
+//            throw new ShareProposalNotCreatedException(e);
+//         }
+//
+//         response = new UnshareData(usersToRemove, sourceWorkspace, true);
+
+      } else {
+
+         sourceWorkspace.removeUsers(usersToRemove);
+         response = new UnshareData(usersToRemove, sourceWorkspace, false);
+
+      }
+
+      return response;
 
    }
 

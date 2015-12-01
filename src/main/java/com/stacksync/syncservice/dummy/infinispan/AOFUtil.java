@@ -31,9 +31,9 @@ public class AOFUtil {
     public AOFUtil(ConnectionPool pool) throws Exception {
         this.connection = (InfinispanConnection) pool.getConnection();
         DAOFactory factory = new DAOFactory("infinispan");
-        this.userDAO = factory.getUserDao(connection);
-        this.deviceDAO = factory.getDeviceDAO(connection);
-        this.workspaceDAO = factory.getWorkspaceDao(connection);
+        this.userDAO = factory.getDAO(connection);
+        this.deviceDAO = factory.getDAO(connection);
+        this.workspaceDAO = factory.getDAO(connection);
     }
 
     public void setup(UserRMI user) throws RemoteException {

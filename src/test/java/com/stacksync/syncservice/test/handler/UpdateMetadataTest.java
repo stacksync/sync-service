@@ -40,8 +40,8 @@ public class UpdateMetadataTest {
       Connection connection = pool.getConnection();
       connection.cleanup();
 
-      workspaceDAO = factory.getWorkspaceDao(connection);
-      userDao = factory.getUserDao(connection);
+      workspaceDAO = factory.getDAO(connection);
+      userDao = factory.getDAO(connection);
 
       user1 = new UserRMI(UUID.fromString("159a1286-33df-4453-bf80-cff4af0d97b0"), "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);
       userDao.add(user1);

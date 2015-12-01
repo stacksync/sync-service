@@ -24,6 +24,7 @@ public class Handler{
 
    protected Connection connection;
    protected GlobalDAO globalDAO;
+   protected UUID handlerId;
 
    protected static Random random = new Random(System.currentTimeMillis());
 
@@ -31,7 +32,8 @@ public class Handler{
       connection = pool.getConnection();
       String dataSource = Config.getDatasource();
       DAOFactory factory = new DAOFactory(dataSource);
-      globalDAO = factory.getGlobalDAO(connection);
+      handlerId = UUID.randomUUID();
+      globalDAO = factory.getDAO(connection, handlerId);
    }
    
    public void createUser(UUID id) throws Exception {
@@ -43,6 +45,11 @@ public class Handler{
 
    public WorkspaceRMI getWorkspace(UUID id) throws RemoteException {
       return globalDAO.getById(id);
+   }
+
+   @Override
+   public String toString() {
+      return "handler#"+handlerId;
    }
 
    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
@@ -211,164 +218,7 @@ public class Handler{
 
    public UnshareData doUnshareFolder(UserRMI user, List<String> emails, ItemRMI item, boolean isEncrypted)
          throws ShareProposalNotCreatedException, UserNotFoundException {
-
-        /*UnshareData response;
-         // Check the owner
-         try {
-         user = userDao.findById(user.getId());
-         } catch (Exception e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException(e);
-         }
-
-         // Get folder metadata
-         try {
-         item = itemDao.findById(item.getId());
-         } catch (Exception e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException(e);
-         }
-
-         if (item == null || !item.isFolder()) {
-         throw new ShareProposalNotCreatedException("No folder found with the given ID.");
-         }
-
-         // Get the workspace
-         WorkspaceRMI sourceWorkspace;
-         try {
-         sourceWorkspace = workspaceDAO.getById(item.getWorkspace().getId());
-         } catch (Exception e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException(e);
-         }
-         if (sourceWorkspace == null) {
-         throw new ShareProposalNotCreatedException("Workspace not found.");
-         }
-         if (!sourceWorkspace.isShared()) {
-         throw new ShareProposalNotCreatedException("This workspace is not shared.");
-         }
-		
-         // Check the addressees
-         List<UserRMI> addressees = new ArrayList<UserRMI>();
-         for (String email : emails) {
-         UserRMI addressee;
-         try {
-         addressee = userDao.getByEmail(email);
-         if (addressee.getId().equals(sourceWorkspace.getOwner())){
-         logger.warn(String.format("Email '%s' corresponds with owner of the folder. ", email));
-         throw new ShareProposalNotCreatedException("Email "+email+" corresponds with owner of the folder.");
-				
-         }
-				
-         if (!addressee.getId().equals(user.getId())) {
-         addressees.add(addressee);
-         }
-				
-
-         } catch (IllegalArgumentException e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException(e);
-         } catch (Exception e) {
-         logger.warn(String.format("Email '%s' does not correspond with any user. ", email), e);
-         }
-         }
-
-         if (addressees.isEmpty()) {
-         throw new ShareProposalNotCreatedException("No addressees found");
-         }
-
-         // get workspace members
-         List<UserWorkspaceRMI> workspaceMembers;
-         try {
-         workspaceMembers = doGetWorkspaceMembers(user, sourceWorkspace);
-         } catch (InternalServerError e1) {
-         throw new ShareProposalNotCreatedException(e1.toString());
-         }
-
-         // remove users from workspace
-         List<UserRMI> usersToRemove = new ArrayList<UserRMI>();
-		
-         for (UserRMI userToRemove : addressees) {
-         for (UserWorkspaceRMI member : workspaceMembers) {
-         if (member.getUser().getEmail().equals(userToRemove.getEmail())) {
-         workspaceMembers.remove(member);
-         usersToRemove.add(userToRemove);
-         break;
-         }
-         }
-         }
-
-         if (workspaceMembers.size() <= 1) {
-         // All members have been removed from the workspace
-         WorkspaceRMI defaultWorkspace;
-         try {
-         //Always the last member of a shared folder should be the owner
-         defaultWorkspace = workspaceDAO.getDefaultWorkspaceByUserId(sourceWorkspace.getOwner());
-         } catch (Exception e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException("Could not get default workspace");
-         }
-
-         // Migrate files to new workspace
-         List<String> chunks;
-         try {
-         chunks = itemDao.migrateItem(item.getId(), defaultWorkspace.getId());
-         } catch (Exception e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException(e);
-         }
-
-         // Move chunks to new container
-         for (String chunkName : chunks) {
-         try {
-         storageManager.copyChunk(sourceWorkspace, defaultWorkspace, chunkName);
-         } catch (Exception e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException(e);
-         }
-         }
-			
-         // delete workspace
-         try {
-         workspaceDAO.deleteWorkspace(sourceWorkspace.getId());
-         } catch (Exception e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException(e);
-         }
-			
-         // delete container from swift
-         try {
-         storageManager.deleteWorkspace(sourceWorkspace);
-         } catch (Exception e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException(e);
-         }
-			
-         response = new UnshareData(usersToRemove, sourceWorkspace, true);
-
-         } else {
-			
-         for(UserRMI userToRemove : usersToRemove){
-				
-         try {
-         workspaceDAO.deleteUser(userToRemove, sourceWorkspace);
-         } catch (Exception e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException(e);
-         }
-				
-         try {
-         storageManager.removeUserToWorkspace(user, userToRemove, sourceWorkspace);
-         } catch (Exception e) {
-         logger.error(e);
-         throw new ShareProposalNotCreatedException(e);
-         }
-         }
-         response = new UnshareData(usersToRemove, sourceWorkspace, false);
-
-         }
-         return response;*/
-      return null;
+      return globalDAO.dosharedFolder(user,emails, item, isEncrypted);
    }
 
    public List<UserRMI> doGetWorkspaceMembers(UserRMI user,

@@ -1,14 +1,12 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import org.infinispan.atomic.Distributed;
-
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Distributed(key = "id")
-public class UserRMI {
+public class UserRMI implements Serializable{
 
     public UUID id;
     private String name;

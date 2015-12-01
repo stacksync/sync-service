@@ -50,10 +50,10 @@ public class PostgresqlDAOTest {
       String dataSource = "postgresql";
       DAOFactory factory = new DAOFactory(dataSource);
       connection = ConnectionPoolFactory.getConnectionPool(dataSource).getConnection();
-      workspaceDAO = factory.getWorkspaceDao(connection);
-      userDao = factory.getUserDao(connection);
-      objectDao = factory.getItemDAO(connection);
-      oversionDao = factory.getItemVersionDAO(connection);
+      workspaceDAO = factory.getDAO(connection);
+      userDao = factory.getDAO(connection);
+      objectDao = factory.getDAO(connection);
+      oversionDao = factory.getDAO(connection);
    }
 
    protected String nextString() {

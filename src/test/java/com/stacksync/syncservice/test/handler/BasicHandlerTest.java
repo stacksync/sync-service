@@ -46,9 +46,9 @@ public class BasicHandlerTest {
 			Connection connection = pool.getConnection();
 			connection.cleanup();
 
-			workspaceDAO = factory.getWorkspaceDao(connection);
-			userDao = factory.getUserDao(connection);
-			deviceDao = factory.getDeviceDAO(connection);
+			workspaceDAO = factory.getDAO(connection);
+			userDao = factory.getDAO(connection);
+			deviceDao = factory.getDAO(connection);
 			
 
 			UserRMI user = new UserRMI(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);

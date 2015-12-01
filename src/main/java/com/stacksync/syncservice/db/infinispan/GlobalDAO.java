@@ -1,11 +1,10 @@
 package com.stacksync.syncservice.db.infinispan;
 
+import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
+import com.stacksync.commons.exceptions.UserNotFoundException;
 import com.stacksync.commons.models.CommitInfo;
-import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
-import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
-import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.db.infinispan.models.*;
+import com.stacksync.syncservice.handler.UnshareData;
 
 import java.util.List;
 
@@ -20,8 +19,9 @@ public interface GlobalDAO
       UserDAO,
       DeviceDAO{
 
-      List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
-            DeviceRMI device, List<ItemMetadataRMI> items) throws DAOException;
+      List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device, List<ItemMetadataRMI> items);
 
+      UnshareData dosharedFolder(UserRMI user, List<String> emails, ItemRMI item, boolean isEncrypted)
+            throws ShareProposalNotCreatedException, UserNotFoundException;
 }
 

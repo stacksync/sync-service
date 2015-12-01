@@ -44,11 +44,11 @@ public class AdvancedHandlerTest {
 
 			DAOFactory factory = new DAOFactory(datasource);
 			connection = pool.getConnection();
-			workspaceDAO = factory.getWorkspaceDao(connection);
-			userDao = factory.getUserDao(connection);
-			deviceDao = factory.getDeviceDAO(connection);
-			objectDao = factory.getItemDAO(connection);
-			oversionDao = factory.getItemVersionDAO(connection);
+			workspaceDAO = factory.getDAO(connection);
+			userDao = factory.getDAO(connection);
+			deviceDao = factory.getDAO(connection);
+			objectDao = factory.getDAO(connection);
+			oversionDao = factory.getDAO(connection);
 			connection.cleanup();
 
 			UserRMI user = new UserRMI(user1, "tester1", "tester1", "AUTH_12312312", "a@a.a", 100, 0);

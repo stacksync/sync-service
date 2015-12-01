@@ -1,70 +1,41 @@
 package com.stacksync.syncservice.db;
 
-import com.stacksync.syncservice.db.infinispan.DeviceDAO;
-import com.stacksync.syncservice.db.infinispan.*;
-import com.stacksync.syncservice.db.infinispan.ItemDAO;
-import com.stacksync.syncservice.db.infinispan.ItemVersionDAO;
-import com.stacksync.syncservice.db.infinispan.UserDAO;
-import com.stacksync.syncservice.db.infinispan.WorkspaceDAO;
+import com.stacksync.syncservice.db.infinispan.DummyDAO;
+import com.stacksync.syncservice.db.infinispan.GlobalDAO;
+import com.stacksync.syncservice.db.infinispan.InfinispanConnection;
+import com.stacksync.syncservice.db.infinispan.InfinispanDAO;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 public class DAOFactory {
 
    private String type;
-   private static Map<Connection,GlobalDAO> instance  = new HashMap<>();
+   private static UUID uuid = UUID.randomUUID();
 
    public DAOFactory(String type) {
       this.type = type;
    }
 
-   private static synchronized GlobalDAO createDAO(Connection connection) {
+   private static synchronized GlobalDAO createDAO(Connection connection, UUID uuid) {
 
-      if (!instance.containsKey(connection)) {
-
-         if (connection instanceof InfinispanConnection){
-
-            instance.put(
-                  connection,
-                  new InfinispanDAO(UUID.randomUUID()));
-
-         }else if (connection instanceof DummyConnection) {
-
-            instance.put(
-                  connection,
-                  new DummyDAO());
-
-         }
-
+      if (connection instanceof InfinispanConnection){
+         return  new InfinispanDAO(uuid);
+      }else if (connection instanceof DummyConnection) {
+         return  new DummyDAO();
       }
 
-      return instance.get(connection);
+      throw new IllegalArgumentException("invalid connection");
+
 
    }
 
-   public WorkspaceDAO getWorkspaceDao(Connection connection) {
-      return createDAO(connection);
+   public GlobalDAO getDAO(Connection connection, UUID uuid) {
+      return createDAO(connection, uuid);
    }
 
-   public UserDAO getUserDao(Connection connection) {
-      return createDAO(connection);
+   public GlobalDAO getDAO(Connection connection) {
+      return createDAO(connection,DAOFactory.uuid);
    }
-
-   public ItemDAO getItemDAO(Connection connection) {
-      return createDAO(connection);
-   }
-
-   public ItemVersionDAO getItemVersionDAO(Connection connection) {
-      return createDAO(connection);
-   }
-
-   public DeviceDAO getDeviceDAO(Connection connection) {
-      return createDAO(connection);
-   }
-
-   public GlobalDAO getGlobalDAO(Connection connection) {return createDAO(connection);}
 
    public String getType() {
       return type;

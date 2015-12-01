@@ -1,13 +1,11 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import org.infinispan.atomic.Distributed;
-
+import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.UUID;
 
-@Distributed(key = "id")
-public class DeviceRMI {
+public class DeviceRMI implements Serializable{
 
     public UUID id;
     private String name;

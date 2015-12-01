@@ -33,11 +33,11 @@ public class DatabaseHelper {
 
 		DAOFactory factory = new DAOFactory(datasource);
 
-		workspaceDAO = factory.getWorkspaceDao(connection);
-		userDao = factory.getUserDao(connection);
-		deviceDao = factory.getDeviceDAO(connection);
-		objectDao = factory.getItemDAO(connection);
-		oversionDao = factory.getItemVersionDAO(connection);
+		workspaceDAO = factory.getDAO(connection);
+		userDao = factory.getDAO(connection);
+		deviceDao = factory.getDAO(connection);
+		objectDao = factory.getDAO(connection);
+		oversionDao = factory.getDAO(connection);
 	}
 
 	public void storeObjects(List<ItemRMI> objectsLevel) throws IllegalArgumentException, DAOException, RemoteException {

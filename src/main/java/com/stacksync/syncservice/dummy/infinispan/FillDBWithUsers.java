@@ -42,9 +42,9 @@ public class FillDBWithUsers {
         Connection conn = pool.getConnection();
 
         DAOFactory factory = new DAOFactory(datasource);
-        userDao = factory.getUserDao(conn);
-        deviceDao = factory.getDeviceDAO(conn);
-        workspaceDao = factory.getWorkspaceDao(conn);
+        userDao = factory.getDAO(conn);
+        deviceDao = factory.getDAO(conn);
+        workspaceDao = factory.getDAO(conn);
     }
 
     private void createUser(UUID userId) throws Exception {
