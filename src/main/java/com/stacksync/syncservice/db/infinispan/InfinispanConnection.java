@@ -1,7 +1,6 @@
 package com.stacksync.syncservice.db.infinispan;
 
 import com.stacksync.syncservice.db.Connection;
-import org.infinispan.atomic.AtomicObjectFactory;
 import org.infinispan.commons.api.BasicCache;
 
 /**
@@ -10,16 +9,10 @@ import org.infinispan.commons.api.BasicCache;
  */
 public class InfinispanConnection implements Connection {
 
-   private AtomicObjectFactory factory;
    private BasicCache basicCache;
 
    public InfinispanConnection(BasicCache cache) {
-      this.factory = AtomicObjectFactory.forCache(cache);
       this.basicCache = cache;
-   }
-
-   public AtomicObjectFactory getFactory() {
-      return this.factory;
    }
 
    @Override
