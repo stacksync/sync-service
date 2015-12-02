@@ -94,19 +94,20 @@ public class TestCommit {
 
       List<UserRMI> users = new ArrayList<>(numberUsers);
       for(int i=0; i < numberUsers; i++) {
-         users.add(new UserRMI(UUID.nameUUIDFromBytes(Integer.toString(i).getBytes())));
+         UUID userId = UUID.nameUUIDFromBytes(("cli" + Integer.toString(i)).getBytes());
+         users.add(new UserRMI(userId));
       }
 
       List<WorkspaceRMI> workspaces = new java.util.concurrent. CopyOnWriteArrayList();
       for(int i=0; i < numberWorkspaces; i++) {
          UserRMI user = users.get(random.nextInt(users.size()));
-         workspaces.add(new WorkspaceRMI(UUID.randomUUID(), 1, user, false, false));
+         UUID workspaceID = UUID.nameUUIDFromBytes(("work" + Integer.toString(i)).getBytes());
+         workspaces.add(new WorkspaceRMI(workspaceID, 1, user, false, false));
       }
 
       System.out.println("Using "+users.size()+" users, "+workspaces.size()+" workspaces");
 
       workspaces = new CopyOnWriteArrayList(workspaces);
-      users = new CopyOnWriteArrayList<>(users);
 
       // we launch the tasks
       long start = System.currentTimeMillis();
