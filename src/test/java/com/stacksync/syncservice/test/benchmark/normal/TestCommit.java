@@ -5,6 +5,8 @@ import com.google.gson.JsonObject;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.test.benchmark.Constants;
@@ -13,10 +15,7 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -25,6 +24,7 @@ public class TestCommit {
 
    private final static int DEFAULT_NUMBER_TASKS = 1;
    private final static int DEFAULT_NUMBER_COMMITS = 1;
+   private final static int DEFAULT_NUMBER_WORKSPACES = 250;
    private static final String defaultServer ="localhost:11222";
 
    @Option(name = "-server", usage = "ip:port or ip of the server")
@@ -35,6 +35,9 @@ public class TestCommit {
 
    @Option(name = "-commits", usage = "number of commits per task")
    private int numberCommits = DEFAULT_NUMBER_COMMITS;
+
+   @Option(name = "-workspaces", usage = "number of workspaces")
+   private int numberWorkspaces = DEFAULT_NUMBER_WORKSPACES;
 
    public static void main(String[] args) {
       new TestCommit().doMain(args);
@@ -64,9 +67,10 @@ public class TestCommit {
 
    public TestCommit(){}
 
-   public TestCommit(int numberTasks, int numberCommits){
+   public TestCommit(int numberTasks, int numberCommits, int numberWorkspaces){
       this.numberCommits = numberCommits;
       this.nNumberTasks = numberTasks;
+      this.numberWorkspaces = numberWorkspaces;
    }
 
    public void commit() throws Exception{
@@ -79,10 +83,17 @@ public class TestCommit {
       ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
       pool.getConnection().cleanup();
 
+      // we create workspaces
+      List<WorkspaceRMI> workspaces = new ArrayList<>();
+      for(int i=0; i < numberWorkspaces; i++) {
+         UserRMI user = new UserRMI(UUID.randomUUID());
+         workspaces.add(new WorkspaceRMI(UUID.randomUUID(), 1, user, false, false));
+      }
+
       List<Future<Float>> futures = new ArrayList<>();
       for (int i=0; i< nNumberTasks; i++) {
          Handler handler = new SQLSyncHandler(pool);
-         CommitTask task = new CommitTask(handler, numberCommits);
+         CommitTask task = new CommitTask(handler, numberCommits, workspaces);
          futures.add(service.submit(task));
       }
 

@@ -16,7 +16,7 @@ public class DAOFactory {
       this.type = type;
    }
 
-   private static synchronized GlobalDAO createDAO(Connection connection, UUID uuid) {
+   private static GlobalDAO createDAO(Connection connection, UUID uuid) {
 
       if (connection instanceof InfinispanConnection){
          return  new InfinispanDAO(uuid);

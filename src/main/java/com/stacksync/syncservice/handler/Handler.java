@@ -25,13 +25,14 @@ public class Handler{
    protected Connection connection;
    protected GlobalDAO globalDAO;
    protected UUID handlerId;
+   protected DAOFactory factory;
 
    protected static Random random = new Random(System.currentTimeMillis());
 
    public Handler(ConnectionPool pool) throws Exception {
       connection = pool.getConnection();
       String dataSource = Config.getDatasource();
-      DAOFactory factory = new DAOFactory(dataSource);
+      factory = new DAOFactory(dataSource);
       handlerId = UUID.randomUUID();
       globalDAO = factory.getDAO(connection, handlerId);
    }
@@ -54,7 +55,8 @@ public class Handler{
 
    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
          DeviceRMI device, List<ItemMetadataRMI> items) throws DAOException {
-      return globalDAO.doCommit(user, workspace, device, items);
+      return factory.getDAO(connection, workspace.getId())
+            .doCommit(user, workspace, device, items);
    }
 
    public WorkspaceRMI doShareFolder(UserRMI user, List<String> emails, ItemRMI item,

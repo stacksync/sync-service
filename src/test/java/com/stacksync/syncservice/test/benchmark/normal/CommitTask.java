@@ -9,8 +9,8 @@ import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -21,17 +21,19 @@ public class CommitTask implements Callable<Float> {
 
    private Handler handler;
    private int numberOfCommits;
+   private List<WorkspaceRMI> workspaces;
 
-   public CommitTask(Handler handler, int numberOfCommits) {
+   public CommitTask(Handler handler, int numberOfCommits, List<WorkspaceRMI> workspaces) {
       this.handler = handler;
       this.numberOfCommits = numberOfCommits;
+      this.workspaces = workspaces;
    }
 
    @Override
    public Float call() {
       float throughput = 0;
       try {
-         List<WorkspaceRMI> workspaces = new ArrayList<>();
+         Random random = new Random(System.currentTimeMillis());
          long startTotal = System.currentTimeMillis();
          for (int i = 0; i < numberOfCommits; i++) {
             try {
@@ -40,7 +42,7 @@ public class CommitTask implements Callable<Float> {
                List<ItemMetadataRMI> objects = TestCommit.getObjectMetadata(rawObjects);
                UserRMI user = new UserRMI(UUID.randomUUID());
                DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "android", user);
-               WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID(), 1, user, false, false);
+               WorkspaceRMI workspace = workspaces.get(random.nextInt(workspaces.size()));
                handler.doCommit(user, workspace, device, objects);
                workspaces.add(workspace);
             } catch (DAOException e) {

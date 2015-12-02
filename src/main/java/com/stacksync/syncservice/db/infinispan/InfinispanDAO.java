@@ -287,6 +287,9 @@ public class InfinispanDAO implements GlobalDAO{
    public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device,
          List<ItemMetadataRMI> items) {
 
+      if (logger.isTraceEnabled())
+         logger.trace(this + " doCommit +(" + user.getId() + ", " + workspace.getId() + ", " + device.getId());
+
       assert user.getId()!=null;
       assert device.getId()!=null;
       assert workspace.getId()!=null;
