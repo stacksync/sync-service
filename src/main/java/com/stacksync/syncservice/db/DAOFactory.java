@@ -5,15 +5,12 @@ import com.stacksync.syncservice.db.infinispan.GlobalDAO;
 import com.stacksync.syncservice.db.infinispan.InfinispanConnection;
 import com.stacksync.syncservice.db.infinispan.InfinispanDAO;
 
-import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class DAOFactory {
 
    private String type;
    private static UUID uuid = UUID.randomUUID();
-   private static Map<UUID, GlobalDAO> map = new ConcurrentHashMap<>();
 
    public DAOFactory(String type) {
       this.type = type;
