@@ -16,6 +16,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -24,20 +25,25 @@ public class TestCommit {
 
    private final static int DEFAULT_NUMBER_TASKS = 1;
    private final static int DEFAULT_NUMBER_COMMITS = 1;
-   private final static int DEFAULT_NUMBER_WORKSPACES = 250;
+   private final static int DEFAULT_NUMBER_WORKSPACES = 4500;
+   private final static int DEFAULT_NUMBER_USERS = 4000;
+
    private static final String defaultServer ="localhost:11222";
 
    @Option(name = "-server", usage = "ip:port or ip of the server")
    private String server = defaultServer;
 
-   @Option(name = "-tasks", usage = "number of tasks")
+   @Option(name = "-tasks", usage = "number of tasks; default="+DEFAULT_NUMBER_TASKS)
    private int nNumberTasks = DEFAULT_NUMBER_TASKS;
 
-   @Option(name = "-commits", usage = "number of commits per task")
+   @Option(name = "-commits", usage = "number of commits per task; default="+DEFAULT_NUMBER_COMMITS)
    private int numberCommits = DEFAULT_NUMBER_COMMITS;
 
-   @Option(name = "-workspaces", usage = "number of workspaces")
+   @Option(name = "-workspaces", usage = "number of workspaces; default="+DEFAULT_NUMBER_WORKSPACES)
    private int numberWorkspaces = DEFAULT_NUMBER_WORKSPACES;
+
+   @Option(name = "-users", usage = "number of users; default="+DEFAULT_NUMBER_USERS)
+   private int numberUsers = DEFAULT_NUMBER_USERS;
 
    public static void main(String[] args) {
       new TestCommit().doMain(args);
@@ -67,10 +73,11 @@ public class TestCommit {
 
    public TestCommit(){}
 
-   public TestCommit(int numberTasks, int numberCommits, int numberWorkspaces){
+   public TestCommit(int numberTasks, int numberCommits, int numberWorkspaces, int numberUsers){
       this.numberCommits = numberCommits;
       this.nNumberTasks = numberTasks;
       this.numberWorkspaces = numberWorkspaces;
+      this.numberUsers = numberUsers;
    }
 
    public void commit() throws Exception{
@@ -83,13 +90,26 @@ public class TestCommit {
       ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
       pool.getConnection().cleanup();
 
-      // we create workspaces
-      List<WorkspaceRMI> workspaces = new ArrayList<>();
+      Random random = new Random(System.currentTimeMillis());
+
+      List<UserRMI> users = new ArrayList<>(numberUsers);
+      for(int i=0; i < numberUsers; i++) {
+         users.add(new UserRMI(UUID.nameUUIDFromBytes(Integer.toString(i).getBytes())));
+      }
+
+      List<WorkspaceRMI> workspaces = new java.util.concurrent. CopyOnWriteArrayList();
       for(int i=0; i < numberWorkspaces; i++) {
-         UserRMI user = new UserRMI(UUID.randomUUID());
+         UserRMI user = users.get(random.nextInt(users.size()));
          workspaces.add(new WorkspaceRMI(UUID.randomUUID(), 1, user, false, false));
       }
 
+      System.out.println("Using "+users.size()+" users, "+workspaces.size()+" workspaces");
+
+      workspaces = new CopyOnWriteArrayList(workspaces);
+      users = new CopyOnWriteArrayList<>(users);
+
+      // we launch the tasks
+      long start = System.currentTimeMillis();
       List<Future<Float>> futures = new ArrayList<>();
       for (int i=0; i< nNumberTasks; i++) {
          Handler handler = new SQLSyncHandler(pool);
@@ -101,6 +121,7 @@ public class TestCommit {
       for(Future<Float> future: futures) {
          totalThroughput += future.get();
       }
+      System.out.println("TotalTime="+(System.currentTimeMillis()-start));
       System.out.println("TotalThroughput="+totalThroughput);
 
       pool.getConnection().close();

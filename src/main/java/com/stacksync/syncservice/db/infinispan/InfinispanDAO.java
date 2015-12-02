@@ -288,16 +288,19 @@ public class InfinispanDAO implements GlobalDAO{
          List<ItemMetadataRMI> items) {
 
       if (logger.isTraceEnabled())
-         logger.trace(this + " doCommit +(" + user.getId() + ", " + workspace.getId() + ", " + device.getId());
+         logger.trace(this + " doCommit (" + user.getId() + ", " + workspace.getId() + ", " + device.getId());
 
       assert user.getId()!=null;
       assert device.getId()!=null;
       assert workspace.getId()!=null;
 
-      userMap.putIfAbsent(user.getId(),user);
-      mailMap.putIfAbsent(user.getId(),user.getEmail());
+      if (userMap.putIfAbsent(user.getId(),user)==null)
+         mailMap.putIfAbsent(user.getId(),user.getEmail());
+
       deviceMap.putIfAbsent(device.getId(),device);
-      workspaceMap.putIfAbsent(workspace.getId(),workspace);
+
+      if (workspaceMap.putIfAbsent(workspace.getId(),workspace)!=null)
+         workspace = workspaceMap.get(workspace.getId());
 
       HashMap<Long, Long> tempIds = new HashMap<>();
 

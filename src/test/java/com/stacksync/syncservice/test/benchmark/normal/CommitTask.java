@@ -21,9 +21,9 @@ public class CommitTask implements Callable<Float> {
 
    private Handler handler;
    private int numberOfCommits;
-   private List<WorkspaceRMI> workspaces;
+   private final List<WorkspaceRMI> workspaces;
 
-   public CommitTask(Handler handler, int numberOfCommits, List<WorkspaceRMI> workspaces) {
+   public CommitTask(Handler handler, int numberOfCommits, final List<WorkspaceRMI> workspaces) {
       this.handler = handler;
       this.numberOfCommits = numberOfCommits;
       this.workspaces = workspaces;
@@ -40,9 +40,9 @@ public class CommitTask implements Callable<Float> {
                String metadata = CommonFunctions.generateObjects(1, UUID.randomUUID());
                JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
                List<ItemMetadataRMI> objects = TestCommit.getObjectMetadata(rawObjects);
-               UserRMI user = new UserRMI(UUID.randomUUID());
-               DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "android", user);
                WorkspaceRMI workspace = workspaces.get(random.nextInt(workspaces.size()));
+               UserRMI user = workspace.getOwner();
+               DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "android", user);
                handler.doCommit(user, workspace, device, objects);
                workspaces.add(workspace);
             } catch (DAOException e) {
@@ -52,8 +52,7 @@ public class CommitTask implements Callable<Float> {
 
          long totalTime = System.currentTimeMillis() - startTotal;
          throughput = ( 1000 * ((float)numberOfCommits) / (float)totalTime);
-         System.out.println("Total time --> " + totalTime
-               + " ms ["+throughput +" ops/sec]");
+         System.out.println("time -> " + totalTime + " ms ["+throughput +" ops/sec]");
 
       } catch (Exception e) {
          e.printStackTrace();
