@@ -4,11 +4,12 @@ import com.stacksync.syncservice.db.Status;
 import com.stacksync.syncservice.exceptions.CommitExistantVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
+import org.infinispan.atomic.Distributed;
 
-import java.io.Serializable;
 import java.util.*;
 
-public class WorkspaceRMI implements Serializable{
+@Distributed(key="id")
+public class WorkspaceRMI {
 
    public UUID id;
 
@@ -478,7 +479,7 @@ public class WorkspaceRMI implements Serializable{
 
                ItemVersionRMI itemVersion = new ItemVersionRMI(
                      metadata.getVersion(),
-                     metadata.getVersion(),
+                     metadata.getId(),
                      metadata.getDeviceId(),
                      metadata.getVersion(),
                      metadata.getModifiedAt(),
@@ -530,5 +531,9 @@ public class WorkspaceRMI implements Serializable{
 
    public boolean removeUsers(List<UserRMI> usersToRemove) {
       return users.removeAll(usersToRemove);
+   }
+
+   public boolean isOwner(UserRMI user) {
+      return owner.equals(user);
    }
 }
