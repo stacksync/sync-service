@@ -1,152 +1,156 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import java.io.Serializable;
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.ReadOnly;
+
 import java.lang.reflect.Field;
 import java.util.Date;
 import java.util.UUID;
 
-public class DeviceRMI implements Serializable{
+@Distributed(key="id")
+public class DeviceRMI {
 
-    public UUID id;
-    private String name;
-    private UserRMI user;
-    private String os;
-    private Date createdAt;
-    private Date lastAccessAt;
-    private String lastIp;
-    private String appVersion;
+   public UUID id;
+   public String name;
+   public UserRMI user;
+   public String os;
+   public Date createdAt;
+   public Date lastAccessAt;
+   public String lastIp;
+   public String appVersion;
 
-    @Deprecated
-    public DeviceRMI() {}
+   @Deprecated
+   public DeviceRMI() {}
 
-    public DeviceRMI(UUID id, String name, UserRMI user) {
-        this.id = id;
-        this.name = name;
-        this.user = user;
-    }
+   public DeviceRMI(UUID id, String name, UserRMI user) {
+      this.id = id;
+      this.name = name;
+      this.user = user;
+   }
 
-    public DeviceRMI(String name, UserRMI user, String os, Date createdAt,
-            Date lastAccessAt, String lastIp, String appVersion) {
-        this.name = name;
-        //this.user = user;
-        this.os = os;
-        this.createdAt = createdAt;
-        this.lastAccessAt = lastAccessAt;
-        this.lastIp = lastIp;
-        this.appVersion = appVersion;
-    }
+   public DeviceRMI(String name, UserRMI user, String os, Date createdAt,
+         Date lastAccessAt, String lastIp, String appVersion) {
+      this.name = name;
+      this.user = user;
+      this.os = os;
+      this.createdAt = createdAt;
+      this.lastAccessAt = lastAccessAt;
+      this.lastIp = lastIp;
+      this.appVersion = appVersion;
+   }
 
-    public String getOs() {
-        return os;
-    }
+   @ReadOnly
+   public UUID getId() {
+      return id;
+   }
 
-    public void setOs(String os) {
-        this.os = os;
-    }
+   public String getOs() {
+      return os;
+   }
 
-    public Date getCreatedAt() {
-        return createdAt;
-    }
+   public void setOs(String os) {
+      this.os = os;
+   }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
+   public Date getCreatedAt() {
+      return createdAt;
+   }
 
-    public Date getLastAccessAt() {
-        return lastAccessAt;
-    }
+   public void setCreatedAt(Date createdAt) {
+      this.createdAt = createdAt;
+   }
 
-    public void setLastAccessAt(Date lastAccessAt) {
-        this.lastAccessAt = lastAccessAt;
-    }
+   public Date getLastAccessAt() {
+      return lastAccessAt;
+   }
 
-    public String getLastIp() {
-        return lastIp;
-    }
+   public void setLastAccessAt(Date lastAccessAt) {
+      this.lastAccessAt = lastAccessAt;
+   }
 
-    public void setLastIp(String lastIp) {
-        this.lastIp = lastIp;
-    }
+   public String getLastIp() {
+      return lastIp;
+   }
 
-    public String getAppVersion() {
-        return appVersion;
-    }
+   public void setLastIp(String lastIp) {
+      this.lastIp = lastIp;
+   }
 
-    public void setAppVersion(String appVersion) {
-        this.appVersion = appVersion;
-    }
+   public String getAppVersion() {
+      return appVersion;
+   }
 
-    public UUID getId() {
-        return id;
-    }
+   public void setAppVersion(String appVersion) {
+      this.appVersion = appVersion;
+   }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+   public void setId(UUID id) {
+      this.id = id;
+   }
 
-    public String getName() {
-        return name;
-    }
+   public String getName() {
+      return name;
+   }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+   public void setName(String name) {
+      this.name = name;
+   }
 
-    public UserRMI getUser() {
-        return user;
-    }
+   public UserRMI getUser() {
+      return user;
+   }
 
-    public boolean isValid() {
-        // TODO Auto-generated method stub
-        return true;
-    }
+   public boolean isValid() {
+      // TODO Auto-generated method stub
+      return true;
+   }
 
-    @Override
-    public String toString() {
-        StringBuilder result = new StringBuilder();
+   @Override
+   public String toString() {
+      StringBuilder result = new StringBuilder();
 
-        result.append(this.getClass().getName());
-        result.append(" {");
+      result.append(this.getClass().getName());
+      result.append(" {");
 
-        // determine fields declared in this class only (no fields of
-        // superclass)
-        Field[] fields = this.getClass().getDeclaredFields();
+      // determine fields declared in this class only (no fields of
+      // superclass)
+      Field[] fields = this.getClass().getDeclaredFields();
 
-        // print field names paired with their values
-        for (Field field : fields) {
-            result.append("  ");
-            try {
-                result.append(field.getName());
-                result.append(": ");
-                // requires access to private field:
-                result.append(field.get(this));
-            } catch (IllegalAccessException ex) {
-                System.out.println(ex);
-            }
-        }
-        result.append("}");
+      // print field names paired with their values
+      for (Field field : fields) {
+         result.append("  ");
+         try {
+            result.append(field.getName());
+            result.append(": ");
+            // requires access to private field:
+            result.append(field.get(this));
+         } catch (IllegalAccessException ex) {
+            System.out.println(ex);
+         }
+      }
+      result.append("}");
 
-        return result.toString();
-    }
+      return result.toString();
+   }
 
-    public boolean belongTo(UserRMI user) {
-        return this.user.equals(user);
-    }
+   public boolean belongTo(UserRMI user) {
+      return this.user.equals(user);
+   }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+   @Override
+   public boolean equals(Object o) {
+      if (this == o)
+         return true;
+      if (o == null || getClass() != o.getClass())
+         return false;
 
-        DeviceRMI deviceRMI = (DeviceRMI) o;
+      DeviceRMI deviceRMI = (DeviceRMI) o;
 
-        return id.equals(deviceRMI.id);
+      return id.equals(deviceRMI.id);
 
-    }
+   }
 
-    @Override public int hashCode() {
-        return id.hashCode();
-    }
+   @Override public int hashCode() {
+      return id.hashCode();
+   }
 }

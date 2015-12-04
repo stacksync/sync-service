@@ -5,14 +5,9 @@ import java.util.UUID;
 
 public class ChunkRMI implements Serializable{
 
-   public UUID uuid;
+   private UUID uuid;
    private Integer order = null;
    private String clientChunkName = null;
-
-   @Deprecated
-   public ChunkRMI() {
-      uuid = UUID.randomUUID();
-   }
 
    public ChunkRMI(String name, Integer order) {
       this.uuid = UUID.randomUUID();

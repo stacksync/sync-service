@@ -13,6 +13,7 @@ import com.stacksync.syncservice.exceptions.CommitWrongVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import com.stacksync.syncservice.handler.UnshareData;
 import org.apache.log4j.Logger;
+import org.infinispan.atomic.Distribute;
 import org.infinispan.atomic.Distributed;
 
 import java.util.*;
@@ -29,20 +30,20 @@ public class InfinispanDAO implements GlobalDAO{
 
    private static final Logger logger = Logger.getLogger(InfinispanDAO.class.getName());
 
-//   @Distribute(key = "deviceIndex")
+   @Distribute(key = "deviceIndex")
    public static Map<UUID,DeviceRMI> deviceMap = new ConcurrentHashMap<>();
 
-//   @Distribute(key = "userIndex")
+   @Distribute(key = "userIndex")
    public static Map<UUID,UserRMI> userMap = new ConcurrentHashMap<>();
 
-//   @Distribute(key = "mailIndex")
+   @Distribute(key = "mailIndex")
    public static Map<UUID,String> mailMap = new ConcurrentHashMap<>();
 
-//   @Distribute(key = "workspaceIndex")
+   @Distribute(key = "workspaceIndex")
    public static Map<UUID,WorkspaceRMI> workspaceMap = new ConcurrentHashMap<>();
 
-//   @Distribute(key = "itemIndex")
-   public static Map<Long,ItemRMI> itemMap = new ConcurrentHashMap<>();
+   // FIXME to remove (requires some API changes)
+   private static Map<Long, ItemRMI> itemMap = new ConcurrentHashMap<>();
 
    public UUID id;
 
@@ -284,23 +285,12 @@ public class InfinispanDAO implements GlobalDAO{
    }
 
    @Override
-   public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device,
-         List<ItemMetadataRMI> items) {
-
-      if (logger.isTraceEnabled())
-         logger.trace(this + " doCommit (" + user.getId() + ", " + workspace.getId() + ", " + device.getId());
-
-      assert user.getId()!=null;
-      assert device.getId()!=null;
-      assert workspace.getId()!=null;
+   public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device, List<ItemMetadataRMI> items) {
 
       if (userMap.putIfAbsent(user.getId(),user)==null)
          mailMap.putIfAbsent(user.getId(),user.getEmail());
-
       deviceMap.putIfAbsent(device.getId(),device);
-
-      if (workspaceMap.putIfAbsent(workspace.getId(),workspace)!=null)
-         workspace = workspaceMap.get(workspace.getId());
+      workspaceMap.putIfAbsent(workspace.getId(),workspace);
 
       HashMap<Long, Long> tempIds = new HashMap<>();
 

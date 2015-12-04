@@ -1,218 +1,223 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
-import java.io.Serializable;
+import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.ReadOnly;
+
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class UserRMI implements Serializable{
+@Distributed(key="id")
+public class UserRMI {
 
-    public UUID id;
-    private String name;
-    private String swiftUser;
-    private String swiftAccount;
-    private String email;
-    private Integer quotaLimit;
-    private Integer quotaUsed;
-    private List<DeviceRMI> devices;
-    private List<UUID> workspaces;
+   public UUID id;
+   public String name;
+   public String swiftUser;
+   public String swiftAccount;
+   public String email;
+   public Integer quotaLimit;
+   public Integer quotaUsed;
+   public List<DeviceRMI> devices;
+   public List<UUID> workspaces;
 
-    @Deprecated
-    public UserRMI() {}
+   @Deprecated
+   public UserRMI() {}
 
-    public UserRMI(UUID id) {
-        this(id, "", "", "", "", 0, 0);
-    }
+   public UserRMI(UUID id) {
+      this(id, "", "", "", "", 0, 0);
+   }
 
-    public UserRMI(UUID id, String name, String swiftUser, String swiftAccount, String email, Integer quotaLimit, Integer quotaUsed) {
-        this.id = id;
-        this.name = name;
-        this.swiftUser = swiftUser;
-        this.swiftAccount = swiftAccount;
-        this.email = email;
-        this.quotaLimit = quotaLimit;
-        this.quotaUsed = quotaUsed;
-        this.devices = new ArrayList<>();
-        this.workspaces = new ArrayList<>();
-    }
+   public UserRMI(UUID id, String name, String swiftUser, String swiftAccount, String email, Integer quotaLimit, Integer quotaUsed) {
+      this.id = id;
+      this.name = name;
+      this.swiftUser = swiftUser;
+      this.swiftAccount = swiftAccount;
+      this.email = email;
+      this.quotaLimit = quotaLimit;
+      this.quotaUsed = quotaUsed;
+      this.devices = new ArrayList<>();
+      this.workspaces = new ArrayList<>();
+   }
 
-    public void setUser(UserRMI usr) {
-        this.id = usr.getId();
-        this.name = usr.getName();
-        this.swiftUser = usr.getSwiftUser();
-        this.swiftAccount = usr.getSwiftAccount();
-        this.email = usr.getEmail();
-        this.quotaLimit = usr.getQuotaLimit();
-        this.quotaUsed = usr.getQuotaUsed();
-        this.devices = usr.getDevices();
-        this.workspaces = usr.getWorkspaces();
-    }
+   public void setUser(UserRMI usr) {
+      this.id = usr.getId();
+      this.name = usr.getName();
+      this.swiftUser = usr.getSwiftUser();
+      this.swiftAccount = usr.getSwiftAccount();
+      this.email = usr.getEmail();
+      this.quotaLimit = usr.getQuotaLimit();
+      this.quotaUsed = usr.getQuotaUsed();
+      this.devices = usr.getDevices();
+      this.workspaces = usr.getWorkspaces();
+   }
 
-    public UUID getId() {
-        return id;
-    }
 
-    public void setId(UUID id) {
-        this.id = id;
-    }
+   @ReadOnly
+   public UUID getId() {
+      return id;
+   }
 
-    public String getName() {
-        return name;
-    }
+   public void setId(UUID id) {
+      this.id = id;
+   }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+   public String getName() {
+      return name;
+   }
 
-    public String getSwiftUser() {
-        return swiftUser;
-    }
+   public void setName(String name) {
+      this.name = name;
+   }
 
-    public void setSwiftUser(String swiftUser) {
-        this.swiftUser = swiftUser;
-    }
+   public String getSwiftUser() {
+      return swiftUser;
+   }
 
-    public String getSwiftAccount() {
-        return swiftAccount;
-    }
+   public void setSwiftUser(String swiftUser) {
+      this.swiftUser = swiftUser;
+   }
 
-    public void setSwiftAccount(String swiftAccount) {
-        this.swiftAccount = swiftAccount;
-    }
+   public String getSwiftAccount() {
+      return swiftAccount;
+   }
 
-    public String getEmail() {
-        return email;
-    }
+   public void setSwiftAccount(String swiftAccount) {
+      this.swiftAccount = swiftAccount;
+   }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+   public String getEmail() {
+      return email;
+   }
 
-    public Integer getQuotaLimit() {
-        return quotaLimit;
-    }
+   public void setEmail(String email) {
+      this.email = email;
+   }
 
-    public void setQuotaLimit(Integer quotaLimit) {
-        this.quotaLimit = quotaLimit;
-    }
+   public Integer getQuotaLimit() {
+      return quotaLimit;
+   }
 
-    public Integer getQuotaUsed() {
-        return quotaUsed;
-    }
+   public void setQuotaLimit(Integer quotaLimit) {
+      this.quotaLimit = quotaLimit;
+   }
 
-    public void setQuotaUsed(Integer quotaUsed) {
-        this.quotaUsed = quotaUsed;
-    }
+   public Integer getQuotaUsed() {
+      return quotaUsed;
+   }
 
-    public List<DeviceRMI> getDevices() {
-        return devices;
-    }
+   public void setQuotaUsed(Integer quotaUsed) {
+      this.quotaUsed = quotaUsed;
+   }
 
-    public void setDevices(List<DeviceRMI> devices) {
-        this.devices = devices;
-    }
+   public List<DeviceRMI> getDevices() {
+      return devices;
+   }
 
-    public void addDevice(DeviceRMI device) {
-        this.devices.add(device);
-        }
+   public void setDevices(List<DeviceRMI> devices) {
+      this.devices = devices;
+   }
 
-    public void removeDevice(DeviceRMI device) {
-        this.devices.remove(device);
-    }
+   public void addDevice(DeviceRMI device) {
+      this.devices.add(device);
+   }
 
-    public List<UUID> getWorkspaces() {
-        return workspaces;
-    }
+   public void removeDevice(DeviceRMI device) {
+      this.devices.remove(device);
+   }
 
-    public void setWorkspaces(List<UUID> workspaces) {
-        this.workspaces = workspaces;
-    }
+   public List<UUID> getWorkspaces() {
+      return workspaces;
+   }
 
-    public void addWorkspace(UUID workspace) {
-        this.workspaces.add(workspace);
-    }
+   public void setWorkspaces(List<UUID> workspaces) {
+      this.workspaces = workspaces;
+   }
 
-    public void removeWorkspace(UUID workspace) {
-        int index = 0;
-        for (UUID ID : workspaces) {
-            if (ID.equals(workspace)) {
-                workspaces.remove(index);
-                break;
-            }
-            index++;
-        }
-    }
+   public void addWorkspace(UUID workspace) {
+      this.workspaces.add(workspace);
+   }
 
-    @Override
-    public String toString() {
-        return String.format("User[id=%s, name=%s, swiftUser=%s, swiftAccount=%s, email=%s, quotaLimit=%s, quotaUsed=%s]", id, name,
-                swiftUser, swiftAccount, email, quotaLimit, quotaUsed);
-    }
+   public void removeWorkspace(UUID workspace) {
+      int index = 0;
+      for (UUID ID : workspaces) {
+         if (ID.equals(workspace)) {
+            workspaces.remove(index);
+            break;
+         }
+         index++;
+      }
+   }
 
-    /**
-     * Checks whether the user contains all required attributes (ID is not
-     * required since it is assigned automatically when a user is inserted to
-     * the database)
-     *
-     * @return Boolean True if the user is valid. False otherwise.
-     */
-    public boolean isValid() {
-        return !(this.swiftUser == null || this.email == null || this.name == null || this.quotaLimit == null
-                || this.quotaUsed == null);
-    }
+   @Override
+   public String toString() {
+      return String.format("User[id=%s, name=%s, swiftUser=%s, swiftAccount=%s, email=%s, quotaLimit=%s, quotaUsed=%s]", id, name,
+            swiftUser, swiftAccount, email, quotaLimit, quotaUsed);
+   }
 
-    //************************************
-    //************************************
-    //************** DEVICE **************
-    //************************************
-    //************************************
-    public DeviceRMI getDevice(UUID id) throws RemoteException {
+   /**
+    * Checks whether the user contains all required attributes (ID is not
+    * required since it is assigned automatically when a user is inserted to
+    * the database)
+    *
+    * @return Boolean True if the user is valid. False otherwise.
+    */
+   public boolean isValid() {
+      return !(this.swiftUser == null || this.email == null || this.name == null || this.quotaLimit == null
+            || this.quotaUsed == null);
+   }
 
-        for (DeviceRMI device : devices) {
-            if (device.getId().equals(id)) {
-                return device;
-            }
-        }
-        return null;
-    }
+   //************************************
+   //************************************
+   //************** DEVICE **************
+   //************************************
+   //************************************
+   public DeviceRMI getDevice(UUID id) throws RemoteException {
 
-    public void updateDevice(DeviceRMI device) throws RemoteException {
+      for (DeviceRMI device : devices) {
+         if (device.getId().equals(id)) {
+            return device;
+         }
+      }
+      return null;
+   }
 
-        for (DeviceRMI currentDevice : devices) {
-            if (currentDevice.getId().equals(device.getId())) {
-                devices.remove(currentDevice);
-                devices.add(device);
-                break;
-            }
-        }
-    }
+   public void updateDevice(DeviceRMI device) throws RemoteException {
 
-    public void deleteDevice(UUID id) throws RemoteException {
+      for (DeviceRMI currentDevice : devices) {
+         if (currentDevice.getId().equals(device.getId())) {
+            devices.remove(currentDevice);
+            devices.add(device);
+            break;
+         }
+      }
+   }
 
-        for (DeviceRMI currentDevice : devices) {
-            if (currentDevice.getId().equals(id)) {
-                devices.remove(currentDevice);
-                break;
-            }
-        }
-    }
+   public void deleteDevice(UUID id) throws RemoteException {
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+      for (DeviceRMI currentDevice : devices) {
+         if (currentDevice.getId().equals(id)) {
+            devices.remove(currentDevice);
+            break;
+         }
+      }
+   }
 
-        UserRMI userRMI = (UserRMI) o;
+   @Override
+   public boolean equals(Object o) {
+      if (this == o)
+         return true;
+      if (o == null || getClass() != o.getClass())
+         return false;
 
-        return id.equals(userRMI.id);
+      UserRMI userRMI = (UserRMI) o;
 
-    }
+      return id.equals(userRMI.id);
 
-    @Override
-    public int hashCode() {
-        return id.hashCode();
-    }
+   }
+
+   @Override
+   public int hashCode() {
+      return id.hashCode();
+   }
 }

@@ -7,10 +7,7 @@ import com.stacksync.syncservice.db.infinispan.models.ItemVersionRMI;
 import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  *
@@ -88,8 +85,7 @@ public class MetadataGenerator {
          List<ChunkRMI> chunks = new ArrayList<ChunkRMI>();
          if (!folder) {
             for (int j = 0; j < numChunks; j++) {
-               ChunkRMI chunk = new ChunkRMI();
-               chunk.setClientChunkName(randomString());
+               ChunkRMI chunk = new ChunkRMI(randomString(),j);
                chunks.add(chunk);
             }
          }

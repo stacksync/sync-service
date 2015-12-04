@@ -5,13 +5,10 @@ import java.util.UUID;
 
 public class CommitInfoRMI implements Serializable{
 
-   public UUID id;
+   private UUID id;
    private Long committedVersion;
    private boolean commitSucceed;
    private ItemMetadataRMI metadata;
-
-   @Deprecated
-   public CommitInfoRMI(){}
 
    public CommitInfoRMI(Long committedVersion, boolean commitSucceed,ItemMetadataRMI metadata) {
       this.id = UUID.randomUUID();

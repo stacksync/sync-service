@@ -7,20 +7,15 @@ import java.util.UUID;
 
 public class ItemRMI implements Serializable{
 
-   public Long id;
+   private Long id;
    private Long latestVersion;
    private String filename;
    private String mimetype;
    private Long parentId;
    private Boolean isFolder;
    private Long clientParentFileVersion;
-
    private List<ItemVersionRMI> versions;
-
    private UUID workspaceId;
-
-   @Deprecated
-   public ItemRMI() {}
 
    public ItemRMI(Long id, UUID workspaceId, Long latestVersion, Long parentId,
          String filename, String mimetype, Boolean isFolder,

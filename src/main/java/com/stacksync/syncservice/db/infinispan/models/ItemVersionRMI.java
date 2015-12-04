@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public class ItemVersionRMI implements Serializable{
 
-   public Long id;
+   private Long id;
    private Long itemId;
    private UUID deviceId;
    private Long version;
@@ -18,9 +18,6 @@ public class ItemVersionRMI implements Serializable{
    private String status;
    private Long size;
    private List<ChunkRMI> chunks;
-
-   @Deprecated
-   public ItemVersionRMI(){}
 
    public ItemVersionRMI(Long id, Long itemId, UUID deviceId, Long version, Date committedAt,
          Date modifiedAt, Long checksum, String status, Long size) {

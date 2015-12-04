@@ -37,15 +37,14 @@ public class CommitTask implements Callable<Float> {
          long startTotal = System.currentTimeMillis();
          for (int i = 0; i < numberOfCommits; i++) {
             try {
-               String metadata = CommonFunctions.generateObjects(1, UUID.randomUUID());
+               String metadata = CommonFunctions.generateObjects(0, UUID.randomUUID());
                JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
                List<ItemMetadataRMI> objects = TestCommit.getObjectMetadata(rawObjects);
                WorkspaceRMI workspace = workspaces.get(random.nextInt(workspaces.size()));
                UserRMI user = workspace.getOwner();
                DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "android", user);
                handler.doCommit(user, workspace, device, objects);
-               workspaces.add(workspace);
-            } catch (DAOException e) {
+            } catch (Exception | DAOException e) {
                e.printStackTrace();
             }
          }

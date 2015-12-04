@@ -5,6 +5,7 @@ import com.stacksync.syncservice.exceptions.CommitExistantVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import org.infinispan.atomic.Distributed;
+import org.infinispan.atomic.ReadOnly;
 
 import java.util.*;
 
@@ -12,17 +13,16 @@ import java.util.*;
 public class WorkspaceRMI {
 
    public UUID id;
-
-   private String name;
-   private ItemRMI parentItem;
-   private Integer latestRevision;
-   private UserRMI owner;
-   private String swiftContainer;
-   private String swiftUrl;
-   private boolean isShared;
-   private boolean isEncrypted;
-   private HashMap<Long, ItemRMI> items;
-   private List<UserRMI> users;
+   public UserRMI owner;
+   public String name;
+   public ItemRMI parentItem;
+   public Integer latestRevision;
+   public String swiftContainer;
+   public String swiftUrl;
+   public boolean isShared;
+   public boolean isEncrypted;
+   public HashMap<Long, ItemRMI> items;
+   public List<UserRMI> users;
 
    private long itemVersionIdCounter;
    private Random random = new Random();
@@ -46,6 +46,7 @@ public class WorkspaceRMI {
          users.add(owner);
    }
 
+   @ReadOnly
    public UUID getId() {
       return id;
    }
@@ -62,6 +63,7 @@ public class WorkspaceRMI {
       this.latestRevision = latestRevision;
    }
 
+   @ReadOnly
    public UserRMI getOwner() {
       return owner;
    }
@@ -337,13 +339,11 @@ public class WorkspaceRMI {
    }
 
    public void add(ItemVersionRMI itemVersion) {
-      for (ItemRMI item : items.values()) {
-         if (item.getId().equals(itemVersion.getItemId())) {
-            itemVersion.setId(itemVersionIdCounter++);
-            item.addVersion(itemVersion);
-            item.setLatestVersionNumber(itemVersion.getVersion());
-            break;
-         }
+      ItemRMI item = items.get(itemVersion.getItemId());
+      if (item==null) {
+         itemVersion.setId(itemVersionIdCounter++);
+         item.addVersion(itemVersion);
+         item.setLatestVersionNumber(itemVersion.getVersion());
       }
    }
 

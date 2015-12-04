@@ -10,7 +10,7 @@ public class ItemMetadataRMI implements Serializable{
 
    private static Random random = new Random(System.currentTimeMillis());
 
-   public Long id;
+   private Long id;
    private Long tempId;
    private Long version;
    private UUID deviceId;

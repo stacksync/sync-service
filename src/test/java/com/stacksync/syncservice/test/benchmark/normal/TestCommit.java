@@ -102,7 +102,8 @@ public class TestCommit {
       for(int i=0; i < numberWorkspaces; i++) {
          UserRMI user = users.get(random.nextInt(users.size()));
          UUID workspaceID = UUID.nameUUIDFromBytes(("work" + Integer.toString(i)).getBytes());
-         workspaces.add(new WorkspaceRMI(workspaceID, 1, user, false, false));
+         WorkspaceRMI workspace = new WorkspaceRMI(workspaceID, 1, user, false, false);
+         workspaces.add(workspace);
       }
 
       System.out.println("Using "+users.size()+" users, "+workspaces.size()+" workspaces");

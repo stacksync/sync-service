@@ -5,8 +5,7 @@ import java.util.UUID;
 
 public class AccountInfoRMI implements Serializable{
 
-   public UUID userId;
-
+   private UUID userId;
    private String name;
    private String email;
    private Integer quotaLimit;
@@ -14,9 +13,6 @@ public class AccountInfoRMI implements Serializable{
    private String swiftTenant;
    private String swiftUser;
    private String swiftAuthUrl;
-
-   @Deprecated
-   public AccountInfoRMI(){}
 
    public AccountInfoRMI(UUID userId, String name, String email, Integer quotaLimit, Integer quotaUsed, String swiftTenant,
          String swiftUser, String swiftAuthUrl) {
