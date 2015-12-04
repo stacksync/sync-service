@@ -1,16 +1,16 @@
 package com.stacksync.syncservice.rpc.messages;
 
-import java.util.List;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.stacksync.syncservice.db.infinispan.models.UserWorkspaceRMI;
+import com.stacksync.syncservice.db.infinispan.models.UserRMI;
+
+import java.util.List;
 
 public class APIGetFolderMembersResponse extends APIResponse {
 
-	private List<UserWorkspaceRMI> members;
+	private List<UserRMI> members;
 
-	public APIGetFolderMembersResponse(List<UserWorkspaceRMI> members, Boolean success, int error, String description) {
+	public APIGetFolderMembersResponse(List<UserRMI> members, Boolean success, int error, String description) {
 		super();
 
 		this.success = success;
@@ -19,7 +19,7 @@ public class APIGetFolderMembersResponse extends APIResponse {
 		this.errorCode = error;
 	}
 
-	public List<UserWorkspaceRMI> getMembers() {
+	public List<UserRMI> getMembers() {
 		return members;
 	}
 
@@ -31,7 +31,7 @@ public class APIGetFolderMembersResponse extends APIResponse {
 
 			JsonArray list = new JsonArray();
 
-			for (UserWorkspaceRMI userWorkspace : members) {
+			for (UserRMI userWorkspace : members) {
 				JsonObject jUser = parseUserWorkspace(userWorkspace);
 				list.add(jUser);
 			}

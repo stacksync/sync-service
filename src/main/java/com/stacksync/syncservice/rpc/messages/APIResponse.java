@@ -7,7 +7,6 @@ import com.google.gson.JsonPrimitive;
 import com.stacksync.syncservice.db.infinispan.models.CommitInfoRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserWorkspaceRMI;
 
 public abstract class APIResponse {
 
@@ -149,15 +148,15 @@ public abstract class APIResponse {
 		
 	}
 	
-	protected JsonObject parseUserWorkspace(UserWorkspaceRMI userWorkspace){
+	protected JsonObject parseUserWorkspace(UserRMI user){
 
-		if (userWorkspace == null) {
+		if (user == null) {
 			return new JsonObject();
 		}
 		
-		JsonObject jUser = parseUser((UserRMI) userWorkspace.getUser());
-		jUser.addProperty("is_owner", userWorkspace.isOwner());
-		jUser.addProperty("joined_at", userWorkspace.getJoinedAt().toString());
+		JsonObject jUser = parseUser(user);
+		jUser.addProperty("is_owner", user.getId().toString());
+		jUser.addProperty("joined_at", ""); // FIXME
 		
 		return jUser;
 		
