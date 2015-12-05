@@ -288,7 +288,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
       WorkspaceRMI workspace = new WorkspaceRMI(file.getWorkspaceId());
 
       try {
-         this.doCommit(user, workspace, apiDevice, items);
+         this.doCommit(user.getId(), workspace.getId(), apiDevice.getId(), items);
       } catch (DAOException e) {
          return new APICommitResponse(fileToUpdate, false, e.getError()
                .getCode(), e.getMessage());
@@ -399,7 +399,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
       WorkspaceRMI workspace = new WorkspaceRMI(file.getWorkspaceId());
 
       try {
-         this.doCommit(user, workspace, apiDevice, items);
+         this.doCommit(user.getId(), workspace.getId(), apiDevice.getId(), items);
       } catch (DAOException e) {
          return new APICommitResponse(fileToUpdate, false, e.getError()
                .getCode(), e.getMessage());
@@ -824,7 +824,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
       List<ItemMetadataRMI> objects = new ArrayList<>();
       objects.add(itemToSave);
 
-      this.doCommit(user, workspace, apiDevice, objects);
+      this.doCommit(user.getId(), workspace.getId(), apiDevice.getId(), objects);
 
    }
 
@@ -854,8 +854,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
       WorkspaceRMI workspace = new WorkspaceRMI(item.getWorkspaceId());
 
       try {
-         List<CommitInfo> commitInfo = this.doCommit(user, workspace,
-               apiDevice, items);
+         List<CommitInfo> commitInfo = this.doCommit(user.getId(), workspace.getId(),apiDevice.getId(), items);
          return commitInfo.get(0).isCommitSucceed();
       } catch (DAOException e) {
          logger.error(e);
@@ -907,8 +906,7 @@ public class SQLAPIHandler extends Handler implements APIHandler {
       Boolean success = false;
       ItemMetadataRMI fileToDelete = null;
 
-      List<CommitInfo> commitResponse = this.doCommit(user, workspace,
-            apiDevice, items);
+      List<CommitInfo> commitResponse = this.doCommit(user.getId(), workspace.getId(), apiDevice.getId(), items);
 
       if (!commitResponse.isEmpty()) {
          fileToDelete = new ItemMetadataRMI(commitResponse.get(0).getMetadata());

@@ -2,15 +2,13 @@ package com.stacksync.syncservice.test.benchmark.normal;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
-import com.stacksync.syncservice.db.infinispan.models.DeviceRMI;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
+import com.stacksync.syncservice.test.benchmark.Constants;
 
+import java.security.SecureRandom;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 
@@ -19,38 +17,46 @@ import java.util.concurrent.Callable;
  */
 public class CommitTask implements Callable<Float> {
 
-   private Handler handler;
-   private int numberOfCommits;
-   private final List<WorkspaceRMI> workspaces;
+   private final Handler handler;
+   private final int numberCommits;
+   private final List<UUID> users;
+   private boolean verbose;
 
-   public CommitTask(Handler handler, int numberOfCommits, final List<WorkspaceRMI> workspaces) {
+   public CommitTask(Handler handler, int numberCommits, List<UUID> users, boolean verbose) {
       this.handler = handler;
-      this.numberOfCommits = numberOfCommits;
-      this.workspaces = workspaces;
+      this.numberCommits = numberCommits;
+      this.verbose = verbose;
+      this.users = users;
    }
 
    @Override
    public Float call() {
       float throughput = 0;
       try {
-         Random random = new Random(System.currentTimeMillis());
          long startTotal = System.currentTimeMillis();
-         for (int i = 0; i < numberOfCommits; i++) {
+         SecureRandom random = new SecureRandom(UUID.randomUUID().toString().getBytes());
+         for (int i = 0; i < numberCommits; i++) {
             try {
-               String metadata = CommonFunctions.generateObjects(0, UUID.randomUUID());
+               long start = System.currentTimeMillis();
+
+               int next = Math.abs(random.nextInt());
+               UUID userId = users.get(next % users.size());
+
+               // generate metadata
+               String metadata = CommonFunctions.generateObjects(1, UUID.randomUUID());
                JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
-               List<ItemMetadataRMI> objects = TestCommit.getObjectMetadata(rawObjects);
-               WorkspaceRMI workspace = workspaces.get(random.nextInt(workspaces.size()));
-               UserRMI user = workspace.getOwner();
-               DeviceRMI device = new DeviceRMI(UUID.randomUUID(), "android", user);
-               handler.doCommit(user, workspace, device, objects);
+               List<ItemMetadataRMI> objects = TestCommit.getObjectMetadata(rawObjects, Constants.DEVICE_ID);
+
+               handler.doCommit(userId, userId, Constants.DEVICE_ID, objects);
+
+               if (verbose) System.out.println(System.currentTimeMillis()-start);
             } catch (Exception | DAOException e) {
                e.printStackTrace();
             }
          }
 
          long totalTime = System.currentTimeMillis() - startTotal;
-         throughput = ( 1000 * ((float)numberOfCommits) / (float)totalTime);
+         throughput = ( 1000 * ((float) numberCommits) / (float)totalTime);
          System.out.println("time -> " + totalTime + " ms ["+throughput +" ops/sec]");
 
       } catch (Exception e) {

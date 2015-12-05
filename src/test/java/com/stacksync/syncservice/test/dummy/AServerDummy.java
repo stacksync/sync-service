@@ -77,7 +77,7 @@ public abstract class AServerDummy extends Thread {
         items.add(createItemMetadata(ran, min, max, uuid));
 
         logger.info("hander_doCommit_start,commitID=" + id);
-        handler.doCommit(user, workspace, device, items);
+        handler.doCommit(user.getId(), workspace.getId(), device.getId(), items);
         logger.info("hander_doCommit_end,commitID=" + id);
     }
 

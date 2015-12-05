@@ -84,7 +84,7 @@ public abstract class Action {
         List<ItemMetadataRMI> items = new ArrayList<>();
         items.add(createItemMetadata(ran));
         logger.info("hander_doCommit_start,commitID=" + idCommit);
-        handler.doCommit(user, workspace, device, items);
+        handler.doCommit(user.getId(), workspace.getId(), device.getId(), items);
         logger.info("hander_doCommit_end,commitID=" + idCommit);
 
     }

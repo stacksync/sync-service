@@ -5,18 +5,14 @@ import com.google.gson.JsonObject;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
-import com.stacksync.syncservice.db.infinispan.models.UserRMI;
-import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
-import com.stacksync.syncservice.test.benchmark.Constants;
 import com.stacksync.syncservice.util.Config;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -25,8 +21,9 @@ public class TestCommit {
 
    private final static int DEFAULT_NUMBER_TASKS = 1;
    private final static int DEFAULT_NUMBER_COMMITS = 1;
-   private final static int DEFAULT_NUMBER_WORKSPACES = 4500;
+   private final static int DEFAULT_NUMBER_WORKSPACES = 4000;
    private final static int DEFAULT_NUMBER_USERS = 4000;
+   private final static int DEFAULT_NUMBER_DEVICES = 4000;
 
    private static final String defaultServer ="localhost:11222";
 
@@ -39,11 +36,14 @@ public class TestCommit {
    @Option(name = "-commits", usage = "number of commits per task; default="+DEFAULT_NUMBER_COMMITS)
    private int numberCommits = DEFAULT_NUMBER_COMMITS;
 
-   @Option(name = "-workspaces", usage = "number of workspaces; default="+DEFAULT_NUMBER_WORKSPACES)
-   private int numberWorkspaces = DEFAULT_NUMBER_WORKSPACES;
-
    @Option(name = "-users", usage = "number of users; default="+DEFAULT_NUMBER_USERS)
    private int numberUsers = DEFAULT_NUMBER_USERS;
+
+   @Option(name = "-verbose", usage = "print time for each operation; default=false")
+   private boolean verbose;
+
+   @Option(name = "-load", usage = "load phase; default=false")
+   private boolean load;
 
    public static void main(String[] args) {
       new TestCommit().doMain(args);
@@ -62,7 +62,16 @@ public class TestCommit {
       }
 
       try {
-         commit();
+         Config.loadProperties();
+         Properties properties = Config.getProperties();
+         properties.setProperty("infinispan_host", server);
+         String datasource = Config.getDatasource();
+         ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
+         pool.getConnection().cleanup();
+         if (load)
+            populate(pool);
+         else
+            execute(pool);
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -73,49 +82,49 @@ public class TestCommit {
 
    public TestCommit(){}
 
-   public TestCommit(int numberTasks, int numberCommits, int numberWorkspaces, int numberUsers){
+   public TestCommit(int numberTasks, int numberCommits, int numberUsers, boolean verbose){
       this.numberCommits = numberCommits;
       this.nNumberTasks = numberTasks;
-      this.numberWorkspaces = numberWorkspaces;
       this.numberUsers = numberUsers;
+      this.verbose = verbose;
    }
 
-   public void commit() throws Exception{
-      ExecutorService service = Executors.newFixedThreadPool(nNumberTasks);
+   public void populate(ConnectionPool pool) throws Exception {
 
-      Config.loadProperties();
-      Properties properties = Config.getProperties();
-      properties.setProperty("infinispan_host", server);
-      String datasource = Config.getDatasource();
-      ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
-      pool.getConnection().cleanup();
+      Handler handler = new SQLSyncHandler(pool);
 
-      Random random = new Random(System.currentTimeMillis());
+      System.out.print("Creating " + numberUsers + " users ... ");
 
-      List<UserRMI> users = new ArrayList<>(numberUsers);
+      // populate
+      List<UUID> users = new ArrayList<>(numberUsers);
       for(int i=0; i < numberUsers; i++) {
          UUID userId = UUID.nameUUIDFromBytes(("cli" + Integer.toString(i)).getBytes());
-         users.add(new UserRMI(userId));
+         users.add(userId);
+         handler.populate(userId);
       }
 
-      List<WorkspaceRMI> workspaces = new java.util.concurrent. CopyOnWriteArrayList();
-      for(int i=0; i < numberWorkspaces; i++) {
-         UserRMI user = users.get(random.nextInt(users.size()));
-         UUID workspaceID = UUID.nameUUIDFromBytes(("work" + Integer.toString(i)).getBytes());
-         WorkspaceRMI workspace = new WorkspaceRMI(workspaceID, 1, user, false, false);
-         workspaces.add(workspace);
+      System.out.println("done");
+
+   }
+
+   public List<UUID> execute(ConnectionPool pool) throws Exception {
+      ExecutorService service = Executors.newFixedThreadPool(nNumberTasks);
+
+      // list users
+      List<UUID> users = new ArrayList<>(numberUsers);
+      for(int i=0; i < numberUsers; i++) {
+         UUID userId = UUID.nameUUIDFromBytes(("cli" + Integer.toString(i)).getBytes());
+         users.add(userId);
       }
 
-      System.out.println("Using "+users.size()+" users, "+workspaces.size()+" workspaces");
-
-      workspaces = new CopyOnWriteArrayList(workspaces);
+      System.out.println("Using " + numberUsers + " users");
 
       // we launch the tasks
       long start = System.currentTimeMillis();
       List<Future<Float>> futures = new ArrayList<>();
       for (int i=0; i< nNumberTasks; i++) {
-         Handler handler = new SQLSyncHandler(pool);
-         CommitTask task = new CommitTask(handler, numberCommits, workspaces);
+         Handler handler = new SQLSyncHandler(pool); // new handler for each task
+         CommitTask task = new CommitTask(handler, numberCommits, users, verbose);
          futures.add(service.submit(task));
       }
 
@@ -123,14 +132,13 @@ public class TestCommit {
       for(Future<Float> future: futures) {
          totalThroughput += future.get();
       }
-      System.out.println("TotalTime="+(System.currentTimeMillis()-start));
-      System.out.println("TotalThroughput="+totalThroughput);
+      System.out.println("TotalTime=" + (System.currentTimeMillis() - start));
+      System.out.println("TotalThroughput=" + totalThroughput);
 
-      pool.getConnection().close();
-
+      return  users;
    }
 
-   public static List<ItemMetadataRMI> getObjectMetadata(JsonArray allFiles) {
+   public static List<ItemMetadataRMI> getObjectMetadata(JsonArray allFiles, UUID deviceId) {
 		List<ItemMetadataRMI> metadataList = new ArrayList<>();
 
 		for (int i = 0; i < allFiles.size(); i++) {
@@ -172,7 +180,7 @@ public class TestCommit {
 			}
 
 			ItemMetadataRMI object = new ItemMetadataRMI(
-               fileId, version, Constants.DEVICE_ID, parentFileId, parentFileVersion, status, lastModified,
+               fileId, version, deviceId, parentFileId, parentFileVersion, status, lastModified,
 					checksum, fileSize, folder, name, mimetype, chunks);
 
 			metadataList.add(object);

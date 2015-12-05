@@ -87,14 +87,12 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
             
             UserRMI user = new UserRMI();
             user.setId(request.getUserId());
-            DeviceRMI device = new DeviceRMI(request.getDeviceId(),"",user);
-            WorkspaceRMI workspace = new WorkspaceRMI(request.getWorkspaceId());
-
             List<ItemMetadataRMI> itemMetadataRMIList = new ArrayList<>();
             for (ItemMetadata metadata : request.getItems()) {
                 itemMetadataRMIList.add(new ItemMetadataRMI(metadata));
             }
-            List<CommitInfo> committedItems = getHandler().doCommit(user, workspace, device, itemMetadataRMIList);
+            List<CommitInfo> committedItems =
+                  getHandler().doCommit(request.getUserId(), request.getWorkspaceId(), request.getDeviceId(), itemMetadataRMIList);
             long endTime = System.currentTimeMillis();
             logger.info("\tRequestId= " + request.getRequestId() + " - TotalTime: " + (endTime - startTime));
             
@@ -246,6 +244,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
         try {
             getHandler().createUser(userId);
         } catch (Exception ex) {
+            ex.printStackTrace();
             logger.error(String.format("Could not create user: '%s'", userId), ex);
         }
     }

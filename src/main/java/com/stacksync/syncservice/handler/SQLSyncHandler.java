@@ -108,4 +108,10 @@ public class SQLSyncHandler extends Handler implements SyncHandler {
         return super.getConnection();
     }
 
+	@Override
+	public void createUser(UUID id) throws Exception{
+		populate(id);
+	}
+
+
 }

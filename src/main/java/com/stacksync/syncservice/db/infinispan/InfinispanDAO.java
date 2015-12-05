@@ -8,9 +8,8 @@ package com.stacksync.syncservice.db.infinispan;
 import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.syncservice.db.infinispan.models.*;
-import com.stacksync.syncservice.exceptions.CommitExistantVersion;
-import com.stacksync.syncservice.exceptions.CommitWrongVersion;
-import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
+import com.stacksync.syncservice.exceptions.dao.DAOException;
+import com.stacksync.syncservice.exceptions.storage.UnauthorizedException;
 import com.stacksync.syncservice.handler.UnshareData;
 import org.apache.log4j.Logger;
 import org.infinispan.atomic.Distribute;
@@ -285,55 +284,60 @@ public class InfinispanDAO implements GlobalDAO{
    }
 
    @Override
-   public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device, List<ItemMetadataRMI> items) {
-
-      if (userMap.putIfAbsent(user.getId(),user)==null)
-         mailMap.putIfAbsent(user.getId(),user.getEmail());
-      deviceMap.putIfAbsent(device.getId(),device);
-      workspaceMap.putIfAbsent(workspace.getId(),workspace);
-
-      HashMap<Long, Long> tempIds = new HashMap<>();
+   public List<CommitInfo> doCommit(UUID userId, UUID workspaceId, UUID deviceId, List<ItemMetadataRMI> items)
+         throws DAOException {
 
       List<CommitInfo> responseObjects = new ArrayList<>();
+      try {
 
-      for (ItemMetadataRMI itemMetadata : items) {
+         UserRMI user = userMap.get(userId);
+         if (user==null) throw new DAOException("invalid user "+userId);
 
-         ItemMetadataRMI objectResponse;
-         boolean committed;
+         DeviceRMI device = deviceMap.get(deviceId);
+         if (device==null) throw new DAOException("invalid device "+deviceId);
 
-         if (itemMetadata.getParentId() != null) {
-            Long parentId = tempIds.get(itemMetadata.getParentId());
-            if (parentId != null) {
-               itemMetadata.setParentId(parentId);
+         WorkspaceRMI workspace = workspaceMap.get(workspaceId);
+         if (workspace==null) throw new DAOException("invalid workspace "+deviceId);
+
+         if (!workspace.isOwner(user))
+            throw new UnauthorizedException("invalid rights");
+
+         HashMap<Long, Long> tempIds = new HashMap<>();
+
+         for (ItemMetadataRMI itemMetadata : items) {
+
+            ItemMetadataRMI objectResponse;
+
+            if (itemMetadata.getParentId() != null) {
+               Long parentId = tempIds.get(itemMetadata.getParentId());
+               if (parentId != null) {
+                  itemMetadata.setParentId(parentId);
+               }
             }
-         }
 
-         // if the itemMetadata does not have ID but has a TempID, maybe it was
-         // set
-         if (itemMetadata.getId() == null && itemMetadata.getTempId() != null) {
-            Long newId = tempIds.get(itemMetadata.getTempId());
-            if (newId != null) {
-               itemMetadata.setId(newId);
+            // if the itemMetadata does not have ID but has a TempID, maybe it was set
+            if (itemMetadata.getId() == null && itemMetadata.getTempId() != null) {
+               Long newId = tempIds.get(itemMetadata.getTempId());
+               if (newId != null) {
+                  itemMetadata.setId(newId);
+               }
             }
+
+            workspace.add(itemMetadata);
+
+            if (itemMetadata.getTempId() != null) {
+               tempIds.put(itemMetadata.getTempId(), itemMetadata.getId());
+            }
+
+            objectResponse = itemMetadata;
+
+            responseObjects.add(new CommitInfo(itemMetadata.getVersion(), true,
+                  objectResponse.toMetadataItem()));
          }
 
-         committed = false;
-         try {
-            ItemRMI item = workspace.add(itemMetadata);
-            itemMap.putIfAbsent(item.getId(),item);
-            committed = true;
-         } catch (CommitWrongVersionNoParent | CommitWrongVersion | CommitExistantVersion commitWrongVersionNoParent) {
-            commitWrongVersionNoParent.printStackTrace();
-         }
-
-         if (itemMetadata.getTempId() != null) {
-            tempIds.put(itemMetadata.getTempId(), itemMetadata.getId());
-         }
-
-         objectResponse = itemMetadata;
-
-         responseObjects.add(new CommitInfo(itemMetadata.getVersion(), committed,
-               objectResponse.toMetadataItem()));
+      }catch(Exception e) {
+         e.printStackTrace();
+         return responseObjects;
       }
 
       return responseObjects;

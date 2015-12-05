@@ -13,7 +13,7 @@ public interface SyncHandler {
     
    void createUser(UUID id) throws Exception;
 
-	List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace, DeviceRMI device, List<ItemMetadataRMI> items)
+	List<CommitInfo> doCommit(UUID userId, UUID workspaceId, UUID deviceId, List<ItemMetadataRMI> items)
 			throws DAOException;
 	
 	List<ItemMetadataRMI> doGetChanges(UserRMI user, WorkspaceRMI workspace);

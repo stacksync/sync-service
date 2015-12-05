@@ -1,7 +1,6 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
 import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.ReadOnly;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -53,7 +52,7 @@ public class UserRMI {
    }
 
 
-   @ReadOnly
+   // @ReadOnly
    public UUID getId() {
       return id;
    }

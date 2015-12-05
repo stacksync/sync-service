@@ -5,7 +5,6 @@ import com.stacksync.syncservice.exceptions.CommitExistantVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersionNoParent;
 import org.infinispan.atomic.Distributed;
-import org.infinispan.atomic.ReadOnly;
 
 import java.util.*;
 
@@ -46,7 +45,7 @@ public class WorkspaceRMI {
          users.add(owner);
    }
 
-   @ReadOnly
+   // @ReadOnly
    public UUID getId() {
       return id;
    }
@@ -63,7 +62,7 @@ public class WorkspaceRMI {
       this.latestRevision = latestRevision;
    }
 
-   @ReadOnly
+   // @ReadOnly
    public UserRMI getOwner() {
       return owner;
    }
@@ -533,6 +532,7 @@ public class WorkspaceRMI {
       return users.removeAll(usersToRemove);
    }
 
+   // @ReadOnly
    public boolean isOwner(UserRMI user) {
       return owner.equals(user);
    }
