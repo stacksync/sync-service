@@ -207,7 +207,7 @@ public class InfinispanDAO implements GlobalDAO{
 
    @Override
    public void add(UserRMI user) {
-      userMap.put(user.getId(),user);
+      userMap.put(user.getId(), user);
       mailMap.put(user.getId(), user.getEmail());
    }
 

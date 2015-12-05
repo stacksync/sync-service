@@ -1,6 +1,7 @@
 package com.stacksync.syncservice.db.infinispan;
 
 import com.stacksync.syncservice.db.Connection;
+import org.infinispan.atomic.AtomicObjectFactory;
 import org.infinispan.commons.api.BasicCache;
 
 /**
@@ -26,6 +27,8 @@ public class InfinispanConnection implements Connection {
 
    @Override
    public void close() throws Exception {
+      AtomicObjectFactory factory = AtomicObjectFactory.getSingleton();
+      factory.close();
    }
 
    public void cleanup() {

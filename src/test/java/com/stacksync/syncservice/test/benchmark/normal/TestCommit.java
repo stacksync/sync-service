@@ -21,9 +21,7 @@ public class TestCommit {
 
    private final static int DEFAULT_NUMBER_TASKS = 1;
    private final static int DEFAULT_NUMBER_COMMITS = 1;
-   private final static int DEFAULT_NUMBER_WORKSPACES = 4000;
    private final static int DEFAULT_NUMBER_USERS = 4000;
-   private final static int DEFAULT_NUMBER_DEVICES = 4000;
 
    private static final String defaultServer ="localhost:11222";
 
@@ -40,10 +38,12 @@ public class TestCommit {
    private int numberUsers = DEFAULT_NUMBER_USERS;
 
    @Option(name = "-verbose", usage = "print time for each operation; default=false")
-   private boolean verbose;
+   private boolean verbose = false;
 
    @Option(name = "-load", usage = "load phase; default=false")
-   private boolean load;
+   private boolean load = false;
+
+   private ExecutorService service = Executors.newFixedThreadPool(nNumberTasks);
 
    public static void main(String[] args) {
       new TestCommit().doMain(args);
@@ -67,14 +67,17 @@ public class TestCommit {
          properties.setProperty("infinispan_host", server);
          String datasource = Config.getDatasource();
          ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
-         pool.getConnection().cleanup();
-         if (load)
+         if (load) {
+            // pool.getConnection().cleanup();
             populate(pool);
-         else
+         } else {
             execute(pool);
+         }
+         pool.getConnection().close();
       } catch (Exception e) {
          e.printStackTrace();
       }
+
 
       System.exit(0);
 
@@ -96,10 +99,8 @@ public class TestCommit {
       System.out.print("Creating " + numberUsers + " users ... ");
 
       // populate
-      List<UUID> users = new ArrayList<>(numberUsers);
       for(int i=0; i < numberUsers; i++) {
          UUID userId = UUID.nameUUIDFromBytes(("cli" + Integer.toString(i)).getBytes());
-         users.add(userId);
          handler.populate(userId);
       }
 
@@ -108,7 +109,6 @@ public class TestCommit {
    }
 
    public List<UUID> execute(ConnectionPool pool) throws Exception {
-      ExecutorService service = Executors.newFixedThreadPool(nNumberTasks);
 
       // list users
       List<UUID> users = new ArrayList<>(numberUsers);
