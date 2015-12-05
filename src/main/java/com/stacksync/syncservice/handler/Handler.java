@@ -11,6 +11,7 @@ import com.stacksync.syncservice.db.infinispan.models.*;
 import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.util.Config;
+import com.stacksync.syncservice.util.Constants;
 import org.apache.log4j.Logger;
 
 import java.rmi.RemoteException;
@@ -36,12 +37,21 @@ public class Handler{
       handlerId = UUID.randomUUID();
       globalDAO = factory.getDAO(connection, handlerId);
    }
-   
-   public void createUser(UUID id) throws Exception {
-       UserRMI user = new UserRMI(id, id.toString(), id.toString(), null, "a@a.a", 0, 0);
+
+   @Deprecated
+   public void populate(UUID id) throws Exception {
+
+      // create some user
+       UserRMI user = new UserRMI(id, "john", "snow", "js", "winter@is.coming", 0, 0);
        globalDAO.add(user);
+
+      // create default workspace
        WorkspaceRMI workspace = new WorkspaceRMI(id, 0, user, false, false);
        globalDAO.add(workspace);
+
+      // create default device
+      DeviceRMI device = new DeviceRMI(Constants.API_DEVICE_ID,"android",user);
+      globalDAO.add(device);
    }
 
    public WorkspaceRMI getWorkspace(UUID id) throws RemoteException {
@@ -53,10 +63,9 @@ public class Handler{
       return "handler#"+handlerId;
    }
 
-   public List<CommitInfo> doCommit(UserRMI user, WorkspaceRMI workspace,
-         DeviceRMI device, List<ItemMetadataRMI> items) throws DAOException {
-      return factory.getDAO(connection, workspace.getId())
-            .doCommit(user, workspace, device, items);
+   public List<CommitInfo> doCommit(UUID userId, UUID workspaceId,
+         UUID deviceId, List<ItemMetadataRMI> items) throws DAOException {
+      return globalDAO.doCommit(userId, workspaceId, deviceId, items);
    }
 
    public WorkspaceRMI doShareFolder(UserRMI user, List<String> emails, ItemRMI item,
