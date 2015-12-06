@@ -14,6 +14,7 @@ public class InfinispanConnection implements Connection {
 
    public InfinispanConnection(BasicCache cache) {
       this.basicCache = cache;
+      AtomicObjectFactory.forCache(cache);
    }
 
    @Override

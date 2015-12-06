@@ -36,7 +36,6 @@ public class CommitTask implements Callable<Float> {
          long startTotal = System.currentTimeMillis();
          SecureRandom random = new SecureRandom(UUID.randomUUID().toString().getBytes());
          for (int i = 0; i < numberCommits; i++) {
-            try {
                long start = System.currentTimeMillis();
 
                int next = Math.abs(random.nextInt());
@@ -50,16 +49,13 @@ public class CommitTask implements Callable<Float> {
                handler.doCommit(userId, userId, Constants.DEVICE_ID, objects);
 
                if (verbose) System.out.println(System.currentTimeMillis()-start);
-            } catch (Exception | DAOException e) {
-               e.printStackTrace();
-            }
          }
 
          long totalTime = System.currentTimeMillis() - startTotal;
          throughput = ( 1000 * ((float) numberCommits) / (float)totalTime);
          System.out.println("time -> " + totalTime + " ms ["+throughput +" ops/sec]");
 
-      } catch (Exception e) {
+      } catch (Exception | DAOException e) {
          e.printStackTrace();
       }
 

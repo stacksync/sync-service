@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.stacksync.syncservice.db.ConnectionPool;
 import com.stacksync.syncservice.db.ConnectionPoolFactory;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
+import com.stacksync.syncservice.db.infinispan.models.WorkspaceRMI;
 import com.stacksync.syncservice.handler.Handler;
 import com.stacksync.syncservice.handler.SQLSyncHandler;
 import com.stacksync.syncservice.util.Config;
@@ -43,7 +44,13 @@ public class TestCommit {
    @Option(name = "-load", usage = "load phase; default=false")
    private boolean load = false;
 
-   private ExecutorService service = Executors.newFixedThreadPool(nNumberTasks);
+   @Option(name = "-validate", usage = "validate content after execution; default=false")
+   private boolean validate = false;
+
+   @Option(name = "-content", usage = "list content; default=false")
+   private boolean content= false;
+
+   private List<UUID> users;
 
    public static void main(String[] args) {
       new TestCommit().doMain(args);
@@ -54,6 +61,8 @@ public class TestCommit {
       parser.setUsageWidth(80);
       try {
          parser.parseArgument(args);
+         if (content && load)
+            throw  new CmdLineException("");
       } catch( CmdLineException e ) {
          System.err.println(e.getMessage());
          parser.printUsage(System.err);
@@ -62,18 +71,28 @@ public class TestCommit {
       }
 
       try {
+
          Config.loadProperties();
          Properties properties = Config.getProperties();
          properties.setProperty("infinispan_host", server);
          String datasource = Config.getDatasource();
          ConnectionPool pool = ConnectionPoolFactory.getConnectionPool(datasource);
-         if (load) {
-            // pool.getConnection().cleanup();
-            populate(pool);
+
+         createUsers();
+
+         if (content) {
+            listContent(pool);
          } else {
-            execute(pool);
+            if (load) {
+               pool.getConnection().cleanup();
+               populate(pool);
+            } else {
+               execute(pool, validate);
+            }
          }
+
          pool.getConnection().close();
+
       } catch (Exception e) {
          e.printStackTrace();
       }
@@ -92,15 +111,34 @@ public class TestCommit {
       this.verbose = verbose;
    }
 
+   public void createUsers() {
+      users  = new ArrayList<>(numberUsers);
+      for(int i=0; i < numberUsers; i++) {
+         UUID userId = UUID.nameUUIDFromBytes(("cli" + Integer.toString(i)).getBytes());
+         users.add(userId);
+      }
+   }
+
+   public void listContent(ConnectionPool pool) {
+      System.out.println("Displaying content (" + numberUsers + " users)");
+      try {
+         Handler handler = new SQLSyncHandler(pool);
+         for (UUID uuid : users) {
+            WorkspaceRMI workspace = handler.getWorkspace(uuid);
+            System.out.println(workspace.content());
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }
+   }
+
+
    public void populate(ConnectionPool pool) throws Exception {
-
       Handler handler = new SQLSyncHandler(pool);
-
       System.out.print("Creating " + numberUsers + " users ... ");
 
       // populate
-      for(int i=0; i < numberUsers; i++) {
-         UUID userId = UUID.nameUUIDFromBytes(("cli" + Integer.toString(i)).getBytes());
+      for(UUID userId : users) {
          handler.populate(userId);
       }
 
@@ -108,18 +146,12 @@ public class TestCommit {
 
    }
 
-   public List<UUID> execute(ConnectionPool pool) throws Exception {
+   public void execute(ConnectionPool pool, boolean validate) throws Exception {
 
-      // list users
-      List<UUID> users = new ArrayList<>(numberUsers);
-      for(int i=0; i < numberUsers; i++) {
-         UUID userId = UUID.nameUUIDFromBytes(("cli" + Integer.toString(i)).getBytes());
-         users.add(userId);
-      }
-
-      System.out.println("Using " + numberUsers + " users");
+      System.out.println("Executing (" + numberUsers + " users)");
 
       // we launch the tasks
+      ExecutorService service = Executors.newFixedThreadPool(nNumberTasks);
       long start = System.currentTimeMillis();
       List<Future<Float>> futures = new ArrayList<>();
       for (int i=0; i< nNumberTasks; i++) {
@@ -135,8 +167,19 @@ public class TestCommit {
       System.out.println("TotalTime=" + (System.currentTimeMillis() - start));
       System.out.println("TotalThroughput=" + totalThroughput);
 
-      return  users;
+      if (validate) {
+         Handler handler = new SQLSyncHandler(pool);
+         int totalItems = 0;
+         for (UUID uuid : users) {
+            WorkspaceRMI workspace = handler.getWorkspace(uuid);
+            totalItems += workspace.getItems().size();
+         }
+         assert totalItems == nNumberTasks * numberCommits : totalItems + "!=" + nNumberTasks * numberCommits;
+      }
    }
+
+
+   // Helpers
 
    public static List<ItemMetadataRMI> getObjectMetadata(JsonArray allFiles, UUID deviceId) {
 		List<ItemMetadataRMI> metadataList = new ArrayList<>();

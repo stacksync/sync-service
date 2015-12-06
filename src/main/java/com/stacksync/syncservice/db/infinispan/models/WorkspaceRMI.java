@@ -41,6 +41,7 @@ public class WorkspaceRMI {
       this.isEncrypted = isEncrypted;
       this.items = new HashMap<>();
       this.users = new ArrayList<>();
+      this.name = "workspace#"+id;
       if (owner!=null)
          users.add(owner);
    }
@@ -177,9 +178,13 @@ public class WorkspaceRMI {
 
    @Override
    public String toString() {
+      return "workspace#["+id+"]";
+   }
+
+   public String content() {
       return String.format(
-            "workspace[id=%s, latestRevision=%s, owner=%s, items=%s, users=%s]", id,
-            latestRevision, owner, items, users);
+            "workspace[id=%s, latestRevision=%s, owner=%s, items=%s, users=%s]",
+            id, latestRevision, owner, items.size(), users.size());
    }
 
    public long addVersionRMI(ItemVersionRMI itemVersion) {
@@ -523,6 +528,8 @@ public class WorkspaceRMI {
          }
 
       }
+
+      latestRevision++;
 
       return item;
 
