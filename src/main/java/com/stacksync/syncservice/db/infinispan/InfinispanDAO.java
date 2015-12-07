@@ -9,7 +9,6 @@ import com.stacksync.commons.exceptions.ShareProposalNotCreatedException;
 import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.syncservice.db.infinispan.models.*;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
-import com.stacksync.syncservice.exceptions.storage.UnauthorizedException;
 import com.stacksync.syncservice.handler.UnshareData;
 import org.apache.log4j.Logger;
 import org.infinispan.atomic.Distribute;
@@ -287,60 +286,16 @@ public class InfinispanDAO implements GlobalDAO{
    public List<CommitInfo> doCommit(UUID userId, UUID workspaceId, UUID deviceId, List<ItemMetadataRMI> items)
          throws DAOException {
 
-      List<CommitInfo> responseObjects = new ArrayList<>();
-      try {
+      UserRMI user = userMap.get(userId);
+      if (user==null) throw new DAOException("invalid user "+userId);
 
-         UserRMI user = userMap.get(userId);
-         if (user==null) throw new DAOException("invalid user "+userId);
+      DeviceRMI device = deviceMap.get(deviceId);
+      if (device==null) throw new DAOException("invalid device "+deviceId);
 
-         DeviceRMI device = deviceMap.get(deviceId);
-         if (device==null) throw new DAOException("invalid device "+deviceId);
+      WorkspaceRMI workspace = workspaceMap.get(workspaceId);
+      if (workspace==null) throw new DAOException("invalid workspace "+deviceId);
 
-         WorkspaceRMI workspace = workspaceMap.get(workspaceId);
-         if (workspace==null) throw new DAOException("invalid workspace "+deviceId);
-
-         if (!workspace.isOwner(user))
-            throw new UnauthorizedException("invalid rights");
-
-         HashMap<Long, Long> tempIds = new HashMap<>();
-
-         for (ItemMetadataRMI itemMetadata : items) {
-
-            ItemMetadataRMI objectResponse;
-
-            if (itemMetadata.getParentId() != null) {
-               Long parentId = tempIds.get(itemMetadata.getParentId());
-               if (parentId != null) {
-                  itemMetadata.setParentId(parentId);
-               }
-            }
-
-            // if the itemMetadata does not have ID but has a TempID, maybe it was set
-            if (itemMetadata.getId() == null && itemMetadata.getTempId() != null) {
-               Long newId = tempIds.get(itemMetadata.getTempId());
-               if (newId != null) {
-                  itemMetadata.setId(newId);
-               }
-            }
-
-            workspace.add(itemMetadata);
-
-            if (itemMetadata.getTempId() != null) {
-               tempIds.put(itemMetadata.getTempId(), itemMetadata.getId());
-            }
-
-            objectResponse = itemMetadata;
-
-            responseObjects.add(new CommitInfo(itemMetadata.getVersion(), true,
-                  objectResponse.toMetadataItem()));
-         }
-
-      }catch(Exception e) {
-         e.printStackTrace();
-         return responseObjects;
-      }
-
-      return responseObjects;
+      return workspace.addAll(items);
 
    }
 

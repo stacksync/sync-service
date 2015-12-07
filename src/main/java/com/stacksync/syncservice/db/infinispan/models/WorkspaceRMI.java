@@ -1,5 +1,6 @@
 package com.stacksync.syncservice.db.infinispan.models;
 
+import com.stacksync.commons.models.CommitInfo;
 import com.stacksync.syncservice.db.Status;
 import com.stacksync.syncservice.exceptions.CommitExistantVersion;
 import com.stacksync.syncservice.exceptions.CommitWrongVersion;
@@ -542,5 +543,46 @@ public class WorkspaceRMI {
    // @ReadOnly
    public boolean isOwner(UserRMI user) {
       return owner.equals(user);
+   }
+
+   public List<CommitInfo> addAll(List<ItemMetadataRMI> items)
+         throws CommitWrongVersion, CommitExistantVersion, CommitWrongVersionNoParent {
+
+      List<CommitInfo> responseObjects = new ArrayList<>();
+
+      HashMap<Long, Long> tempIds = new HashMap<>();
+
+      for (ItemMetadataRMI itemMetadata : items) {
+
+         ItemMetadataRMI objectResponse;
+
+         if (itemMetadata.getParentId() != null) {
+            Long parentId = tempIds.get(itemMetadata.getParentId());
+            if (parentId != null) {
+               itemMetadata.setParentId(parentId);
+            }
+         }
+
+         // if the itemMetadata does not have ID but has a TempID, maybe it was set
+         if (itemMetadata.getId() == null && itemMetadata.getTempId() != null) {
+            Long newId = tempIds.get(itemMetadata.getTempId());
+            if (newId != null) {
+               itemMetadata.setId(newId);
+            }
+         }
+
+         add(itemMetadata);
+
+         if (itemMetadata.getTempId() != null) {
+            tempIds.put(itemMetadata.getTempId(), itemMetadata.getId());
+         }
+
+         objectResponse = itemMetadata;
+
+         responseObjects.add(new CommitInfo(itemMetadata.getVersion(), true, objectResponse.toMetadataItem()));
+      }
+
+      return  responseObjects;
+
    }
 }

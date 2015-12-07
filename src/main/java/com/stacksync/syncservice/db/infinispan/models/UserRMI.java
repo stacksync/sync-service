@@ -51,8 +51,6 @@ public class UserRMI {
       this.workspaces = usr.getWorkspaces();
    }
 
-
-   // @ReadOnly
    public UUID getId() {
       return id;
    }
