@@ -69,6 +69,7 @@ public class FillDBWithFiles2 extends Thread {
 
     public static void main(String[] args) throws Exception {
 
+        //args = new String[] {"/home/cotes/Documents/ispn_experiments/day_files_without_new_from12to18.csv", "8"};
         if (args.length != 2) {
             System.err.println("Usage: file_path num_threads");
             System.exit(0);

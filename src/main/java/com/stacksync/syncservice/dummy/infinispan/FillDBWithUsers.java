@@ -50,9 +50,8 @@ public class FillDBWithUsers {
     private void createUser(UUID userId) throws Exception {
         String idStr = userId.toString();
 
-        UserRMI user = new UserRMI();
+        UserRMI user = new UserRMI(userId);
         user.setName(idStr);
-        user.setId(userId);
         user.setEmail(idStr);
         user.setSwiftUser(idStr);
         user.setSwiftAccount(idStr);
@@ -66,10 +65,7 @@ public class FillDBWithUsers {
         
         user.addDevice(device);
 
-        WorkspaceRMI workspace = new WorkspaceRMI(UUID.randomUUID());
-        workspace.setId(userId);
-        workspace.setLatestRevision(0);
-        workspace.setOwner(user);
+        WorkspaceRMI workspace = new WorkspaceRMI(userId,0,user,false,false);
 
         userDao.add(user);
         workspaceDao.add(workspace);
@@ -78,7 +74,7 @@ public class FillDBWithUsers {
 
     public static void main(String[] args) throws Exception {
 
-        args = new String[] {  "/home/cotes/Desktop/FUCKINGTEST/1day_users.csv"};
+        //args = new String[] {  "/home/cotes/Documents/ispn_experiments/day_users_from12to18.csv"};
         if (args.length != 1) {
             System.err.println("Usage: file_path");
             System.exit(0);

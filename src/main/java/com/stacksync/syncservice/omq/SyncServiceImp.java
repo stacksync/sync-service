@@ -52,8 +52,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
         logger.debug(request);
 
-        UserRMI user = new UserRMI();
-        user.setId(request.getUserId());
+        UserRMI user = new UserRMI(request.getUserId());
         WorkspaceRMI workspace = new WorkspaceRMI(request.getWorkspaceId());
 
         List<ItemMetadata> result = new ArrayList<>();
@@ -67,8 +66,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
     public List<Workspace> getWorkspaces(GetWorkspacesRequest request) throws NoWorkspacesFoundException {
         logger.debug(request.toString());
 
-        UserRMI user = new UserRMI();
-        user.setId(request.getUserId());
+        UserRMI user = new UserRMI(request.getUserId());
 
         List<WorkspaceRMI> workspaces = getHandler().doGetWorkspaces(user);
 
@@ -85,8 +83,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
             
             long startTime = System.currentTimeMillis();
             
-            UserRMI user = new UserRMI();
-            user.setId(request.getUserId());
+            UserRMI user = new UserRMI(request.getUserId());
             List<ItemMetadataRMI> itemMetadataRMIList = new ArrayList<>();
             for (ItemMetadata metadata : request.getItems()) {
                 itemMetadataRMIList.add(new ItemMetadataRMI(metadata));
@@ -122,8 +119,7 @@ public class SyncServiceImp extends RemoteObject implements ISyncService {
 
         logger.debug(request.toString());
 
-        UserRMI user = new UserRMI();
-        user.setId(request.getUserId());
+        UserRMI user = new UserRMI(request.getUserId());
 
         DeviceRMI device = new DeviceRMI(request.getDeviceId(), request.getDeviceName(), user);
         device.setOs(request.getOs());
