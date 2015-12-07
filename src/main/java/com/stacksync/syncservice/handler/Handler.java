@@ -11,7 +11,6 @@ import com.stacksync.syncservice.db.infinispan.models.*;
 import com.stacksync.syncservice.exceptions.InternalServerError;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.util.Config;
-import com.stacksync.syncservice.util.Constants;
 import org.apache.log4j.Logger;
 
 import java.rmi.RemoteException;
@@ -50,7 +49,7 @@ public class Handler{
        globalDAO.add(workspace);
 
       // create default device
-      DeviceRMI device = new DeviceRMI(Constants.API_DEVICE_ID,"android",user);
+      DeviceRMI device = new DeviceRMI(id,"android",user);
       globalDAO.add(device);
    }
 

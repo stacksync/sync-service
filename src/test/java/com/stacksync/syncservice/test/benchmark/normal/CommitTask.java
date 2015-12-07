@@ -5,7 +5,6 @@ import com.google.gson.JsonParser;
 import com.stacksync.syncservice.db.infinispan.models.ItemMetadataRMI;
 import com.stacksync.syncservice.exceptions.dao.DAOException;
 import com.stacksync.syncservice.handler.Handler;
-import com.stacksync.syncservice.test.benchmark.Constants;
 
 import java.security.SecureRandom;
 import java.util.List;
@@ -44,9 +43,9 @@ public class CommitTask implements Callable<Float> {
                // generate metadata
                String metadata = CommonFunctions.generateObjects(1, UUID.randomUUID());
                JsonArray rawObjects = new JsonParser().parse(metadata).getAsJsonArray();
-               List<ItemMetadataRMI> objects = TestCommit.getObjectMetadata(rawObjects, Constants.DEVICE_ID);
+               List<ItemMetadataRMI> objects = TestCommit.getObjectMetadata(rawObjects,userId);
 
-               handler.doCommit(userId, userId, Constants.DEVICE_ID, objects);
+               handler.doCommit(userId, userId, userId, objects);
 
                if (verbose) System.out.println(System.currentTimeMillis()-start);
          }
