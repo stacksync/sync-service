@@ -1,3 +1,8 @@
+# DISCONTINUED
+
+StackSync development and maintenance has been discontinued. Thank you to all collaborators that participated in this amazing project.
+
+
 StackSync Synchronization service
 =================================
 
